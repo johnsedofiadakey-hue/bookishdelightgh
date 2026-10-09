@@ -4,6 +4,7 @@ import { AdminError, httpStatusFor, isAdminError } from "@/lib/admin/errors";
 import { deleteImageQuietly, processAndStoreImage } from "@/lib/admin/media";
 import { addGalleryImage, setBookCover } from "@/lib/admin/ops/catalogue";
 import { setHeroImage } from "@/lib/admin/ops/content";
+import { isSameOriginRequest } from "@/lib/admin/same-origin";
 import { getAdminStore } from "@/lib/admin/store";
 
 /**
@@ -14,8 +15,7 @@ import { getAdminStore } from "@/lib/admin/store";
  * the older file is deleted after the commit (orphan cleanup).
  */
 export async function POST(request: NextRequest) {
-  const origin = request.headers.get("origin");
-  if (origin && origin !== request.nextUrl.origin) return NextResponse.json({ error: "Cross-origin request refused." }, { status: 403 });
+  if (!isSameOriginRequest(request.headers)) return NextResponse.json({ error: "Cross-origin request refused." }, { status: 403 });
 
   if (Number(request.headers.get("content-length") ?? 0) > 9 * 1024 * 1024) return NextResponse.json({ error: "Images must be 8 MB or smaller." }, { status: 413 });
 

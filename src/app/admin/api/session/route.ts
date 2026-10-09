@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { revokeSession, signInWithIdToken } from "@/lib/admin/auth/session";
 import { isProductionRuntime, SESSION_COOKIE } from "@/lib/admin/env";
 import { httpStatusFor, isAdminError } from "@/lib/admin/errors";
+import { isSameOriginRequest } from "@/lib/admin/same-origin";
 import { getAdminStore } from "@/lib/admin/store";
 
 /**
@@ -10,13 +11,8 @@ import { getAdminStore } from "@/lib/admin/store";
  * Same-origin only; the cookie is SameSite=Strict and scoped to /admin.
  */
 
-function sameOrigin(request: NextRequest): boolean {
-  const origin = request.headers.get("origin");
-  return !origin || origin === request.nextUrl.origin;
-}
-
 export async function POST(request: NextRequest) {
-  if (!sameOrigin(request)) return NextResponse.json({ error: "Cross-origin request refused." }, { status: 403 });
+  if (!isSameOriginRequest(request.headers)) return NextResponse.json({ error: "Cross-origin request refused." }, { status: 403 });
   let idToken: unknown;
   try {
     ({ idToken } = (await request.json()) as { idToken?: unknown });
@@ -37,7 +33,7 @@ export async function POST(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
-  if (!sameOrigin(request)) return NextResponse.json({ error: "Cross-origin request refused." }, { status: 403 });
+  if (!isSameOriginRequest(request.headers)) return NextResponse.json({ error: "Cross-origin request refused." }, { status: 403 });
   await revokeSession(getAdminStore(), request.cookies.get(SESSION_COOKIE)?.value);
   const response = NextResponse.json({ ok: true });
   response.cookies.delete({ name: SESSION_COOKIE, path: "/admin" });
