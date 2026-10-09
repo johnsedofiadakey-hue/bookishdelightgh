@@ -52,7 +52,7 @@ export interface AdminSession {
 
 /* -------------------------------------------------------------- Catalogue */
 
-export const BOOK_FORMATS = ["Paperback", "Hardcover", "Board book", "Box set", "Spiral bound"] as const;
+export const BOOK_FORMATS = ["Paperback", "Hardcover", "Board book", "Box set", "Spiral bound", "Activity book", "Workbook", "Flashcards", "Puzzle", "Game", "Learning toy"] as const;
 export type AdminBookFormat = (typeof BOOK_FORMATS)[number];
 
 export const AGE_BANDS = ["0-3", "4-7", "8-12", "13-17", "adult", "all-ages"] as const;

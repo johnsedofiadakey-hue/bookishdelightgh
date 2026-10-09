@@ -152,11 +152,12 @@
   transform: translateY(-6px);
   box-shadow: 0 16px 26px #263a5618;
 }
-.storefront .home-page .category-fiction { background: #eadcf1; color: #512f6d; }
-.storefront .home-page .category-children { background: #ffebb8; color: #805413; }
-.storefront .home-page .category-nonfiction { background: #dceef8; color: #215f88; }
-.storefront .home-page .category-ghanaian { background: #f9dacb; color: #914d32; }
+.storefront .home-page .category-picture-books { background: #ffebb8; color: #805413; }
+.storefront .home-page .category-storybooks { background: #eadcf1; color: #512f6d; }
 .storefront .home-page .category-learning { background: #e0eee5; color: #2a7056; }
+.storefront .home-page .category-puzzles { background: #dceef8; color: #215f88; }
+.storefront .home-page .category-games { background: #f9dacb; color: #914d32; }
+.storefront .home-page .category-ghanaian { background: #f9dacb; color: #914d32; }
 .storefront .home-page .category-index { position: relative; z-index: 1; font-size: 11px; font-weight: 700; opacity: .75; }
 .storefront .home-page .category-real .category-name { position: relative; z-index: 1; color: var(--home-ink); font-size: clamp(20px, 2vw, 27px); }
 .storefront .home-page .category-real .category-name b { color: currentColor; opacity: .8; }

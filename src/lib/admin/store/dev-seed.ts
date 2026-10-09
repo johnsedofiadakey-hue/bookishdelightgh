@@ -44,11 +44,12 @@ export function seedDevelopmentStore(store: MemoryAdminStore): void {
   store.seed("siteContent", "homepage", { id: "homepage", draft: DEFAULT_HOMEPAGE, updatedAt: t0, updatedBy: "dev-seed" });
 
   const categories: Category[] = [
-    { id: "fiction", slug: "fiction", name: "Fiction", caption: "Get lost in a story", order: 1, published: true, updatedAt: t0 },
-    { id: "children", slug: "children", name: "Children’s", caption: "For little imaginations", order: 2, published: true, updatedAt: t0 },
-    { id: "nonfiction", slug: "nonfiction", name: "Nonfiction", caption: "A world of new ideas", order: 3, published: true, updatedAt: t0 },
-    { id: "ghanaian", slug: "ghanaian", name: "Ghanaian reads", caption: "Stories close to home", order: 4, published: true, updatedAt: t0 },
-    { id: "learning", slug: "learning", name: "Learning", caption: "Curiosity starts here", order: 5, published: true, updatedAt: t0 },
+    { id: "picture-books", slug: "picture-books", name: "Picture books", caption: "Bright pages for little ones", order: 1, published: true, updatedAt: t0 },
+    { id: "storybooks", slug: "storybooks", name: "Storybooks", caption: "For growing readers", order: 2, published: true, updatedAt: t0 },
+    { id: "learning", slug: "learning", name: "Learning resources", caption: "Workbooks, flashcards and more", order: 3, published: true, updatedAt: t0 },
+    { id: "puzzles", slug: "puzzles", name: "Puzzles", caption: "Piece by piece, mind by mind", order: 4, published: true, updatedAt: t0 },
+    { id: "games", slug: "games", name: "Educational games", caption: "Play that teaches", order: 5, published: true, updatedAt: t0 },
+    { id: "ghanaian", slug: "ghanaian", name: "Ghanaian stories", caption: "Stories from close to home", order: 6, published: true, updatedAt: t0 },
   ];
   for (const category of categories) store.seed("categories", category.id, category);
 
@@ -61,16 +62,16 @@ export function seedDevelopmentStore(store: MemoryAdminStore): void {
   for (const rate of rates) store.seed("deliveryRates", rate.id, { ...rate, familyId: rate.id, version: 1, active: true, activeFrom: t0, createdAt: t0, createdBy: "dev-seed" });
 
   const books: { book: Book; variant: BookVariant; onHand: number }[] = [
-    ["sample-mango", "the-mango-season", "The Mango Season (Sample)", "A. Mensah", ["fiction", "ghanaian"], "adult", "SAMPLE-MANGO-PB", "Paperback", 9500, 320, 8],
-    ["sample-sky", "little-sky-explorer", "Little Sky Explorer (Sample)", "N. Adjei", ["children"], "4-7", "SAMPLE-SKY-HC", "Hardcover", 12000, 450, 5],
-    ["sample-begin", "the-art-of-beginning-again", "The Art of Beginning Again (Sample)", "E. Boateng", ["nonfiction", "ghanaian"], "adult", "SAMPLE-BEGIN-PB", "Paperback", 11000, 300, 12],
+    ["sample-mango", "the-mango-season", "The Mango Season (Sample)", "A. Mensah", ["storybooks", "ghanaian"], "8-12", "SAMPLE-MANGO-PB", "Paperback", 9500, 320, 8],
+    ["sample-sky", "little-sky-explorer", "Little Sky Explorer (Sample)", "N. Adjei", ["picture-books"], "4-7", "SAMPLE-SKY-HC", "Hardcover", 12000, 450, 5],
+    ["sample-begin", "counting-puzzle-30", "Counting Puzzle, 30 pieces (Sample)", "", ["puzzles"], "4-7", "SAMPLE-COUNT-PZ", "Puzzle", 11000, 300, 12],
     ["sample-atlas", "atlas-of-wonder", "Atlas of Wonder (Sample)", "K. Owusu", ["learning"], "8-12", "SAMPLE-ATLAS-HC", "Hardcover", 14500, 900, 2],
   ].map(([id, slug, title, author, categoryIds, ageBand, sku, format, price, weight, onHand]) => ({
     book: {
       id: id as string,
       slug: slug as string,
       title: title as string,
-      authors: [author as string],
+      authors: author ? [author as string] : [],
       description: "Illustrative sample description for local development only. Replace with approved catalogue data.",
       language: "English",
       ageBand: ageBand as Book["ageBand"],

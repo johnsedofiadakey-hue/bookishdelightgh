@@ -50,7 +50,7 @@ export default async function PreviewBookPage({ params }: { params: Promise<{ bo
             <p className="adm-eyebrow">{categoryNames.join(" · ").toUpperCase() || "UNCATEGORISED"}</p>
             <h2 style={{ fontFamily: "var(--serif)", fontSize: "clamp(28px, 4vw, 44px)", letterSpacing: "-0.04em", lineHeight: 1.05, margin: "0 0 6px" }}>{book.title}</h2>
             {book.subtitle ? <p style={{ margin: "0 0 6px", fontSize: 17 }}>{book.subtitle}</p> : null}
-            <p className="adm-muted" style={{ marginTop: 0 }}>by {book.authors.join(", ") || "—"}</p>
+            {book.authors.length ? <p className="adm-muted" style={{ marginTop: 0 }}>by {book.authors.join(", ")}</p> : null}
             {sellable.length ? (
               <div style={{ display: "flex", flexWrap: "wrap", gap: 10, margin: "14px 0" }}>
                 {sellable.map((variant) => (

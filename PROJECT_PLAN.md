@@ -4,7 +4,8 @@ Status: agreed direction, implementation in progress. This document is the share
 
 ## 1. Confirmed business brief
 
-- Sell physical books online to readers of all ages.
+- Sell children’s books and educational resources online — picture books, storybooks, workbooks, flashcards, puzzles, educational games and more — to parents, teachers and schools. (Owner correction, 2026-10-09: the focus is children, not readers of all ages.)
+- Storefront categories: `picture-books`, `storybooks`, `learning`, `puzzles`, `games`, `ghanaian`. Admin category slugs must match. Puzzles and games may have no author or ISBN.
 - Books shown as purchasable are owned stock. Do not take payment for an unavailable book or imply that an unstocked book is ready to ship.
 - Accept online payment at checkout, initially Paystack in GHS with available Ghana mobile money and card channels.
 - Offer delivery nationwide from launch. Every supported destination needs a known delivery price before payment.

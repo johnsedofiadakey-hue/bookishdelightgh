@@ -1,11 +1,23 @@
-export type BookFormat = "Paperback" | "Hardcover";
+export type BookFormat =
+  | "Paperback"
+  | "Hardcover"
+  | "Board book"
+  | "Box set"
+  | "Spiral bound"
+  | "Activity book"
+  | "Workbook"
+  | "Flashcards"
+  | "Puzzle"
+  | "Game"
+  | "Learning toy";
 
 export type BookCategory =
-  | "fiction"
-  | "children"
-  | "nonfiction"
-  | "ghanaian"
-  | "learning";
+  | "picture-books"
+  | "storybooks"
+  | "learning"
+  | "puzzles"
+  | "games"
+  | "ghanaian";
 
 export interface BookVariant {
   sku: string;

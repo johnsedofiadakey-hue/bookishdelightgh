@@ -4,10 +4,10 @@ import { BookCard } from "@/components/storefront/book-card";
 import type { BookCategory } from "@/lib/contracts/catalog";
 import { getStockBooks } from "@/lib/stock-catalog";
 
-export const metadata: Metadata = { title: "Shop books | Bookish Delight" };
+export const metadata: Metadata = { title: "Shop | Bookish Delight" };
 
 const filters: { label: string; value: BookCategory | "all" }[] = [
-  { label: "All books", value: "all" }, { label: "Fiction", value: "fiction" }, { label: "Children’s", value: "children" }, { label: "Nonfiction", value: "nonfiction" }, { label: "Ghanaian reads", value: "ghanaian" }, { label: "Learning", value: "learning" },
+  { label: "All", value: "all" }, { label: "Picture books", value: "picture-books" }, { label: "Storybooks", value: "storybooks" }, { label: "Learning resources", value: "learning" }, { label: "Puzzles", value: "puzzles" }, { label: "Games", value: "games" }, { label: "Ghanaian stories", value: "ghanaian" },
 ];
 
 export default async function ShopPage({ searchParams }: { searchParams: Promise<{ q?: string; category?: string }> }) {
@@ -18,10 +18,10 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
     const queryMatch = !query || [book.title, book.author, book.label, book.variant.isbn || ""].some((field) => field.toLowerCase().includes(query));
     return categoryMatch && queryMatch;
   });
-  return <main className="interior-page shell"><p className="eyebrow">Bookish Delight GH</p><div className="interior-heading"><div><h1>Browse books</h1><p>We’re adding the books we have in stock to the website.</p></div><span className="preview-pill">Catalogue coming soon</span></div>
-    <form className="shop-search" action="/shop" role="search"><input type="search" name="q" defaultValue={q} placeholder="Search by title, author, or ISBN" aria-label="Search books"/><button type="submit">Search ↗</button></form>
-    <div className="filter-row" aria-label="Book categories">{filters.map((filter) => <Link className={filter.value === category ? "active" : ""} href={`/shop?category=${filter.value}${q ? `&q=${encodeURIComponent(q)}` : ""}`} key={filter.value}>{filter.label}</Link>)}</div>
-    <p className="results-count">{books.length} {books.length === 1 ? "book" : "books"} online</p>
-    {books.length ? <div className="product-grid shop-grid">{books.map((book) => <BookCard book={book} key={book.id}/>)}</div> : <div className="empty-state"><h2>No books listed online yet.</h2><p>We’re adding real titles, covers and prices. Looking for something now? Message us and we’ll check our stock.</p><Link className="button button-dark" href="/contact">Ask about a book ↗</Link></div>}
+  return <main className="interior-page shell"><p className="eyebrow">Bookish Delight GH</p><div className="interior-heading"><div><h1>Browse the shop</h1><p>We’re adding the books, puzzles and games we have in stock to the website.</p></div><span className="preview-pill">Catalogue coming soon</span></div>
+    <form className="shop-search" action="/shop" role="search"><input type="search" name="q" defaultValue={q} placeholder="Search by title, author, or ISBN" aria-label="Search the shop"/><button type="submit">Search ↗</button></form>
+    <div className="filter-row" aria-label="Shop categories">{filters.map((filter) => <Link className={filter.value === category ? "active" : ""} href={`/shop?category=${filter.value}${q ? `&q=${encodeURIComponent(q)}` : ""}`} key={filter.value}>{filter.label}</Link>)}</div>
+    <p className="results-count">{books.length} {books.length === 1 ? "item" : "items"} online</p>
+    {books.length ? <div className="product-grid shop-grid">{books.map((book) => <BookCard book={book} key={book.id}/>)}</div> : <div className="empty-state"><h2>Nothing listed online yet.</h2><p>We’re adding real products, photos and prices. Looking for something now? Message us and we’ll check our stock.</p><Link className="button button-dark" href="/contact">Ask about a book ↗</Link></div>}
   </main>;
 }

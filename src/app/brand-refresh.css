@@ -152,8 +152,10 @@
 .storefront .categories { position: relative; }
 .storefront .category-card { border-radius: 16px; transition: transform .35s cubic-bezier(.2,.75,.3,1), box-shadow .35s; }
 .storefront .category-card:hover { transform: translateY(-9px) rotate(-1deg); box-shadow: 0 18px 24px #1725471c; }
-.storefront .category-fiction { background: #e4d4ef; }
-.storefront .category-children { background: #ffe09d; }
+.storefront .category-picture-books { background: #ffe09d; }
+.storefront .category-storybooks { background: #e4d4ef; }
+.storefront .category-puzzles { background: #d3eaf7; }
+.storefront .category-games { background: #f9bc9a; }
 .storefront .category-growth { background: #d3eaf7; }
 .storefront .category-growth .growth-circle { border-color: #9ac8e8; }
 .storefront .category-growth .growth-book { box-shadow: -7px 4px 0 #5a9dc6; color: #235a7f; }

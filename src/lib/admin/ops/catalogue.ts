@@ -45,7 +45,6 @@ export function validateBookInput(input: BookInput): { value: BookInput; errors:
   const slug = (input.slug?.trim() || slugify(title)).toLowerCase();
   if (!isValidSlug(slug)) errors.slug = "Use lowercase letters, numbers and hyphens.";
   const authors = input.authors.map((author) => author.trim()).filter(Boolean).slice(0, 10);
-  if (!authors.length) errors.authors = "Add at least one author.";
   const description = input.description.trim();
   if (description.length > 5000) errors.description = "Keep the description under 5,000 characters.";
   if (!(AGE_BANDS as readonly string[]).includes(input.ageBand)) errors.ageBand = "Choose an age band.";
@@ -108,7 +107,6 @@ export function publishBlockers(book: Book, variants: BookVariant[]): string[] {
   const blockers: string[] = [];
   if (!book.cover) blockers.push("Upload a cover image.");
   else if (!book.cover.alt.trim()) blockers.push("Add alt text to the cover image.");
-  if (!book.authors.length) blockers.push("Add at least one author.");
   if (book.description.trim().length < 20) blockers.push("Write a description (at least 20 characters).");
   if (!book.categoryIds.length) blockers.push("Choose at least one category.");
   const sellable = variants.filter((variant) => variant.active && variant.pricePesewas > 0 && variant.weightGrams > 0);

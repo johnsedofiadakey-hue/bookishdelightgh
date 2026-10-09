@@ -20,7 +20,7 @@ export const DEFAULT_HOMEPAGE: HomepageContent = {
   announcement: { text: "A good story can take you anywhere. We deliver books across Ghana.", enabled: true },
   featuredShelves: [{ id: "shelf-main", title: "Good books, great finds.", bookIds: [] }],
   ghanaianPicks: [],
-  trustPoints: ["Delivered across Ghana", "Books for all ages", "Pay securely online", "Carefully packed with love"],
+  trustPoints: ["Delivered across Ghana", "Books, puzzles & games for kids", "Pay securely online", "Carefully packed with love"],
   deliveryCopy: "Delivery prices are shown at checkout before you pay.",
 };
 

@@ -57,8 +57,8 @@ export function BookForm({
           <Field name="slug" label="URL slug" hint={`/books/${book?.slug ?? (slugPreview(title) || "…")}`}>
             <input type="text" name="slug" defaultValue={book?.slug} placeholder={slugPreview(title) || "auto from title"} pattern="[a-z0-9]+(-[a-z0-9]+)*" />
           </Field>
-          <Field name="authors" label="Author(s)" required hint="Separate several authors with commas.">
-            <input type="text" name="authors" defaultValue={book?.authors.join(", ")} required />
+          <Field name="authors" label="Author(s) or brand" hint="Separate several with commas. Leave empty for puzzles and games without one.">
+            <input type="text" name="authors" defaultValue={book?.authors.join(", ")} />
           </Field>
           <Field name="publisher" label="Publisher">
             <input type="text" name="publisher" defaultValue={book?.publisher} />

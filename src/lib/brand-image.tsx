@@ -27,8 +27,8 @@ export async function renderBrandShareCard() {
     <div style={{ width: 1200, height: 630, display: "flex", alignItems: "center", background: "#f8f6f0", color: "#203550", fontFamily: "Arial, sans-serif" }}>
       <div style={{ width: 690, height: "100%", display: "flex", flexDirection: "column", justifyContent: "center", padding: "65px 35px 65px 75px" }}>
         <div style={{ display: "flex", alignItems: "center", color: "#9a7017", fontSize: 22, fontWeight: 600 }}>Bookish Delight GH · Kumasi</div>
-        <div style={{ display: "flex", marginTop: 24, fontSize: 68, lineHeight: 1.08, fontWeight: 600, letterSpacing: -2 }}>Books for children and adults.</div>
-        <div style={{ display: "flex", marginTop: 32, fontSize: 25, lineHeight: 1.4, color: "#31506f" }}>Ask us about a title while we add our books online.</div>
+        <div style={{ display: "flex", marginTop: 24, fontSize: 68, lineHeight: 1.08, fontWeight: 600, letterSpacing: -2 }}>Children’s books & learning resources.</div>
+        <div style={{ display: "flex", marginTop: 32, fontSize: 25, lineHeight: 1.4, color: "#31506f" }}>Puzzles, educational games and more — ask us while we add our stock online.</div>
       </div>
       <div style={{ width: 510, height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "#fff" }}><img src={logo} alt="" width="440" height="440" style={{ width: 440, height: 440 }}/></div>
     </div>,

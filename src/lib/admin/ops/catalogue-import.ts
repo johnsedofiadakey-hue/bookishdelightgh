@@ -39,7 +39,7 @@ export const IMPORT_COLUMNS = [
 ] as const;
 
 export const MAX_IMPORT_ROWS = 80;
-const REQUIRED = ["title", "authors", "sku", "format", "price_ghs", "weight_grams"] as const;
+const REQUIRED = ["title", "sku", "format", "price_ghs", "weight_grams"] as const;
 
 export interface ImportRowResult {
   line: number;

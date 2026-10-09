@@ -29,6 +29,7 @@ Approximate web palette from the supplied image:
 
 - Name: Bookish Delight GH
 - Tagline: “Nurturing young minds one book at a time”
+- What we sell: children’s books and educational resources — puzzles, games and more. Not general adult books.
 - WhatsApp: `024 447 0293` / `https://wa.me/233244470293`
 - Address: Atonsu–Feyiase, Off Lake Road, Kumasi, Ashanti Region
 - GhanaPost GPS: `AT-1317-5556`
