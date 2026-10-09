@@ -145,8 +145,8 @@ export function publishBlockers(book: Book, variants: BookVariant[]): string[] {
   if (!book.cover) blockers.push("Upload a cover image.");
   else if (!book.cover.alt.trim()) blockers.push("Add alt text to the cover image.");
   if (book.description.trim().length < 20) blockers.push("Write a description (at least 20 characters).");
-  if (!book.categoryIds.length) blockers.push("Choose at least one category.");
   const sellable = variants.filter((variant) => variant.active && variant.pricePesewas > 0 && variant.weightGrams > 0 && (variant.format !== "Bundle" || (variant.bundleItems?.length ?? 0) > 0));
+  if (sellable.some((variant) => variant.format !== "Bundle") && !book.categoryIds.length) blockers.push("Choose at least one book type for Brand New or Preloved stock.");
   if (!sellable.length) blockers.push("Add at least one active variant with a price and shipping weight.");
   return blockers;
 }
@@ -166,9 +166,17 @@ async function readSelectedCategories(tx: AdminTransaction, categoryIds: string[
   return categories as Category[];
 }
 
-function assertPublishedShelf(categories: Category[]) {
-  if (!categories.some((category) => category.published)) {
-    throw new AdminError("precondition", "Publish at least one selected category before publishing this book.");
+async function assertPublicPlacement(tx: AdminTransaction, book: Book, variants: BookVariant[], selectedCategories?: Category[]) {
+  const categories = selectedCategories ?? await readSelectedCategories(tx, book.categoryIds);
+  const active = variants.filter((variant) => variant.active);
+  if (active.some((variant) => variant.format !== "Bundle") && !categories.some((category) => category.published && category.slug !== "bundles")) {
+    throw new AdminError("precondition", "Choose at least one visible book type for Brand New or Preloved stock.");
+  }
+  if (active.some((variant) => variant.format === "Bundle")) {
+    const bundleShelves = await tx.query("categories", { where: [["slug", "==", "bundles"]] });
+    if (!bundleShelves.some((category) => category.published)) {
+      throw new AdminError("precondition", "Make Bundle Deals visible in Categories before publishing a bundle.");
+    }
   }
 }
 
@@ -217,7 +225,6 @@ export async function updateBook(store: AdminDataStore, ctx: StaffContext, bookI
     if (!book) throw new AdminError("not_found", "Book not found.");
     await assertSlugFree(tx, value.slug!, bookId);
     const selectedCategories = await readSelectedCategories(tx, value.categoryIds);
-    if (book.status === "published") assertPublishedShelf(selectedCategories);
     if (value.relatedBookIds.includes(bookId)) throw new AdminError("invalid", "A book cannot be related to itself.", { relatedBookIds: "Remove this book" });
     const next: Book = stripUndefined({
       ...book,
@@ -239,6 +246,7 @@ export async function updateBook(store: AdminDataStore, ctx: StaffContext, bookI
     });
     if (book.status === "published") {
       const variants = await tx.query("bookVariants", { where: [["bookId", "==", bookId]] });
+      await assertPublicPlacement(tx, next, variants, selectedCategories);
       const blockers = publishBlockers(next, variants);
       if (blockers.length) throw new AdminError("precondition", `This book is live; the edit would make it unpublishable: ${blockers.join(" ")}`);
     }
@@ -262,7 +270,7 @@ export async function setBookStatus(store: AdminDataStore, ctx: StaffContext, bo
     if (!book) throw new AdminError("not_found", "Book not found.");
     const variants = await tx.query("bookVariants", { where: [["bookId", "==", bookId]] });
     if (status === "published") {
-      assertPublishedShelf(await readSelectedCategories(tx, book.categoryIds));
+      await assertPublicPlacement(tx, book, variants);
       const blockers = publishBlockers(book, variants);
       if (blockers.length) throw new AdminError("precondition", `Not ready to publish: ${blockers.join(" ")}`);
     }
@@ -400,6 +408,10 @@ export async function createVariant(store: AdminDataStore, ctx: StaffContext, bo
       updatedBy: ctx.uid,
       schemaVersion: SCHEMA_VERSION,
     } satisfies BookVariant);
+    if (book.status === "published") {
+      const siblings = await tx.query("bookVariants", { where: [["bookId", "==", bookId]] });
+      await assertPublicPlacement(tx, book, [...siblings, variant]);
+    }
     // A new SKU starts at zero; opening stock must arrive as a STOCK_RECEIVED movement.
     const inventory: InventoryRecord = { sku: value.sku, onHand: 0, reserved: 0, lowStockThreshold: settings?.defaultLowStockThreshold ?? 3, version: 1, updatedAt: at };
     tx.create("bookVariants", variant.sku, variant);
@@ -443,7 +455,9 @@ export async function updateVariant(store: AdminDataStore, ctx: StaffContext, sk
       updatedBy: ctx.uid,
     });
     if (book?.status === "published") {
-      const blockers = publishBlockers(book, siblings.map((sibling) => (sibling.sku === sku ? next : sibling)));
+      const nextVariants = siblings.map((sibling) => (sibling.sku === sku ? next : sibling));
+      await assertPublicPlacement(tx, book, nextVariants);
+      const blockers = publishBlockers(book, nextVariants);
       if (blockers.length) throw new AdminError("precondition", `“${book.title}” is live; unpublish it first or keep one sellable variant. ${blockers.join(" ")}`);
     }
     tx.set("bookVariants", sku, next);
@@ -518,7 +532,8 @@ export interface CatalogueFilter {
 
 export async function listCatalogue(store: AdminDataStore, ctx: StaffContext, filter: CatalogueFilter = {}): Promise<CatalogueRow[]> {
   assertPermission(ctx, "catalogue.view");
-  const [books, variants, inventory] = await Promise.all([store.query("books"), store.query("bookVariants"), store.query("inventory")]);
+  const [books, variants, inventory, categories] = await Promise.all([store.query("books"), store.query("bookVariants"), store.query("inventory"), store.query("categories")]);
+  const bundleCategoryIds = new Set(categories.filter((category) => category.slug === "bundles").map((category) => category.id));
   const inventoryBySku = new Map(inventory.map((record) => [record.sku, record]));
   const showCost = can(ctx, "finance.view");
   const rows: CatalogueRow[] = books.map((book) => {
@@ -545,7 +560,7 @@ export async function listCatalogue(store: AdminDataStore, ctx: StaffContext, fi
     });
   const filtered = rows.filter((row) => {
     if (filter.status && filter.status !== "all" && row.book.status !== filter.status) return false;
-    if (filter.categoryId && !row.book.categoryIds.includes(filter.categoryId)) return false;
+    if (filter.categoryId && !(bundleCategoryIds.has(filter.categoryId) ? row.variants.some((variant) => variant.format === "Bundle") : row.book.categoryIds.includes(filter.categoryId))) return false;
     if (filter.stock === "out" && row.totalAvailable > 0) return false;
     if (filter.stock === "in" && row.totalAvailable <= 0) return false;
     if (filter.stock === "low" && !lowThreshold(row)) return false;

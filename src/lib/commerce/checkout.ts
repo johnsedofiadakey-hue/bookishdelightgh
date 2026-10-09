@@ -6,7 +6,7 @@ import { quoteDelivery } from "@/lib/admin/ops/delivery";
 import { applyMovement, availableOf } from "@/lib/admin/ops/inventory";
 import { enqueueOrderSms, readNotificationSlot } from "@/lib/admin/ops/notifications";
 import type { AdminDataStore, AdminTransaction } from "@/lib/admin/store/types";
-import { SCHEMA_VERSION, type AuditEvent, type DeliveryRate, type InventoryRecord, type MovementType, type Order, type OrderLineSnapshot, type PaymentRecord } from "@/lib/admin/types";
+import { AGE_BANDS, SCHEMA_VERSION, type AuditEvent, type Book, type BookVariant, type DeliveryRate, type InventoryRecord, type MovementType, type Order, type OrderLineSnapshot, type PaymentRecord } from "@/lib/admin/types";
 import { isGhanaRegion, isValidEmail, normalizeGhanaPhone } from "@/lib/admin/validation";
 import { optionLabel } from "@/lib/contracts/catalog";
 
@@ -73,7 +73,17 @@ export function cleanCartLines(input: unknown): CartLineInput[] {
   return [...merged].map(([sku, quantity]) => ({ sku, quantity }));
 }
 
-type Reader = Pick<AdminTransaction, "get">;
+type Reader = Pick<AdminTransaction, "get" | "query">;
+
+async function isOnPublicShelf(reader: Reader, book: Book, variant: BookVariant): Promise<boolean> {
+  if (!(AGE_BANDS as readonly string[]).includes(book.ageBand)) return false;
+  if (variant.format === "Bundle") {
+    const shelves = await reader.query("categories", { where: [["slug", "==", "bundles"]] });
+    return shelves.some((shelf) => shelf.published);
+  }
+  const categories = await Promise.all(book.categoryIds.map((id) => reader.get("categories", id)));
+  return categories.some((category) => category?.published && category.slug !== "bundles");
+}
 
 /** Price a cart from the catalogue. Usable inside or outside a transaction. */
 export async function priceCart(reader: Reader, lines: CartLineInput[]): Promise<PricedCart & { inventory: Map<string, InventoryRecord> }> {
@@ -85,7 +95,7 @@ export async function priceCart(reader: Reader, lines: CartLineInput[]): Promise
     const variant = await reader.get("bookVariants", line.sku);
     const book = variant ? await reader.get("books", variant.bookId) : null;
     const record = variant ? await reader.get("inventory", line.sku) : null;
-    if (!variant || !variant.active || !book || book.status !== "published" || variant.pricePesewas <= 0) {
+    if (!variant || !variant.active || !book || book.status !== "published" || variant.pricePesewas <= 0 || !await isOnPublicShelf(reader, book, variant)) {
       problems.push(`An item in your bag (${line.sku}) is no longer available.`);
       continue;
     }

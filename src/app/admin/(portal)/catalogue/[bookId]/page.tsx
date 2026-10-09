@@ -129,7 +129,7 @@ export default async function EditBookPage({ params }: { params: Promise<{ bookI
       {book.status === "draft" ? (
         <ol className="adm-steps" aria-label="Publishing steps">
           <li data-state="done">1 · Details</li>
-          <li data-state={step(hasVariant, !hasVariant)}>2 · Variant</li>
+          <li data-state={step(hasVariant, !hasVariant)}>2 · Shop section &amp; stock option</li>
           <li data-state={step(hasStock, hasVariant && !hasStock)}>3 · Opening stock</li>
           <li data-state={step(Boolean(book.cover), hasVariant && hasStock && !book.cover)}>4 · Cover</li>
           <li data-state={step(false, blockers.length === 0)}>5 · Preview &amp; publish</li>
@@ -146,7 +146,7 @@ export default async function EditBookPage({ params }: { params: Promise<{ bookI
 
       <div className="adm-grid adm-grid-main">
         <div className="adm-stack">
-          <Card title="Variants" description="Each format/edition is sold and stocked separately." id="variants">
+          <Card title="Shop sections & stock options" description="Choose Brand New, Preloved or Bundle Deals when adding a stock option. Each option has its own SKU, price and stock." id="variants">
             {variants.length ? (
               <div className="adm-table-wrap" style={{ marginBottom: 14 }}>
                 <table className="adm-table" data-stack>
@@ -177,7 +177,7 @@ export default async function EditBookPage({ params }: { params: Promise<{ bookI
                 </table>
               </div>
             ) : (
-              <p className="adm-muted" style={{ marginTop: 0 }}>No variants yet. Add the format you stock (e.g. Paperback) with its SKU, price and shipping weight.</p>
+              <p className="adm-muted" style={{ marginTop: 0 }}>No stock options yet. Choose Brand New, Preloved or Bundle Deals, then add its SKU, price and shipping weight. If you have both new and preloved copies, add two options.</p>
             )}
             {editable ? (
               <>
@@ -185,7 +185,7 @@ export default async function EditBookPage({ params }: { params: Promise<{ bookI
                   <details key={variant.sku} style={{ marginBottom: 10 }}>
                     <summary className="adm-link" style={{ cursor: "pointer" }}>Edit {variant.sku}</summary>
                     <div style={{ paddingTop: 12 }}>
-                      <ActionForm action={updateVariantAction} idempotencyKey={randomUUID()} submitLabel="Save variant">
+                      <ActionForm action={updateVariantAction} idempotencyKey={randomUUID()} submitLabel="Save stock option">
                         <input type="hidden" name="sku" value={variant.sku} />
                         <VariantFields variant={variant} showCost={showCost} skuOptions={skuOptions} />
                       </ActionForm>
@@ -193,9 +193,9 @@ export default async function EditBookPage({ params }: { params: Promise<{ bookI
                   </details>
                 ))}
                 <details open={!variants.length}>
-                  <summary className="adm-link" style={{ cursor: "pointer" }}>+ Add a variant</summary>
+                  <summary className="adm-link" style={{ cursor: "pointer" }}>+ Add a stock option</summary>
                   <div style={{ paddingTop: 12 }}>
-                    <ActionForm action={createVariantAction} idempotencyKey={randomUUID()} submitLabel="Create variant at zero stock" resetOnSuccess>
+                    <ActionForm action={createVariantAction} idempotencyKey={randomUUID()} submitLabel="Create stock option at zero stock" resetOnSuccess>
                       <input type="hidden" name="bookId" value={book.id} />
                       <VariantFields showCost={showCost} skuOptions={skuOptions} />
                     </ActionForm>

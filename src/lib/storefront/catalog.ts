@@ -40,17 +40,23 @@ function toPublicVariant(variant: AdminVariant, inventory: InventoryRecord | und
 
 export function toPublicBook(book: Book, variants: AdminVariant[], inventory: Map<string, InventoryRecord>, categorySlugs: Map<string, string>, labelBySku: Map<string, string> = new Map()): PublicBook | null {
   if (book.status !== "published" || !(AGE_BANDS as readonly string[]).includes(book.ageBand)) return null;
+  const bundleShelfVisible = [...categorySlugs.values()].includes("bundles");
+  const subjectSlugs = book.categoryIds.flatMap((id) => {
+    const slug = categorySlugs.get(id);
+    return slug && slug !== "bundles" ? [slug] : [];
+  });
   const sellable = variants
-    .filter((variant) => variant.bookId === book.id && variant.active && variant.pricePesewas > 0)
+    .filter((variant) => variant.bookId === book.id && variant.active && variant.pricePesewas > 0 && (variant.format === "Bundle" ? bundleShelfVisible : subjectSlugs.length > 0))
     .map((variant) => toPublicVariant(variant, inventory.get(variant.sku), labelBySku))
     .sort((left, right) => left.pricePesewas - right.pricePesewas);
   if (!sellable.length) return null;
+  const categories = [...new Set([...subjectSlugs, ...(bundleShelfVisible && sellable.some((variant) => variant.format === "Bundle") ? ["bundles"] : [])])];
   return {
     id: book.id,
     slug: book.slug,
     title: book.title,
     author: book.authors.join(", "),
-    categories: book.categoryIds.flatMap((id) => categorySlugs.has(id) ? [categorySlugs.get(id)!] : []),
+    categories,
     label: AGE_LABELS[book.ageBand] ?? "",
     description: book.description,
     ...(book.cover ? { coverImageUrl: book.cover.url, coverAlt: book.cover.alt } : {}),

@@ -9,6 +9,7 @@ import { MemoryAdminStore } from "@/lib/admin/store/memory";
 import { priceCart } from "@/lib/commerce/checkout";
 import { conditionLabel, optionLabel } from "@/lib/contracts/catalog";
 import { loadPublicCatalog, loadPublicCategories } from "@/lib/storefront/catalog";
+import { filterShopBooks } from "@/lib/storefront/shop-filter";
 import { ctxFor, freshStore, key } from "./helpers";
 
 const ISBN = "978-0-306-40615-7";
@@ -94,6 +95,24 @@ describe("brand new and preloved variants", () => {
 });
 
 describe("shop shelves", () => {
+  it("keeps the seven book types under Brand New and Preloved while listing bundles separately", async () => {
+    const store = freshStore();
+    const editor = ctxFor("catalogue_editor");
+    store.seed("categories", "bundles", { id: "bundles", slug: "bundles", name: "Bundle Deals", order: 8, published: true, updatedAt: new Date().toISOString() });
+    const bookId = await book(store);
+    await createVariant(store, editor, bookId, { ...base, sku: "SHELF-NEW", format: "Paperback", condition: "new" }, key());
+    await createVariant(store, editor, bookId, { ...base, sku: "SHELF-PL", format: "Paperback", condition: "preloved", conditionGrade: "good", pricePesewas: 4500 }, key());
+    await createVariant(store, editor, bookId, { ...base, sku: "SHELF-BUNDLE", format: "Bundle", condition: "mixed", pricePesewas: 12000, bundleItems: [{ title: "Two-book set", quantity: 1 }] }, key());
+    await setBookCover(store, editor, bookId, cover, key());
+    await setBookStatus(store, editor, bookId, "published", key());
+    const catalog = await loadPublicCatalog(store);
+    assert.deepEqual(filterShopBooks(catalog, "fiction", "new")[0].variants.map((variant) => variant.sku), ["SHELF-NEW"]);
+    assert.deepEqual(filterShopBooks(catalog, "fiction", "preloved")[0].variants.map((variant) => variant.sku), ["SHELF-PL"]);
+    assert.deepEqual(filterShopBooks(catalog, "bundles", "all")[0].variants.map((variant) => variant.sku), ["SHELF-BUNDLE"]);
+    assert.deepEqual(filterShopBooks(catalog, "all", "new")[0].variants.map((variant) => variant.sku), ["SHELF-NEW"]);
+    assert.equal(filterShopBooks(catalog, "fiction", "all")[0].variants.some((variant) => variant.format === "Bundle"), false);
+  });
+
   it("does not expose a hidden shelf through a published book", async () => {
     const store = freshStore();
     const editor = ctxFor("catalogue_editor");
@@ -104,8 +123,7 @@ describe("shop shelves", () => {
     const category = (await store.get("categories", "fiction"))!;
     store.seed("categories", "fiction", { ...category, published: false });
     const [publicBook] = await loadPublicCatalog(store);
-    assert.deepEqual(publicBook.categories, []);
-    assert.ok(publicBook, "the book remains available in Shop all");
+    assert.equal(publicBook, undefined, "a book with no visible book type does not appear on the public site");
   });
 
   it("keeps legacy adult listings out of the children’s storefront", async () => {
@@ -122,7 +140,7 @@ describe("shop shelves", () => {
   it("shows the recommended shelves until any exist", async () => {
     const shelves = await loadPublicCategories(new MemoryAdminStore());
     assert.deepEqual(shelves.map((shelf) => shelf.slug), RECOMMENDED_CATEGORIES.map((category) => category.slug));
-    assert.equal(shelves.length, 10);
+    assert.equal(shelves.length, 8);
     assert.equal(shelves.at(-1)?.slug, "bundles");
   });
 

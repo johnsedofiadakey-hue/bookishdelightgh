@@ -15,6 +15,7 @@ function rejectsWith(code: AdminError["code"]) {
 
 async function setup() {
   const store = freshStore();
+  store.seed("categories", "bundles", { id: "bundles", slug: "bundles", name: "Bundle Deals", order: 8, published: true, updatedAt: new Date().toISOString() });
   const editor = ctxFor("catalogue_editor");
   const owner = ctxFor("owner");
   const newBook = async (title: string) =>
@@ -44,6 +45,18 @@ async function setup() {
 }
 
 describe("bundle deals", () => {
+  it("publishes a bundle-only listing without a book type, and requires the Bundle Deals shelf", async () => {
+    const store = freshStore();
+    const editor = ctxFor("catalogue_editor");
+    const { result } = await createBook(store, editor, { title: "Reading Pair", authors: [], description: "A reading pair for children to enjoy together.", language: "English", ageBand: "4-7", categoryIds: [], tags: [], relatedBookIds: [] }, key());
+    await createVariant(store, editor, result.bookId, { sku: "PAIR-BUNDLE", format: "Bundle", condition: "new", pricePesewas: 12000, weightGrams: 500, active: true, bundleItems: [{ title: "Two books", quantity: 1 }] }, key());
+    await setBookCover(store, editor, result.bookId, cover, key());
+    await assert.rejects(setBookStatus(store, editor, result.bookId, "published", key()), rejectsWith("precondition"));
+    store.seed("categories", "bundles", { id: "bundles", slug: "bundles", name: "Bundle Deals", order: 8, published: true, updatedAt: new Date().toISOString() });
+    await setBookStatus(store, editor, result.bookId, "published", key());
+    assert.deepEqual((await loadPublicCatalog(store))[0].categories, ["bundles"]);
+  });
+
   it("fills linked titles, allows Mixed only for bundles and needs a worth above the price", async () => {
     const { store, editor, bundleBook } = await setup();
     const bundle = (await store.get("bookVariants", "BUNDLE-STARTER"))!;

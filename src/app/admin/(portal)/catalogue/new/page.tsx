@@ -16,10 +16,10 @@ export default async function NewBookPage() {
 
   return (
     <>
-      <PageHeader crumbs={[{ href: "/admin/catalogue", label: "Catalogue" }]} eyebrow="New book" title="Add a book" lede="This creates a draft. Next you’ll add a format variant, receive opening stock and upload a cover before publishing." />
+      <PageHeader crumbs={[{ href: "/admin/catalogue", label: "Catalogue" }]} eyebrow="New book" title="Add a book" lede="First choose a book type, such as Early Readers. Next choose whether this stock is Brand New, Preloved or a Bundle Deal, then add its price, stock and real cover photo." />
       <ol className="adm-steps" aria-label="Publishing steps">
         <li data-state="current">1 · Details</li>
-        <li>2 · Variant (SKU, price, weight)</li>
+        <li>2 · Shop section, SKU &amp; price</li>
         <li>3 · Opening stock</li>
         <li>4 · Cover</li>
         <li>5 · Preview &amp; publish</li>

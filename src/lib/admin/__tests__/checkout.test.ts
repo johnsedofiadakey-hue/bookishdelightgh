@@ -63,6 +63,15 @@ describe("website checkout", () => {
     assert.equal(quote.cart.problems.length, 2);
   });
 
+  it("refuses a saved bag item after its only public shelf is hidden", async () => {
+    const store = shopStore();
+    const category = (await store.get("categories", "puzzles"))!;
+    store.seed("categories", "puzzles", { ...category, published: false });
+    const quote = await quoteCheckout(store, { lines: [{ sku: "PZ-1", quantity: 1 }], region: "Ashanti", city: "Kumasi" });
+    assert.equal(quote.cart.lines.length, 0);
+    assert.equal(quote.cart.problems.length, 1);
+  });
+
   it("creates a pending order and reserves stock", async () => {
     const store = shopStore();
     const pending = await createPendingOrder(store, input());

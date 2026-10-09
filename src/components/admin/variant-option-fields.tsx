@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Field, FieldErrorFor } from "@/components/admin/action-form";
-import { BUNDLE_CONDITIONS, CONDITION_LABELS, GRADE_DESCRIPTIONS, GRADE_LABELS, ITEM_CONDITIONS, PRELOVED_GRADES, type ItemCondition, type PrelovedGrade } from "@/lib/contracts/catalog";
+import { BUNDLE_CONDITIONS, CONDITION_LABELS, GRADE_DESCRIPTIONS, GRADE_LABELS, PRELOVED_GRADES, type ItemCondition, type PrelovedGrade } from "@/lib/contracts/catalog";
 
 export interface SkuOption {
   sku: string;
@@ -17,12 +17,13 @@ interface Row {
   quantity: number;
 }
 
+type ShopSection = "new" | "preloved" | "bundles";
+
 const ghs = (pesewas?: number) => (pesewas === undefined ? "" : `${Math.floor(pesewas / 100)}.${String(pesewas % 100).padStart(2, "0")}`);
 
 /**
- * Format, condition (+ grade and note for preloved) and, for bundles, the
- * "what's inside" list and "worth" price. Fields that don't apply are not
- * rendered, so they are never submitted.
+ * The three public shop sections map to format and condition. Fields that do
+ * not apply are not submitted.
  */
 export function VariantOptionFields({
   formats,
@@ -44,22 +45,26 @@ export function VariantOptionFields({
   skuOptions: SkuOption[];
 }) {
   const initialRows = (): Row[] => (bundleItems?.length ? bundleItems.map((item, index) => ({ id: index + 1, sku: item.sku ?? "", title: item.title, quantity: item.quantity })) : [{ id: 1, sku: "", title: "", quantity: 1 }]);
-  const [format, setFormat] = useState(initialFormat);
-  const [condition, setCondition] = useState<ItemCondition>(initialCondition ?? "new");
+  const initialSection: ShopSection = initialFormat === "Bundle" ? "bundles" : initialCondition === "preloved" ? "preloved" : "new";
+  const singleFormats = formats.filter((item) => item !== "Bundle");
+  const initialSingleFormat = initialFormat === "Bundle" ? "Paperback" : initialFormat;
+  const [section, setSection] = useState<ShopSection>(initialSection);
+  const [singleFormat, setSingleFormat] = useState(initialSingleFormat);
+  const [bundleCondition, setBundleCondition] = useState<ItemCondition | "">(initialFormat === "Bundle" ? initialCondition ?? "" : "");
   const [selectedGrade, setSelectedGrade] = useState<PrelovedGrade | "">(grade ?? "");
   const [rows, setRows] = useState<Row[]>(initialRows);
-  const formatRef = useRef<HTMLSelectElement>(null);
+  const sectionRef = useRef<HTMLSelectElement>(null);
 
-  const isBundle = format === "Bundle";
-  const conditions = isBundle ? BUNDLE_CONDITIONS : ITEM_CONDITIONS;
-  const effectiveCondition = conditions.includes(condition) ? condition : "new";
+  const isBundle = section === "bundles";
+  const effectiveCondition = isBundle ? bundleCondition : section;
 
   useEffect(() => {
-    const form = formatRef.current?.form;
+    const form = sectionRef.current?.form;
     if (!form) return;
     const onReset = () => {
-      setFormat(initialFormat);
-      setCondition(initialCondition ?? "new");
+      setSection(initialSection);
+      setSingleFormat(initialSingleFormat);
+      setBundleCondition(initialFormat === "Bundle" ? initialCondition ?? "" : "");
       setSelectedGrade(grade ?? "");
       setRows(initialRows());
     };
@@ -72,21 +77,28 @@ export function VariantOptionFields({
 
   return (
     <>
-      <Field name="format" label="Format" required>
-        <select ref={formatRef} name="format" value={format} onChange={(event) => setFormat(event.target.value)}>
-          {formats.map((item) => <option key={item}>{item}</option>)}
+      <Field name="shopGroup" label="Shop section" required hint="This decides whether the stock appears under Brand New, Preloved or Bundle Deals on the website.">
+        <select ref={sectionRef} name="shopGroup" value={section} onChange={(event) => setSection(event.target.value as ShopSection)}>
+          <option value="new">Brand New</option>
+          <option value="preloved">Preloved</option>
+          <option value="bundles">Bundle Deals</option>
         </select>
       </Field>
-      <Field
-        name="condition"
-        label="Condition"
-        required
-        hint={effectiveCondition === "new" ? "Unused copy from the publisher or supplier." : effectiveCondition === "mixed" ? "The bundle has both new and preloved books; say which in the list." : "Second-hand copy. Price it and stock it separately."}
-      >
-        <select name="condition" value={effectiveCondition} onChange={(event) => setCondition(event.target.value as ItemCondition)}>
-          {conditions.map((item) => <option key={item} value={item}>{CONDITION_LABELS[item]}</option>)}
-        </select>
-      </Field>
+      {isBundle ? <input type="hidden" name="format" value="Bundle" /> : (
+        <Field name="format" label="Format" required>
+          <select name="format" value={singleFormat} onChange={(event) => setSingleFormat(event.target.value)}>
+            {singleFormats.map((item) => <option key={item} value={item}>{item}</option>)}
+          </select>
+        </Field>
+      )}
+      {isBundle ? (
+        <Field name="condition" label="What’s inside the bundle?" required hint="Choose Mixed if the set contains both new and preloved items.">
+          <select name="condition" value={bundleCondition} onChange={(event) => setBundleCondition(event.target.value as ItemCondition | "")} required>
+            <option value="">Choose a condition…</option>
+            {BUNDLE_CONDITIONS.map((item) => <option key={item} value={item}>{CONDITION_LABELS[item]}</option>)}
+          </select>
+        </Field>
+      ) : <input type="hidden" name="condition" value={section} />}
       {effectiveCondition === "preloved" ? (
         <>
           <Field name="conditionGrade" label="Grade" required hint={selectedGrade ? GRADE_DESCRIPTIONS[selectedGrade] : isBundle ? "The grade of the most worn book in the bundle." : "How worn is this copy?"}>

@@ -46,6 +46,6 @@ export async function hideRetiredCategoriesAction(_state: ActionState, form: For
     for (const category of retired) {
       await saveCategory(store, ctx, { id: category.id, name: category.name, slug: category.slug, caption: category.caption, order: category.order, published: false }, `${base}-hide-${category.slug}`.slice(0, 80));
     }
-    return { message: retired.length ? `Hidden: ${retired.map((category) => category.name).join(", ")}. Their products stay in the shop; move them to the new shelves from the Catalogue.` : "No old shelves to hide." };
+    return { message: retired.length ? `Hidden: ${retired.map((category) => category.name).join(", ")}. Books assigned only to hidden shelves need a visible book type before they can appear in the shop.` : "No old shelves to hide." };
   });
 }

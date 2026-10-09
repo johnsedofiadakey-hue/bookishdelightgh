@@ -36,7 +36,7 @@ export async function saveBookAction(_state: ActionState, form: FormData): Promi
       return { message: "Book details saved." };
     }
     const { result } = await createBook(store, ctx, bookInput(form), idempotencyKey(form));
-    return { message: "Draft created. Now add a format variant.", redirectTo: `/admin/catalogue/${result.bookId}` };
+    return { message: "Draft created. Now choose Brand New, Preloved or Bundle Deals under stock options.", redirectTo: `/admin/catalogue/${result.bookId}` };
   });
 }
 
@@ -83,14 +83,14 @@ function variantFields(form: FormData) {
 export async function createVariantAction(_state: ActionState, form: FormData): Promise<ActionState> {
   return runAction("catalogue.edit", async ({ store, ctx }) => {
     const { result } = await createVariant(store, ctx, text(form, "bookId"), { sku: text(form, "sku"), ...variantFields(form) }, idempotencyKey(form));
-    return { message: `Variant ${result.sku} created at zero stock. Receive opening stock from Inventory.` };
+    return { message: `Stock option ${result.sku} created at zero stock. Receive opening stock from Inventory.` };
   });
 }
 
 export async function updateVariantAction(_state: ActionState, form: FormData): Promise<ActionState> {
   return runAction("catalogue.edit", async ({ store, ctx }) => {
     await updateVariant(store, ctx, text(form, "sku"), variantFields(form), idempotencyKey(form));
-    return { message: "Variant saved." };
+    return { message: "Stock option saved." };
   });
 }
 

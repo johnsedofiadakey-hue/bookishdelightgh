@@ -26,11 +26,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   };
 }
 
-export default async function BookPage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function BookPage({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<{ sku?: string }> }) {
   const { slug } = await params;
+  const { sku } = await searchParams;
   const all = await getPublicCatalog();
   const book = all.find((item) => item.slug === slug);
   if (!book) notFound();
   const related = all.filter((item) => item.id !== book.id && item.categories.some((slug) => book.categories.includes(slug))).slice(0, 3);
-  return <main className="interior-page shell"><nav className="breadcrumbs" aria-label="Breadcrumb"><Link href="/">Home</Link><span>›</span><Link href="/shop">Shop</Link><span>›</span>{book.title}</nav><div className="book-detail"><div className="book-detail-art"><BookCover book={book}/></div><div className="book-detail-info"><p className="eyebrow">{book.label}</p><h1>{book.title}</h1>{book.author ? <p className="detail-author">by {book.author}</p> : null}<p className="detail-description">{book.description}</p><VariantPicker variants={book.variants} initialSku={book.variant.sku}/></div></div>{related.length ? <section className="related-books"><p className="eyebrow">More like this</p><h2>You may also like</h2><div className="product-grid">{related.map((item) => <BookCard book={item} key={item.id}/>)}</div></section> : null}</main>;
+  return <main className="interior-page shell"><nav className="breadcrumbs" aria-label="Breadcrumb"><Link href="/">Home</Link><span>›</span><Link href="/shop">Shop</Link><span>›</span>{book.title}</nav><div className="book-detail"><div className="book-detail-art"><BookCover book={book}/></div><div className="book-detail-info"><p className="eyebrow">{book.label}</p><h1>{book.title}</h1>{book.author ? <p className="detail-author">by {book.author}</p> : null}<p className="detail-description">{book.description}</p><VariantPicker variants={book.variants} initialSku={book.variants.some((variant) => variant.sku === sku) ? sku! : book.variant.sku}/></div></div>{related.length ? <section className="related-books"><p className="eyebrow">More like this</p><h2>You may also like</h2><div className="product-grid">{related.map((item) => <BookCard book={item} key={item.id}/>)}</div></section> : null}</main>;
 }

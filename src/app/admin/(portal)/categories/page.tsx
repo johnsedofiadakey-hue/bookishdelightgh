@@ -15,9 +15,9 @@ export const metadata = { title: "Categories" };
 function CategoryFields({ category, nextOrder }: { category?: Category; nextOrder: number }) {
   return (
     <div className="adm-fields adm-fields-3">
-      <Field name="name" label="Name" required hint="Shown to customers, e.g. Picture books"><input type="text" name="name" defaultValue={category?.name} required maxLength={60} /></Field>
+      <Field name="name" label="Name" required hint="Shown to customers, e.g. Chapter Books"><input type="text" name="name" defaultValue={category?.name} required maxLength={60} /></Field>
       <Field name="slug" label="Web address (slug)" hint={category ? "Changing this breaks existing links to the category." : "Leave empty to make it from the name."}>
-        <input type="text" name="slug" defaultValue={category?.slug} placeholder="picture-books" pattern="[a-z0-9]+(-[a-z0-9]+)*" />
+        <input type="text" name="slug" defaultValue={category?.slug} placeholder="chapter-books" pattern="[a-z0-9]+(-[a-z0-9]+)*" />
       </Field>
       <Field name="order" label="Display order" hint="Lower numbers show first"><input type="number" name="order" min={0} max={999} defaultValue={category?.order ?? nextOrder} /></Field>
       <Field name="caption" label="Short caption" wide hint="Optional line under the name, e.g. Bright pages for little ones"><input type="text" name="caption" defaultValue={category?.caption} maxLength={80} /></Field>
@@ -33,7 +33,7 @@ export default async function CategoriesPage() {
   if (!access.ok) return <PermissionDenied permission={access.permission} />;
   const { ctx } = access;
   const store = getAdminStore();
-  const [categories, books] = await Promise.all([listCategories(store), store.query("books")]);
+  const [categories, books, variants] = await Promise.all([listCategories(store), store.query("books"), store.query("bookVariants")]);
   const editable = can(ctx, "content.edit");
   const counts = new Map<string, { total: number; published: number }>();
   for (const book of books) {
@@ -44,6 +44,11 @@ export default async function CategoriesPage() {
       counts.set(id, entry);
     }
   }
+  const bundleBookIds = new Set(variants.filter((variant) => variant.format === "Bundle").map((variant) => variant.bookId));
+  const publishedBookIds = new Set(books.filter((book) => book.status === "published").map((book) => book.id));
+  for (const category of categories.filter((item) => item.slug === "bundles")) {
+    counts.set(category.id, { total: bundleBookIds.size, published: [...bundleBookIds].filter((id) => publishedBookIds.has(id)).length });
+  }
   const existingSlugs = new Set(categories.map((category) => category.slug));
   const missingRecommended = RECOMMENDED_CATEGORIES.filter((category) => !existingSlugs.has(category.slug));
   const retiredVisible = categories.filter((category) => category.published && RETIRED_CATEGORY_SLUGS.has(category.slug));
@@ -51,7 +56,7 @@ export default async function CategoriesPage() {
 
   return (
     <>
-      <PageHeader eyebrow="Shelf" title="Categories" lede="The shelves customers browse by, such as Chapter Books or Christian Literature. A product can sit on several shelves. Brand new or preloved is not a shelf: set it on each variant in the Catalogue." />
+      <PageHeader eyebrow="Shelf" title="Categories" lede="These seven book types appear under both Brand New and Preloved. Choose them on a book; choose the shop section on each stock option. Bundle Deals appears automatically for Bundle stock options." />
 
       {editable && retiredVisible.length ? (
         <div style={{ marginBottom: 16 }}>

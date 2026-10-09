@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { ActionForm, Field } from "@/components/admin/action-form";
 import type { ActionState } from "@/lib/admin/action-state";
@@ -40,6 +41,7 @@ export function BookForm({
 }) {
   const [title, setTitle] = useState(book?.title ?? "");
   const [seoDescription, setSeoDescription] = useState(book?.seoDescription ?? "");
+  const subjectCategories = categories.filter((category) => category.slug !== "bundles" && (category.published || book?.categoryIds.includes(category.id)));
 
   return (
     <ActionForm action={action} idempotencyKey={idempotencyKey} submitLabel={book ? "Save details" : "Create draft"}>
@@ -71,15 +73,18 @@ export function BookForm({
             </select>
           </Field>
           <fieldset className="wide">
-            <legend className="adm-field"><span>Categories</span></legend>
+            <legend className="adm-field"><span>Book type / subtype</span></legend>
+            <p className="adm-small adm-muted" style={{ margin: "0 0 10px" }}>Choose the shelf this title belongs on. On the next step, choose Brand New, Preloved or Bundle Deals for each stock option. A title may have both new and preloved copies.</p>
             <div className="adm-checks">
-              {categories.map((category) => (
+              {subjectCategories.map((category) => (
                 <label className="adm-check" key={category.id}>
                   <input type="checkbox" name="categoryIds" value={category.id} defaultChecked={book?.categoryIds.includes(category.id)} />
-                  {category.name}
+                  {category.name}{!category.published ? <span className="adm-muted adm-small"> (hidden)</span> : null}
                 </label>
               ))}
             </div>
+            {!subjectCategories.length ? <p className="adm-small"><Link className="adm-link" href="/admin/categories">Set up the seven book types in Categories first ↗</Link></p> : null}
+            <p className="adm-small adm-muted" style={{ margin: "10px 0 0" }}>Bundle Deals is assigned automatically when you add a Bundle stock option; you don’t tick it here.</p>
           </fieldset>
           <Field name="tags" label="Tags" wide hint="Comma separated, e.g. adventure, friendship, accra">
             <input type="text" name="tags" defaultValue={book?.tags.join(", ")} />
