@@ -4,7 +4,7 @@ You are implementing the operational admin portal for Bookish Delight Ghana. Rea
 
 ## Business facts to preserve
 
-- Physical books for all ages; owned stock only.
+- Children’s books and learning resources; owned stock only.
 - GHS online payment through Paystack; nationwide Ghana delivery quoted before payment.
 - mNotify handles transactional SMS after committed order events.
 - Staff need a clear order and stock audit trail.

@@ -10,8 +10,6 @@ const AGE_LABELS: Record<(typeof AGE_BANDS)[number], string> = {
   "4-7": "Early readers (4–7)",
   "8-12": "Middle grade (8–12)",
   "13-17": "Teen (13–17)",
-  adult: "Adult",
-  "all-ages": "All ages",
 };
 
 function slugPreview(title: string): string {
@@ -67,7 +65,8 @@ export function BookForm({
             <input type="text" name="language" defaultValue={book?.language ?? "English"} list="adm-languages" />
           </Field>
           <Field name="ageBand" label="Age band" required>
-            <select name="ageBand" defaultValue={book?.ageBand ?? "all-ages"}>
+            <select name="ageBand" defaultValue={book?.ageBand ?? ""} required>
+              <option value="" disabled>Choose a child age group</option>
               {AGE_BANDS.map((band) => <option key={band} value={band}>{AGE_LABELS[band]}</option>)}
             </select>
           </Field>

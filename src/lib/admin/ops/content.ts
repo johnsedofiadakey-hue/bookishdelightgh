@@ -13,7 +13,7 @@ export const DEFAULT_HOMEPAGE: HomepageContent = {
   hero: {
     eyebrow: "YOUR NEXT FAVOURITE READ AWAITS",
     heading: "A little more bookish. A lot more delight.",
-    intro: "Stories for curious minds, growing imaginations, and everyone in between. Find the books you’ll love, delivered wherever you are in Ghana.",
+    intro: "Books and learning resources for curious children, from first stories to teen reads. Ask us what is in stock for your child's age and interests.",
     ctaLabel: "Explore the shelves",
     ctaHref: "/shop",
   },

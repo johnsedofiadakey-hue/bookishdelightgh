@@ -1,6 +1,6 @@
 import { availableOf } from "@/lib/admin/ops/inventory";
 import type { AdminDataStore } from "@/lib/admin/store/types";
-import type { AgeBand, Book, BookVariant as AdminVariant, InventoryRecord } from "@/lib/admin/types";
+import { AGE_BANDS, type AgeBand, type Book, type BookVariant as AdminVariant, type InventoryRecord } from "@/lib/admin/types";
 import { BUNDLE_CONDITIONS, optionLabel, type BookVariant, type PublicBook, type PublicCategory } from "@/lib/contracts/catalog";
 import { RECOMMENDED_CATEGORIES } from "@/lib/admin/recommended-categories";
 
@@ -17,8 +17,6 @@ const AGE_LABELS: Record<AgeBand, string> = {
   "4-7": "Ages 4–7",
   "8-12": "Ages 8–12",
   "13-17": "Ages 13–17",
-  adult: "Adults",
-  "all-ages": "All ages",
 };
 
 function toPublicVariant(variant: AdminVariant, inventory: InventoryRecord | undefined, labelBySku: Map<string, string> = new Map()): BookVariant {
@@ -41,7 +39,7 @@ function toPublicVariant(variant: AdminVariant, inventory: InventoryRecord | und
 }
 
 export function toPublicBook(book: Book, variants: AdminVariant[], inventory: Map<string, InventoryRecord>, categorySlugs: Map<string, string>, labelBySku: Map<string, string> = new Map()): PublicBook | null {
-  if (book.status !== "published") return null;
+  if (book.status !== "published" || !(AGE_BANDS as readonly string[]).includes(book.ageBand)) return null;
   const sellable = variants
     .filter((variant) => variant.bookId === book.id && variant.active && variant.pricePesewas > 0)
     .map((variant) => toPublicVariant(variant, inventory.get(variant.sku), labelBySku))

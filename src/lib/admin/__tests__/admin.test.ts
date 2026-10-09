@@ -15,6 +15,7 @@ import { roleHas } from "@/lib/admin/permissions";
 import { isValidIsbn } from "@/lib/admin/validation";
 import { parseCsv, toCsv } from "@/lib/admin/csv";
 import { FirebaseIdentityAdmin } from "@/lib/firebase/admin-adapters";
+import type { AgeBand } from "@/lib/admin/types";
 import type { Auth } from "firebase-admin/auth";
 import { ctxFor, freshStore, key, seedWebsiteOrder } from "./helpers";
 
@@ -61,7 +62,7 @@ describe("permissions are enforced by operations, not the UI", () => {
   });
   it("denies a viewer and support role calling mutations directly", async () => {
     const store = freshStore();
-    await assert.rejects(createBook(store, ctxFor("viewer"), { title: "X", authors: ["Y"], description: "", language: "English", ageBand: "adult", categoryIds: [], tags: [], relatedBookIds: [] }, key()), rejectsWith("forbidden"));
+    await assert.rejects(createBook(store, ctxFor("viewer"), { title: "X", authors: ["Y"], description: "", language: "English", ageBand: "8-12", categoryIds: [], tags: [], relatedBookIds: [] }, key()), rejectsWith("forbidden"));
     const bookId = await bookWithVariant(store);
     await assert.rejects(receiveStock(store, ctxFor("support"), { sku: "TEST-PB-01", quantity: 5, reference: "INV-1", idempotencyKey: key() }), rejectsWith("forbidden"));
     await assert.rejects(setBookStatus(store, ctxFor("fulfilment"), bookId, "published", key()), rejectsWith("forbidden"));
@@ -90,6 +91,10 @@ describe("permissions are enforced by operations, not the UI", () => {
 });
 
 describe("catalogue → storefront contract", () => {
+  it("refuses an adult age band even if a crafted request bypasses the form", async () => {
+    const store = freshStore();
+    await assert.rejects(createBook(store, ctxFor("catalogue_editor"), { title: "Adult title", authors: ["A"], description: "A description long enough to publish.", language: "English", ageBand: "adult" as AgeBand, categoryIds: ["fiction"], tags: [], relatedBookIds: [] }, key()), rejectsWith("invalid"));
+  });
   it("rejects missing categories and requires a visible shelf for publishing", async () => {
     const store = freshStore();
     const editor = ctxFor("catalogue_editor");

@@ -107,6 +107,18 @@ describe("shop shelves", () => {
     assert.deepEqual(publicBook.categories, []);
     assert.ok(publicBook, "the book remains available in Shop all");
   });
+
+  it("keeps legacy adult listings out of the children’s storefront", async () => {
+    const store = freshStore();
+    const editor = ctxFor("catalogue_editor");
+    const bookId = await book(store);
+    await createVariant(store, editor, bookId, { ...base, sku: "LEGACY-ADULT", format: "Paperback", condition: "new" }, key());
+    await setBookCover(store, editor, bookId, cover, key());
+    await setBookStatus(store, editor, bookId, "published", key());
+    const storedBook = (await store.get("books", bookId))!;
+    store.seed("books", bookId, { ...storedBook, ageBand: "adult" as never });
+    assert.deepEqual(await loadPublicCatalog(store), []);
+  });
   it("shows the recommended shelves until any exist", async () => {
     const shelves = await loadPublicCategories(new MemoryAdminStore());
     assert.deepEqual(shelves.map((shelf) => shelf.slug), RECOMMENDED_CATEGORIES.map((category) => category.slug));

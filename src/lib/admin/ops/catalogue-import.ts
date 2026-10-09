@@ -57,7 +57,7 @@ function parseGrade(raw: string | undefined): PrelovedGrade | undefined {
   const value = (raw ?? "").trim().toLowerCase().replace(/[\s-]+/g, "_");
   return value ? (value as PrelovedGrade) : undefined;
 }
-const REQUIRED = ["title", "sku", "format", "price_ghs", "weight_grams"] as const;
+const REQUIRED = ["title", "age_band", "sku", "format", "price_ghs", "weight_grams"] as const;
 
 export interface ImportRowResult {
   line: number;
@@ -123,7 +123,7 @@ async function prepare(store: AdminDataStore, ctx: StaffContext, csvText: string
       publisher: record.publisher,
       description: record.description ?? "",
       language: record.language || "English",
-      ageBand: (record.age_band || "all-ages") as AgeBand,
+      ageBand: (record.age_band ?? "") as AgeBand,
       categoryIds: categorySlugs.flatMap((slug) => (categoryBySlug.has(slug) ? [categoryBySlug.get(slug)!] : [])),
       tags: splitList(record.tags ?? ""),
       relatedBookIds: [],

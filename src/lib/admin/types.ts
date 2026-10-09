@@ -59,7 +59,7 @@ export interface AdminSession {
 export const BOOK_FORMATS = ["Paperback", "Hardcover", "Board book", "Box set", "Spiral bound", "Activity book", "Workbook", "Flashcards", "Bundle"] as const;
 export type AdminBookFormat = (typeof BOOK_FORMATS)[number];
 
-export const AGE_BANDS = ["0-3", "4-7", "8-12", "13-17", "adult", "all-ages"] as const;
+export const AGE_BANDS = ["0-3", "4-7", "8-12", "13-17"] as const;
 export type AgeBand = (typeof AGE_BANDS)[number];
 
 export type PublishStatus = "draft" | "published" | "archived";
