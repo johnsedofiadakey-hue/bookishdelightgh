@@ -1,7 +1,8 @@
 import { randomUUID } from "node:crypto";
+import Link from "next/link";
 import { ActionForm, Field } from "@/components/admin/action-form";
 import { ImageUpload } from "@/components/admin/image-upload";
-import { Badge, Callout, Card, PageHeader, PermissionDenied } from "@/components/admin/ui";
+import { Callout, Card, PageHeader, PermissionDenied } from "@/components/admin/ui";
 import { pageAccess } from "@/lib/admin/auth/guard";
 import { can } from "@/lib/admin/context";
 import { formatDateTime } from "@/lib/admin/format";
@@ -9,7 +10,7 @@ import { listCategories } from "@/lib/admin/ops/catalogue";
 import { getHomepage } from "@/lib/admin/ops/content";
 import { getAdminStore } from "@/lib/admin/store";
 import type { Book } from "@/lib/admin/types";
-import { publishHomepageAction, saveCategoryAction, saveHomepageAction } from "./actions";
+import { publishHomepageAction, saveHomepageAction } from "./actions";
 
 export const metadata = { title: "Homepage" };
 
@@ -110,43 +111,8 @@ export default async function ContentPage() {
             )}
             {editable ? <ImageUpload target="hero" ownerId="hero" label={draft.hero.image ? "Replace hero image" : "Upload hero image"} /> : null}
           </Card>
-          <Card title="Categories" description="Name, order and visibility of category shelves.">
-            <div className="adm-stack">
-              {categories.map((category) => (
-                <details key={category.id}>
-                  <summary style={{ cursor: "pointer" }}><strong>{category.name}</strong> <span className="adm-small adm-muted">#{category.order}</span> {category.published ? <Badge tone="green">Visible</Badge> : <Badge>Hidden</Badge>}</summary>
-                  {editable ? (
-                    <div style={{ paddingTop: 10 }}>
-                      <ActionForm action={saveCategoryAction} idempotencyKey={randomUUID()} submitLabel="Save category" size="sm">
-                        <input type="hidden" name="id" value={category.id} />
-                        <div className="adm-fields">
-                          <Field name="name" label="Name"><input type="text" name="name" defaultValue={category.name} /></Field>
-                          <Field name="order" label="Order"><input type="number" name="order" defaultValue={category.order} /></Field>
-                          <Field name="caption" label="Caption" wide><input type="text" name="caption" defaultValue={category.caption} /></Field>
-                          <Field name="slug" label="Slug"><input type="text" name="slug" defaultValue={category.slug} /></Field>
-                          <label className="adm-check" style={{ alignSelf: "end" }}><input type="checkbox" name="published" defaultChecked={category.published} /> Visible</label>
-                        </div>
-                      </ActionForm>
-                    </div>
-                  ) : null}
-                </details>
-              ))}
-              {editable ? (
-                <details>
-                  <summary className="adm-link" style={{ cursor: "pointer" }}>+ New category</summary>
-                  <div style={{ paddingTop: 10 }}>
-                    <ActionForm action={saveCategoryAction} idempotencyKey={randomUUID()} submitLabel="Create category" size="sm" resetOnSuccess>
-                      <div className="adm-fields">
-                        <Field name="name" label="Name" required><input type="text" name="name" required /></Field>
-                        <Field name="order" label="Order"><input type="number" name="order" defaultValue={categories.length + 1} /></Field>
-                        <Field name="caption" label="Caption" wide><input type="text" name="caption" /></Field>
-                        <label className="adm-check"><input type="checkbox" name="published" defaultChecked /> Visible</label>
-                      </div>
-                    </ActionForm>
-                  </div>
-                </details>
-              ) : null}
-            </div>
+          <Card title="Categories" description="Category tiles on the homepage come from your categories.">
+            <p className="adm-small" style={{ margin: 0 }}>{categories.length} categor{categories.length === 1 ? "y" : "ies"}. Add, rename, reorder or hide them on the <Link className="adm-link" href="/admin/categories">Categories page</Link>.</p>
           </Card>
         </div>
       </div>

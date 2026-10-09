@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { icons, type IconName } from "@/components/admin/icons";
+import { PageGuide } from "@/components/admin/page-guide";
 
 export interface NavItem {
   href: string;
@@ -104,6 +105,7 @@ export function AdminShell({ groups, user, devBanner, signOut, children }: { gro
         </div>
         {devBanner}
         <main id="adm-main" className="adm-content" tabIndex={-1}>
+          <PageGuide />
           {children}
         </main>
       </div>

@@ -3,6 +3,7 @@ import { assertPermission, can, type StaffContext } from "@/lib/admin/context";
 import { AdminError } from "@/lib/admin/errors";
 import { derivedId, nowIso } from "@/lib/admin/ids";
 import { runIdempotent } from "@/lib/admin/idempotency";
+import { optionLabel } from "@/lib/contracts/catalog";
 import type { AdminDataStore, AdminTransaction } from "@/lib/admin/store/types";
 import type { Book, BookVariant, InventoryRecord, MovementType, StockMovement } from "@/lib/admin/types";
 
@@ -231,7 +232,7 @@ export async function listInventory(store: AdminDataStore, ctx: StaffContext): P
           sku: record.sku,
           bookId: variant.bookId,
           title: book?.title ?? "(missing book)",
-          format: variant.format + (variant.edition ? ` · ${variant.edition}` : ""),
+          format: optionLabel(variant.format, variant.condition, variant.conditionGrade) + (variant.edition ? ` · ${variant.edition}` : ""),
           isbn: variant.isbn,
           active: variant.active,
           bookStatus: book?.status ?? "draft",

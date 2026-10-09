@@ -15,7 +15,7 @@ function shopStore({ checkout = true, onHand = 5 } = {}) {
   store.seed("categories", "puzzles", { id: "puzzles", slug: "puzzles", name: "Puzzles", order: 1, published: true, updatedAt: at });
   store.seed("books", "book_p", { id: "book_p", slug: "counting-puzzle", title: "Counting Puzzle", authors: [], description: "A thirty piece counting puzzle for young children.", language: "English", ageBand: "4-7", categoryIds: ["puzzles"], tags: [], gallery: [], relatedBookIds: [], status: "published", createdAt: at, updatedAt: at, updatedBy: "test", schemaVersion: SCHEMA_VERSION });
   store.seed("books", "book_d", { id: "book_d", slug: "draft-book", title: "Draft Book", authors: ["A"], description: "Not yet published to customers.", language: "English", ageBand: "4-7", categoryIds: [], tags: [], gallery: [], relatedBookIds: [], status: "draft", createdAt: at, updatedAt: at, updatedBy: "test", schemaVersion: SCHEMA_VERSION });
-  store.seed("bookVariants", "PZ-1", { sku: "PZ-1", bookId: "book_p", format: "Puzzle", pricePesewas: 5000, costPesewas: 2000, weightGrams: 400, active: true, createdAt: at, updatedAt: at, updatedBy: "test", schemaVersion: SCHEMA_VERSION });
+  store.seed("bookVariants", "PZ-1", { sku: "PZ-1", bookId: "book_p", format: "Board book", pricePesewas: 5000, costPesewas: 2000, weightGrams: 400, active: true, createdAt: at, updatedAt: at, updatedBy: "test", schemaVersion: SCHEMA_VERSION });
   store.seed("bookVariants", "DR-1", { sku: "DR-1", bookId: "book_d", format: "Paperback", pricePesewas: 3000, weightGrams: 200, active: true, createdAt: at, updatedAt: at, updatedBy: "test", schemaVersion: SCHEMA_VERSION });
   store.seed("inventory", "PZ-1", { sku: "PZ-1", onHand, reserved: 0, lowStockThreshold: 2, version: 1, updatedAt: at });
   store.seed("inventory", "DR-1", { sku: "DR-1", onHand: 9, reserved: 0, lowStockThreshold: 2, version: 1, updatedAt: at });
@@ -106,10 +106,16 @@ describe("website checkout", () => {
   it("flags an amount mismatch instead of fulfilling", async () => {
     const store = shopStore();
     const pending = await createPendingOrder(store, input());
-    await applyPaystackOutcome(store, { reference: pending.paystackReference, status: "success", amountPesewas: 100, currency: "GHS" }, "webhook");
+    const outcome = { reference: pending.paystackReference, status: "success", amountPesewas: 100, currency: "GHS" };
+    const first = await applyPaystackOutcome(store, outcome, "webhook");
+    const repeated = await applyPaystackOutcome(store, outcome, "callback");
+    assert.deepEqual([first.state, repeated.state], ["attention", "attention"]);
     const order = (await store.get("orders", pending.orderId))!;
     assert.equal(order.fulfilmentStatus, "exception");
     assert.equal(order.exception?.kind, "payment_mismatch");
+    assert.equal(order.stockState, "released");
+    assert.equal((await inventoryOf(store)).reserved, 0);
+    assert.equal((await store.query("notifications", { where: [["orderId", "==", pending.orderId]] })).length, 0);
   });
 
   it("releases stock when payment fails", async () => {

@@ -163,3 +163,23 @@ All checks below used the **development in-memory store and fixture staff accoun
 4. A website order containing the same SKU on two lines would write that SKU's inventory twice in one transaction on cancel or restock. Checkout should merge duplicate lines (the manual sale form already prevents this).
 5. Partial refunds don't partially restock. Stock moves only through cancel or return.
 6. Customer search over masked fields is name/order-ref only for roles without contact permission, by design.
+
+---
+
+## 8. Shelves, condition and bundles (2026-10-09)
+
+Agreed with the owner: shelves describe *what* a book is; *condition* is per variant.
+
+- **Shelves** (`src/lib/admin/recommended-categories.ts`): Baby & Toddler Books, Phonics & Early Readers, Story Collections, Chapter Books, Pre-Teens & Teens Novels, Activity Books, Educational Resources, Educational & Reference Books, Christian Literature, Bundle Deals. The storefront (homepage tiles, shop filters, nav, footer) reads visible categories from the store in admin order (`loadPublicCategories`). It falls back to this list only when no category exists. Old shelves (puzzles, games, ghanaian…) are flagged on Admin → Categories with a one-click "Hide the old shelves".
+- **Condition** on `bookVariants`: `condition` = `new | preloved | mixed` (mixed is for bundles only), `conditionGrade` = `like_new | very_good | good` (required for preloved), plus optional `conditionNote`. Records without `condition` are treated as `new`. One title can be sold new and preloved from one page; duplicates are judged on ISBN + format + condition + grade + edition. Order lines store `format` as the full option label ("Paperback · Preloved · Very good") plus `condition`/`conditionGrade`.
+- **Bundles**: a variant with format `Bundle`, an optional `compareAtPesewas` ("worth"; must be above the price) and `bundleItems[] { sku?, title, quantity }`. Linked SKUs can be made up from stock (`assembleBundles`) or unpacked (`unpackBundles`). Each runs in one transaction and writes `BUNDLE_ASSEMBLED` / `BUNDLE_UNPACKED` movements on the bundle and every linked SKU. Linked contents can't change while bundles are made up. Bundles can't be CSV-imported or nested.
+- **Query used**: `bookVariants where format == "Bundle"` (single-field index, automatic).
+- **Live data step**: the live Firestore has no categories yet. An owner should press "Add the recommended shelves" once on Admin → Categories.
+
+## 9. Preview release status (2026-10-09)
+
+The current source adds Admin → Categories, visible-shelf storefront navigation, condition-based variants, bundle assembly, and checkout exception handling. A book cannot save missing category IDs or publish without a visible category. Hidden categories no longer appear on public book filters. A successful Paystack charge with a mismatched amount, or a late charge without stock, now reports **needs review** instead of confirming fulfilment; amount mismatches release reserved stock. These paths are covered by in-memory tests.
+
+This is a **browse-only preview**, not a commerce launch. Keep checkout and transactional SMS disabled. The Paystack Secret Manager entry has no version, so the App Hosting binding is omitted until a real key is provisioned. The mNotify sender and delivery-status worker are not connected, so the admin SMS switch refuses activation. The Paystack refund adapter is not registered, and unpaid-order reservation sweeping has no scheduled job. Those three worker/integration gaps must be closed and tested before accepting online orders.
+
+The owner must add verified catalogue items with their own photos, prices, stock counts and delivery rates. The first owner must also complete a signed-in admin walkthrough (category setup, book upload, stock receipt, order review), because in-memory tests and route checks cannot verify those live Firebase operations. No sample books or rates should be inserted into production.

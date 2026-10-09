@@ -27,7 +27,7 @@ export default function PrivacyPage() {
 
     <LegalSection id="why" title="3. Why we use it">
       <ul>
-        <li>To process, deliver and support your order, including SMS updates about payment, dispatch and delivery.</li>
+        <li>To process, deliver and support your order, including order status updates on this website.</li>
         <li>To handle returns, refunds and questions.</li>
         <li>To keep accounting and tax records we are required by law to keep.</li>
         <li>To prevent fraud and keep the website secure.</li>
@@ -39,7 +39,6 @@ export default function PrivacyPage() {
       <p>We share only what each service needs:</p>
       <ul>
         <li><strong>Paystack</strong>, to process payments.</li>
-        <li><strong>mNotify</strong>, to send order SMS messages to your phone.</li>
         <li><strong>Delivery partners</strong>, who receive your name, phone number and address to deliver your parcel.</li>
         <li><strong>Google Firebase</strong>, which hosts our website and stores order data. Some of this data is stored on servers outside Ghana, in the European Union, with appropriate safeguards.</li>
       </ul>

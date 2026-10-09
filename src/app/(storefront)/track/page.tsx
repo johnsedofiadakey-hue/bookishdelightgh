@@ -17,7 +17,7 @@ export default function TrackPage() {
       <div className="track-intro">
         <p className="eyebrow">Order tracking</p>
         <h1>Where’s my order?</h1>
-        <p>Enter the order number from your SMS (it starts with <strong>BD-</strong>) and the phone number you ordered with.</p>
+        <p>Enter the order number shown after checkout (it starts with <strong>BD-</strong>) and the phone number you ordered with.</p>
         <TrackForm/>
       </div>
       <aside className="track-help">

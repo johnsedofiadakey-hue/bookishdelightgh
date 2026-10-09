@@ -18,6 +18,7 @@ import {
   type PaymentStatus,
   type RefundRecord,
 } from "@/lib/admin/types";
+import { optionLabel } from "@/lib/contracts/catalog";
 import { isGhanaRegion, isValidEmail, normalizeGhanaPhone } from "@/lib/admin/validation";
 
 /* ---------------------------------------------------------- State machine */
@@ -264,7 +265,7 @@ export async function createManualSale(store: AdminDataStore, ctx: StaffContext,
       }
       records.set(line.sku, record);
       weight += variant.weightGrams * line.quantity;
-      snapshots.push(stripUndefined({ sku: variant.sku, bookId: book.id, title: book.title, format: variant.format, isbn: variant.isbn, unitPricePesewas: variant.pricePesewas, quantity: line.quantity, lineTotalPesewas: variant.pricePesewas * line.quantity }));
+      snapshots.push(stripUndefined({ sku: variant.sku, bookId: book.id, title: book.title, format: optionLabel(variant.format, variant.condition, variant.conditionGrade), condition: variant.condition ?? "new", conditionGrade: variant.condition === "preloved" ? variant.conditionGrade : undefined, isbn: variant.isbn, unitPricePesewas: variant.pricePesewas, quantity: line.quantity, lineTotalPesewas: variant.pricePesewas * line.quantity }));
     }
     const subtotal = snapshots.reduce((sum, line) => sum + line.lineTotalPesewas, 0);
 

@@ -44,6 +44,7 @@ export default async function PortalLayout({ children }: { children: ReactNode }
       label: "Shelf",
       entries: [
         { href: "/admin/catalogue", label: "Catalogue", icon: "catalogue", permission: "catalogue.view" },
+        { href: "/admin/categories", label: "Categories", icon: "categories", permission: "catalogue.view" },
         { href: "/admin/inventory", label: "Inventory", icon: "inventory", permission: "inventory.view" },
         { href: "/admin/content", label: "Homepage", icon: "content", permission: "content.view" },
         { href: "/admin/promotions", label: "Promotions", icon: "promotions", permission: "promotions.view" },

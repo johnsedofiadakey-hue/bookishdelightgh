@@ -80,7 +80,7 @@ export function CheckoutForm({ regions }: { regions: string[] }) {
     <div className="checkout-form">
       <section><h2>1. Your details</h2><div className="form-grid">
         <label>Full name<input name="name" autoComplete="name" required value={values.name} onChange={set("name")} aria-invalid={Boolean(fieldErrors.name)}/>{error("name")}</label>
-        <label>Phone number<input name="phone" type="tel" inputMode="tel" autoComplete="tel" placeholder="024 000 0000" required value={values.phone} onChange={set("phone")} aria-invalid={Boolean(fieldErrors.phone)}/>{error("phone")}<small className="field-hint">For delivery and order SMS updates.</small></label>
+        <label>Phone number<input name="phone" type="tel" inputMode="tel" autoComplete="tel" placeholder="024 000 0000" required value={values.phone} onChange={set("phone")} aria-invalid={Boolean(fieldErrors.phone)}/>{error("phone")}<small className="field-hint">For delivery and order support.</small></label>
         <label className="wide">Email (optional)<input name="email" type="email" autoComplete="email" placeholder="For your Paystack receipt" value={values.email} onChange={set("email")} aria-invalid={Boolean(fieldErrors.email)}/>{error("email")}</label>
       </div></section>
 

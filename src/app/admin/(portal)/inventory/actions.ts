@@ -2,6 +2,7 @@
 
 import type { ActionState } from "@/lib/admin/action-state";
 import { idempotencyKey, int, optionalText, runAction, text } from "@/lib/admin/actions";
+import { assembleBundles, unpackBundles } from "@/lib/admin/ops/bundles";
 import { adjustStock, receiveStock, setLowStockThreshold, type AdjustmentType } from "@/lib/admin/ops/inventory";
 
 export async function receiveStockAction(_state: ActionState, form: FormData): Promise<ActionState> {
@@ -29,5 +30,19 @@ export async function thresholdAction(_state: ActionState, form: FormData): Prom
   return runAction("inventory.adjust", async ({ store, ctx }) => {
     await setLowStockThreshold(store, ctx, text(form, "sku"), int(form, "threshold"), idempotencyKey(form));
     return { message: "Threshold saved." };
+  });
+}
+
+export async function assembleBundlesAction(_state: ActionState, form: FormData): Promise<ActionState> {
+  return runAction("inventory.adjust", async ({ store, ctx }) => {
+    const { result, replayed } = await assembleBundles(store, ctx, { bundleSku: text(form, "sku"), quantity: int(form, "quantity"), reference: text(form, "reference"), idempotencyKey: idempotencyKey(form) });
+    return { message: replayed ? "Already recorded — duplicate submission ignored." : `Made up. ${result.onHand} bundle(s) now in stock; the books inside were taken out of single stock.` };
+  });
+}
+
+export async function unpackBundlesAction(_state: ActionState, form: FormData): Promise<ActionState> {
+  return runAction("inventory.adjust", async ({ store, ctx }) => {
+    const { result, replayed } = await unpackBundles(store, ctx, { bundleSku: text(form, "sku"), quantity: int(form, "quantity"), reference: text(form, "reference"), idempotencyKey: idempotencyKey(form) });
+    return { message: replayed ? "Already recorded — duplicate submission ignored." : `Unpacked. ${result.onHand} bundle(s) left; the books are back in single stock.` };
   });
 }

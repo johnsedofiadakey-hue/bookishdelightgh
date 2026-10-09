@@ -9,6 +9,7 @@ import { validateBookInput, validateVariantInput } from "@/lib/admin/ops/catalog
 import type { AdminDataStore } from "@/lib/admin/store/types";
 import { SCHEMA_VERSION, type AdminBookFormat, type AgeBand, type Book, type BookVariant, type InventoryRecord, type StockMovement } from "@/lib/admin/types";
 import { splitList } from "@/lib/admin/validation";
+import { optionLabel, type ItemCondition, type PrelovedGrade } from "@/lib/contracts/catalog";
 
 /**
  * Bulk catalogue import: dry-run first, then an explicit confirmed commit of
@@ -29,6 +30,9 @@ export const IMPORT_COLUMNS = [
   "tags",
   "sku",
   "format",
+  "condition",
+  "grade",
+  "condition_note",
   "edition",
   "isbn",
   "price_ghs",
@@ -39,6 +43,20 @@ export const IMPORT_COLUMNS = [
 ] as const;
 
 export const MAX_IMPORT_ROWS = 80;
+
+/** "new" (default) or "preloved"; also accepts "brand new", "used", "pre-loved". */
+function parseCondition(raw: string | undefined): ItemCondition {
+  const value = (raw ?? "").trim().toLowerCase().replace(/[\s-]+/g, "");
+  if (!value || value === "new" || value === "brandnew") return "new";
+  if (value === "preloved" || value === "used" || value === "secondhand") return "preloved";
+  return value as ItemCondition; // rejected by validation with a clear message
+}
+
+/** "like_new", "very_good", "good"; also accepts "like new", "Very good". */
+function parseGrade(raw: string | undefined): PrelovedGrade | undefined {
+  const value = (raw ?? "").trim().toLowerCase().replace(/[\s-]+/g, "_");
+  return value ? (value as PrelovedGrade) : undefined;
+}
 const REQUIRED = ["title", "sku", "format", "price_ghs", "weight_grams"] as const;
 
 export interface ImportRowResult {
@@ -81,7 +99,7 @@ async function prepare(store: AdminDataStore, ctx: StaffContext, csvText: string
   const [books, variants, categories] = await Promise.all([store.query("books"), store.query("bookVariants"), store.query("categories")]);
   const existingBookBySlug = new Map(books.map((book) => [book.slug, book]));
   const existingSkus = new Set(variants.map((variant) => variant.sku));
-  const isbnFormats = new Set(variants.filter((variant) => variant.isbn).map((variant) => `${variant.isbn}|${variant.format}|${variant.edition ?? ""}`));
+  const isbnFormats = new Set(variants.filter((variant) => variant.isbn).map((variant) => `${variant.isbn}|${variant.format}|${variant.condition ?? "new"}|${variant.conditionGrade ?? ""}|${variant.edition ?? ""}`));
   const categoryBySlug = new Map(categories.map((category) => [category.slug, category.id]));
   const canReceive = can(ctx, "inventory.receive");
 
@@ -117,19 +135,23 @@ async function prepare(store: AdminDataStore, ctx: StaffContext, csvText: string
     const { value: variant, errors: variantErrors } = validateVariantInput({
       sku: record.sku ?? "",
       format: record.format as AdminBookFormat,
+      condition: parseCondition(record.condition),
+      conditionGrade: parseGrade(record.grade),
+      conditionNote: record.condition_note || undefined,
       edition: record.edition,
       isbn: record.isbn || undefined,
       pricePesewas: pricePesewas ?? 0,
       weightGrams: Number.isFinite(weightGrams) ? Math.round(weightGrams) : -1,
       active: !/^(no|false|0)$/i.test(record.active ?? ""),
     });
-    errors.push(...Object.entries(variantErrors).map(([field, message]) => `${field}: ${message}`));
+    if (record.format === "Bundle") errors.push("Bundles can’t be imported. Create them in the Catalogue so their contents can be linked to stock.");
+    else errors.push(...Object.entries(variantErrors).map(([field, message]) => `${field}: ${message}`));
     if (existingSkus.has(variant.sku)) errors.push(`SKU ${variant.sku} already exists; imports never overwrite.`);
     if (seenSkus.has(variant.sku)) errors.push(`SKU ${variant.sku} appears more than once in this file.`);
     seenSkus.add(variant.sku);
     if (variant.isbn) {
-      const key = `${variant.isbn}|${variant.format}|${variant.edition ?? ""}`;
-      if (isbnFormats.has(key) || seenIsbnFormats.has(key)) errors.push(`ISBN ${variant.isbn} is already listed as ${variant.format}${variant.edition ? ` (${variant.edition})` : ""}.`);
+      const key = `${variant.isbn}|${variant.format}|${variant.condition}|${variant.conditionGrade ?? ""}|${variant.edition ?? ""}`;
+      if (isbnFormats.has(key) || seenIsbnFormats.has(key)) errors.push(`ISBN ${variant.isbn} is already listed as ${optionLabel(variant.format, variant.condition, variant.conditionGrade)}${variant.edition ? ` (${variant.edition})` : ""}.`);
       seenIsbnFormats.add(key);
     }
     const openingQuantity = record.opening_quantity ? Number(record.opening_quantity) : 0;
@@ -160,7 +182,7 @@ async function prepare(store: AdminDataStore, ctx: StaffContext, csvText: string
           tags: book.tags,
           relatedBookIds: [],
         }),
-        variant: stripUndefined({ sku: variant.sku, format: variant.format, edition: variant.edition, isbn: variant.isbn, pricePesewas: variant.pricePesewas, weightGrams: variant.weightGrams, active: variant.active }),
+        variant: stripUndefined({ sku: variant.sku, format: variant.format, condition: variant.condition, conditionGrade: variant.conditionGrade, conditionNote: variant.conditionNote, edition: variant.edition, isbn: variant.isbn, pricePesewas: variant.pricePesewas, weightGrams: variant.weightGrams, active: variant.active }),
         openingQuantity,
         openingReference: (record.opening_reference ?? "").trim(),
       };
@@ -276,6 +298,9 @@ export async function exportCatalogueCsv(store: AdminDataStore, ctx: StaffContex
         book.tags.join("; "),
         variant.sku,
         variant.format,
+        variant.condition ?? "new",
+        variant.conditionGrade ?? "",
+        variant.conditionNote ?? "",
         variant.edition ?? "",
         variant.isbn ?? "",
         pesewasToDecimal(variant.pricePesewas),
@@ -287,11 +312,12 @@ export async function exportCatalogueCsv(store: AdminDataStore, ctx: StaffContex
         record ? record.onHand - record.reserved : 0,
       ];
     });
-  return toCsv([...IMPORT_COLUMNS.slice(0, 16), "status", "on_hand", "reserved", "available"], rows);
+  return toCsv([...IMPORT_COLUMNS.slice(0, 19), "status", "on_hand", "reserved", "available"], rows);
 }
 
 export function importTemplateCsv(): string {
   return toCsv([...IMPORT_COLUMNS], [
-    ["", "Example Title (delete this row)", "Ama Example", "Example Press", "A short description.", "English", "8-12", "children", "adventure", "EXAMPLE-PB-01", "Paperback", "", "", "95.00", "320", "yes", "0", ""],
+    ["", "Example Title (delete this row)", "Ama Example", "Example Press", "A short description.", "English", "8-12", "chapter-books", "adventure", "EXAMPLE-PB-NEW", "Paperback", "new", "", "", "", "", "95.00", "320", "yes", "0", ""],
+    ["", "Example Title (delete this row)", "Ama Example", "Example Press", "A short description.", "English", "8-12", "chapter-books", "adventure", "EXAMPLE-PB-PL-VG", "Paperback", "preloved", "very_good", "Name written inside the cover", "", "", "45.00", "320", "yes", "0", ""],
   ]);
 }

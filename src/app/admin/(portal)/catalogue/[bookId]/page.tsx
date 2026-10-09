@@ -3,32 +3,39 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ActionForm, Field } from "@/components/admin/action-form";
 import { BookForm } from "@/components/admin/book-form";
+import { VariantOptionFields, type SkuOption } from "@/components/admin/variant-option-fields";
 import { icons } from "@/components/admin/icons";
 import { ImageUpload } from "@/components/admin/image-upload";
-import { Callout, Card, Money, PageHeader, PermissionDenied, PublishBadge, StockBadge } from "@/components/admin/ui";
+import { Badge, Callout, Card, Money, PageHeader, PermissionDenied, PublishBadge, StockBadge } from "@/components/admin/ui";
 import { pageAccess } from "@/lib/admin/auth/guard";
 import { can } from "@/lib/admin/context";
 import { formatDateTime, pesewasToDecimal } from "@/lib/admin/format";
 import { getBookForEdit, listCategories } from "@/lib/admin/ops/catalogue";
 import { getAdminStore } from "@/lib/admin/store";
 import { BOOK_FORMATS, type BookVariant } from "@/lib/admin/types";
+import { conditionLabel, optionLabel } from "@/lib/contracts/catalog";
 import { createVariantAction, removeGalleryImageAction, saveBookAction, setBookStatusAction, updateCoverAltAction, updateVariantAction } from "../actions";
 
 export const metadata = { title: "Edit book" };
 
-function VariantFields({ variant, showCost }: { variant?: BookVariant; showCost: boolean }) {
+function VariantFields({ variant, showCost, skuOptions }: { variant?: BookVariant; showCost: boolean; skuOptions: SkuOption[] }) {
   return (
     <div className="adm-fields adm-fields-4">
       {!variant ? (
         <Field name="sku" label="SKU" required hint="Unique. A–Z, 0–9, hyphens.">
-          <input type="text" name="sku" required placeholder="MANGO-PB-01" style={{ textTransform: "uppercase" }} />
+          <input type="text" name="sku" required placeholder="MANGO-PB-NEW" style={{ textTransform: "uppercase" }} />
         </Field>
       ) : null}
-      <Field name="format" label="Format" required>
-        <select name="format" defaultValue={variant?.format ?? "Paperback"}>
-          {BOOK_FORMATS.map((format) => <option key={format}>{format}</option>)}
-        </select>
-      </Field>
+      <VariantOptionFields
+        formats={BOOK_FORMATS}
+        format={variant?.format}
+        condition={variant?.condition}
+        grade={variant?.conditionGrade}
+        note={variant?.conditionNote}
+        compareAtPesewas={variant?.compareAtPesewas}
+        bundleItems={variant?.bundleItems}
+        skuOptions={skuOptions}
+      />
       <Field name="edition" label="Edition">
         <input type="text" name="edition" defaultValue={variant?.edition} placeholder="e.g. 2nd edition, 2024 reprint" />
       </Field>
@@ -67,7 +74,13 @@ export default async function EditBookPage({ params }: { params: Promise<{ bookI
   const row = await getBookForEdit(store, ctx, bookId);
   if (!row) notFound();
   const { book, variants, blockers } = row;
-  const [categories, books] = await Promise.all([listCategories(store), store.query("books")]);
+  const [categories, books, allVariants] = await Promise.all([listCategories(store), store.query("books"), store.query("bookVariants")]);
+  const titleById = new Map(books.map((other) => [other.id, other.title]));
+  // Items a bundle can contain: any single (non-bundle) SKU in the catalogue.
+  const skuOptions: SkuOption[] = allVariants
+    .filter((other) => other.format !== "Bundle" && other.bookId !== book.id)
+    .map((other) => ({ sku: other.sku, label: `${titleById.get(other.bookId) ?? other.bookId} · ${optionLabel(other.format, other.condition, other.conditionGrade)}` }))
+    .sort((left, right) => left.label.localeCompare(right.label));
   const editable = can(ctx, "catalogue.edit") && book.status !== "archived";
   const canPublish = can(ctx, "catalogue.publish");
   const showCost = can(ctx, "finance.view");
@@ -154,7 +167,7 @@ export default async function EditBookPage({ params }: { params: Promise<{ bookI
                           {variant.isbn ? <span className="sub adm-mono">ISBN {variant.isbn}</span> : null}
                           {!variant.active ? <span className="sub">Inactive</span> : null}
                         </td>
-                        <td data-label="Format">{variant.format}{variant.edition ? <span className="sub">{variant.edition}</span> : null}</td>
+                        <td data-label="Format">{variant.format}{variant.edition ? <span className="sub">{variant.edition}</span> : null}<span className="sub"><Badge tone={variant.condition === "preloved" ? "green" : "blue"}>{conditionLabel(variant.condition, variant.conditionGrade)}</Badge></span></td>
                         <td className="num" data-label="Price"><Money pesewas={variant.pricePesewas} /></td>
                         <td className="num" data-label="Weight">{variant.weightGrams} g</td>
                         <td data-label="Stock"><StockBadge available={variant.available} threshold={0} /> <span className="sub">{variant.onHand} on hand</span></td>
@@ -174,7 +187,7 @@ export default async function EditBookPage({ params }: { params: Promise<{ bookI
                     <div style={{ paddingTop: 12 }}>
                       <ActionForm action={updateVariantAction} idempotencyKey={randomUUID()} submitLabel="Save variant">
                         <input type="hidden" name="sku" value={variant.sku} />
-                        <VariantFields variant={variant} showCost={showCost} />
+                        <VariantFields variant={variant} showCost={showCost} skuOptions={skuOptions} />
                       </ActionForm>
                     </div>
                   </details>
@@ -184,7 +197,7 @@ export default async function EditBookPage({ params }: { params: Promise<{ bookI
                   <div style={{ paddingTop: 12 }}>
                     <ActionForm action={createVariantAction} idempotencyKey={randomUUID()} submitLabel="Create variant at zero stock" resetOnSuccess>
                       <input type="hidden" name="bookId" value={book.id} />
-                      <VariantFields showCost={showCost} />
+                      <VariantFields showCost={showCost} skuOptions={skuOptions} />
                     </ActionForm>
                   </div>
                 </details>

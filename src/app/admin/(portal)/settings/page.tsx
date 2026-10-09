@@ -49,7 +49,7 @@ export default async function SettingsPage() {
             <Card title="Operational switches" description="Changes are audited.">
               <div className="adm-stack">
                 <label className="adm-check"><input type="checkbox" name="checkoutEnabled" defaultChecked={settings.checkoutEnabled} /> <span><strong>Checkout open</strong><br /><span className="adm-small adm-muted">When off, shoppers can browse but cannot pay. Shared commerce must honour this flag.</span></span></label>
-                <label className="adm-check"><input type="checkbox" name="smsEnabled" defaultChecked={settings.smsEnabled} /> <span><strong>Transactional SMS</strong><br /><span className="adm-small adm-muted">When off, order events are logged as “suppressed” instead of queued.</span></span></label>
+                <label className="adm-check"><input type="checkbox" name="smsEnabled" disabled /> <span><strong>Transactional SMS</strong><br /><span className="adm-small adm-muted">Unavailable until mNotify sending and delivery tracking are connected. Order status remains available on the website.</span></span></label>
               </div>
             </Card>
           </fieldset>

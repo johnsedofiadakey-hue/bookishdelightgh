@@ -1,8 +1,7 @@
 "use server";
 
 import type { ActionState } from "@/lib/admin/action-state";
-import { bool, idempotencyKey, int, list, optionalText, runAction, text } from "@/lib/admin/actions";
-import { saveCategory } from "@/lib/admin/ops/catalogue";
+import { bool, idempotencyKey, list, optionalText, runAction, text } from "@/lib/admin/actions";
 import { getHomepage, publishHomepage, saveHomepageDraft } from "@/lib/admin/ops/content";
 import type { HomepageContent } from "@/lib/admin/types";
 
@@ -36,12 +35,5 @@ export async function publishHomepageAction(_state: ActionState, form: FormData)
   return runAction("content.publish", async ({ store, ctx }) => {
     await publishHomepage(store, ctx, idempotencyKey(form));
     return { message: "Homepage published." };
-  });
-}
-
-export async function saveCategoryAction(_state: ActionState, form: FormData): Promise<ActionState> {
-  return runAction("content.edit", async ({ store, ctx }) => {
-    await saveCategory(store, ctx, { id: optionalText(form, "id"), name: text(form, "name"), slug: optionalText(form, "slug"), caption: optionalText(form, "caption"), order: int(form, "order", 0), published: bool(form, "published") }, idempotencyKey(form));
-    return { message: "Category saved." };
   });
 }

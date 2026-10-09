@@ -6,11 +6,11 @@ export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3005"),
   robots: { index: false, follow: false, nocache: true },
   title: "Bookish Delight GH | Children’s books & learning resources in Kumasi",
-  description: "Bookish Delight GH sells children’s books and educational resources — puzzles, games and more — from Kumasi. Ask us about stock while we add it online.",
+  description: "Bookish Delight GH sells brand new and preloved children’s books, educational resources and bundle deals from Kumasi, Ghana.",
   applicationName: "Bookish Delight GH",
   openGraph: {
     title: "Bookish Delight GH | Children’s books & learning resources in Kumasi",
-    description: "Children’s books, puzzles, educational games and more, from Kumasi. Ask us about stock while we add it online.",
+    description: "Brand new and preloved children’s books, educational resources and bundle deals, from Kumasi.",
     siteName: "Bookish Delight GH",
     locale: "en_GH",
     type: "website",

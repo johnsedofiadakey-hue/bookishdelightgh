@@ -20,7 +20,7 @@ export default function DeliveryPage() {
     </LegalSection>
 
     <LegalSection id="dispatch" title="3. Processing your order">
-      <p>We pack orders on working days once payment is confirmed. You will receive an SMS when your order is paid, when it is dispatched (with the courier’s details where available) and when it is delivered.</p>
+      <p>We pack orders on working days once payment is confirmed. Keep your order number and use the tracking page to check progress. We may contact you by phone or WhatsApp if we need help with delivery.</p>
     </LegalSection>
 
     <LegalSection id="tracking" title="4. Tracking your order">

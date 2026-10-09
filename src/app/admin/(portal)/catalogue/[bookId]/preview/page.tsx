@@ -4,6 +4,7 @@ import { Callout, Card, Money, PageHeader, PermissionDenied, PublishBadge } from
 import { pageAccess } from "@/lib/admin/auth/guard";
 import { getBookForEdit, listCategories, storefrontContractFor } from "@/lib/admin/ops/catalogue";
 import { getAdminStore } from "@/lib/admin/store";
+import { optionLabel } from "@/lib/contracts/catalog";
 
 export const metadata = { title: "Preview" };
 
@@ -55,7 +56,7 @@ export default async function PreviewBookPage({ params }: { params: Promise<{ bo
               <div style={{ display: "flex", flexWrap: "wrap", gap: 10, margin: "14px 0" }}>
                 {sellable.map((variant) => (
                   <div key={variant.sku} style={{ border: "1px solid var(--line-2)", borderRadius: 12, padding: "10px 14px", minWidth: 150 }}>
-                    <strong>{variant.format}</strong>{variant.edition ? <span className="adm-small adm-muted"> · {variant.edition}</span> : null}
+                    <strong>{optionLabel(variant.format, variant.condition, variant.conditionGrade)}</strong>{variant.edition ? <span className="adm-small adm-muted"> · {variant.edition}</span> : null}
                     <div style={{ fontSize: 20, fontWeight: 750 }}><Money pesewas={variant.pricePesewas} /></div>
                     <span className="adm-small" style={{ color: variant.available > 0 ? "var(--green)" : "var(--red)", fontWeight: 650 }}>{variant.available > 0 ? "In stock" : "Out of stock — cannot be bought"}</span>
                   </div>

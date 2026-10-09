@@ -8,6 +8,7 @@ import { enqueueOrderSms, readNotificationSlot } from "@/lib/admin/ops/notificat
 import type { AdminDataStore, AdminTransaction } from "@/lib/admin/store/types";
 import { SCHEMA_VERSION, type AuditEvent, type DeliveryRate, type InventoryRecord, type MovementType, type Order, type OrderLineSnapshot, type PaymentRecord } from "@/lib/admin/types";
 import { isGhanaRegion, isValidEmail, normalizeGhanaPhone } from "@/lib/admin/validation";
+import { optionLabel } from "@/lib/contracts/catalog";
 
 /**
  * Website checkout: pricing, delivery quotes, stock reservation and payment
@@ -90,15 +91,18 @@ export async function priceCart(reader: Reader, lines: CartLineInput[]): Promise
     }
     const available = record ? Math.max(0, availableOf(record)) : 0;
     if (record) inventory.set(line.sku, record);
+    const option = optionLabel(variant.format, variant.condition, variant.conditionGrade);
     if (available < line.quantity) {
-      problems.push(available ? `Only ${available} × ${book.title} (${variant.format}) left.` : `${book.title} (${variant.format}) is out of stock.`);
+      problems.push(available ? `Only ${available} × ${book.title} (${option}) left.` : `${book.title} (${option}) is out of stock.`);
     }
     weight += variant.weightGrams * line.quantity;
     priced.push(stripUndefined({
       sku: variant.sku,
       bookId: book.id,
       title: book.title,
-      format: variant.format,
+      format: option,
+      condition: variant.condition ?? "new",
+      conditionGrade: variant.condition === "preloved" ? variant.conditionGrade : undefined,
       isbn: variant.isbn,
       unitPricePesewas: variant.pricePesewas,
       quantity: line.quantity,
@@ -288,6 +292,7 @@ export interface PaystackOutcome {
 
 export type ConfirmResult =
   | { state: "paid"; orderId: string; ref: string; alreadyProcessed: boolean }
+  | { state: "attention"; orderId: string; ref: string; alreadyProcessed: boolean }
   | { state: "failed" | "pending"; orderId: string; ref: string }
   | { state: "unknown" };
 
@@ -305,7 +310,7 @@ export async function applyPaystackOutcome(store: AdminDataStore, outcome: Payst
     const history = [...payment.verificationHistory, { at, status: outcome.status, source }];
 
     if (order.paymentStatus === "paid" || order.paymentStatus === "refund_pending" || order.paymentStatus === "refunded" || order.paymentStatus === "partially_refunded") {
-      return { state: "paid" as const, orderId: order.id, ref: order.ref, alreadyProcessed: true };
+      return { state: order.exception && !order.exception.resolvedAt ? "attention" as const : "paid" as const, orderId: order.id, ref: order.ref, alreadyProcessed: true };
     }
 
     if (outcome.status === "success") {
@@ -320,6 +325,10 @@ export async function applyPaystackOutcome(store: AdminDataStore, outcome: Payst
         next.exception = { kind: "payment_mismatch", detail: `Paystack reported ${outcome.amountPesewas} ${outcome.currency}; order total is ${order.totalPesewas} GHS.`, raisedAt: at };
         next.fulfilmentStatus = "exception";
         next.fulfilmentHistory = [...order.fulfilmentHistory, { from: order.fulfilmentStatus, to: "exception", actorUid: CHECKOUT_ACTOR.uid, actorName: CHECKOUT_ACTOR.name, at, note: "Payment amount mismatch" }];
+        if (order.stockState === "reserved") {
+          moveStock(tx, next, records, "ORDER_RELEASED", "Payment amount mismatch; order held for review");
+          next.stockState = "released";
+        }
       } else if (order.stockState === "reserved") {
         moveStock(tx, next, records, "ORDER_SOLD", "Website payment verified");
         next.stockState = "sold";
@@ -342,9 +351,9 @@ export async function applyPaystackOutcome(store: AdminDataStore, outcome: Payst
       }
       tx.set("orders", order.id, stripUndefined(next));
       tx.update("payments", payment.id, { verified: true, providerStatus: "success", verificationHistory: history, updatedAt: at });
-      enqueueOrderSms(tx, next, "order_paid", slot, settings?.smsEnabled ?? false);
+      if (!next.exception || next.exception.resolvedAt) enqueueOrderSms(tx, next, "order_paid", slot, settings?.smsEnabled ?? false);
       systemAudit(tx, { action: "orders.website.paid", entityId: order.id, summary: `Paystack payment verified for ${order.ref} (${source})${next.exception && !next.exception.resolvedAt && next.fulfilmentStatus === "exception" ? `; exception: ${next.exception.kind}` : ""}`, after: { channel: outcome.channel, amountPesewas: outcome.amountPesewas } });
-      return { state: "paid" as const, orderId: order.id, ref: order.ref, alreadyProcessed: false };
+      return { state: next.exception && !next.exception.resolvedAt ? "attention" as const : "paid" as const, orderId: order.id, ref: order.ref, alreadyProcessed: false };
     }
 
     if (outcome.status === "failed" || outcome.status === "reversed") {

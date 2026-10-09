@@ -7,7 +7,7 @@ import { parseGhsToPesewas } from "@/lib/admin/format";
 import { deleteImageQuietly } from "@/lib/admin/media";
 import { commitImport, dryRunImport } from "@/lib/admin/ops/catalogue-import";
 import { createBook, createVariant, removeGalleryImage, setBookStatus, updateBook, updateCoverAlt, updateVariant, type BookInput } from "@/lib/admin/ops/catalogue";
-import type { AdminBookFormat, AgeBand, PublishStatus } from "@/lib/admin/types";
+import type { AdminBookFormat, AgeBand, ItemCondition, PrelovedGrade, PublishStatus } from "@/lib/admin/types";
 import { splitList } from "@/lib/admin/validation";
 
 function bookInput(form: FormData): BookInput {
@@ -55,11 +55,24 @@ function variantFields(form: FormData) {
   const costPesewas = cost ? parseGhsToPesewas(cost) : undefined;
   if (price === null) throw new AdminError("invalid", "Enter the selling price in GHS.", { price: "e.g. 95 or 95.50" });
   if (costPesewas === null) throw new AdminError("invalid", "Enter the cost in GHS or leave it blank.", { cost: "e.g. 60.00" });
+  const compareAt = optionalText(form, "compareAt");
+  const compareAtPesewas = compareAt ? parseGhsToPesewas(compareAt) : undefined;
+  if (compareAtPesewas === null) throw new AdminError("invalid", "Enter the “worth” price in GHS or leave it blank.", { compareAtPesewas: "e.g. 250.00" });
+  const format = text(form, "format") as AdminBookFormat;
+  const skus = form.getAll("bundleSku").map(String);
+  const titles = form.getAll("bundleTitle").map(String);
+  const quantities = form.getAll("bundleQty").map((value) => Number(value));
+  const bundleItems = format === "Bundle" ? titles.map((title, index) => ({ sku: skus[index] || undefined, title, quantity: Number.isFinite(quantities[index]) ? quantities[index] : 0 })) : undefined;
   return {
-    format: text(form, "format") as AdminBookFormat,
+    format,
+    condition: text(form, "condition") as ItemCondition,
+    conditionGrade: (optionalText(form, "conditionGrade") as PrelovedGrade | undefined),
+    conditionNote: optionalText(form, "conditionNote"),
     edition: optionalText(form, "edition"),
     isbn: optionalText(form, "isbn"),
     pricePesewas: price,
+    compareAtPesewas,
+    bundleItems,
     costPesewas,
     weightGrams: int(form, "weightGrams"),
     active: bool(form, "active"),

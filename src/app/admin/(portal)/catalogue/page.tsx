@@ -6,6 +6,7 @@ import { can } from "@/lib/admin/context";
 import { formatDate } from "@/lib/admin/format";
 import { listCatalogue, listCategories, type CatalogueFilter } from "@/lib/admin/ops/catalogue";
 import { getAdminStore } from "@/lib/admin/store";
+import { optionLabel } from "@/lib/contracts/catalog";
 
 export const metadata = { title: "Catalogue" };
 
@@ -124,7 +125,7 @@ export default async function CataloguePage({ searchParams }: { searchParams: Pr
                   </td>
                   <td data-label="Status"><PublishBadge status={row.book.status} /></td>
                   <td data-label="Variants">
-                    {row.variants.length ? row.variants.map((variant) => <span className="sub adm-mono" key={variant.sku}>{variant.sku} · {variant.format}{variant.active ? "" : " (inactive)"}</span>) : <span className="adm-muted">None yet</span>}
+                    {row.variants.length ? row.variants.map((variant) => <span className="sub adm-mono" key={variant.sku}>{variant.sku} · {optionLabel(variant.format, variant.condition, variant.conditionGrade)}{variant.active ? "" : " (inactive)"}</span>) : <span className="adm-muted">None yet</span>}
                   </td>
                   <td data-label="Stock"><StockBadge available={row.totalAvailable} threshold={0} /></td>
                   <td className="num" data-label="From">{row.minPricePesewas !== null ? <Money pesewas={row.minPricePesewas} /> : "—"}</td>

@@ -24,8 +24,9 @@ export default async function ImportPage() {
         <Callout tone="info" title="Columns">
           <span className="adm-mono adm-small">{IMPORT_COLUMNS.join(", ")}</span>
           <ul>
-            <li>Required: title, authors, sku, format, price_ghs, weight_grams. Rows sharing a <span className="adm-mono">book_slug</span> become variants of one book.</li>
-            <li>Lists (authors, categories, tags) use commas or semicolons. Categories are slugs, e.g. <span className="adm-mono">fiction; ghanaian</span>.</li>
+            <li>Required: title, sku, format, price_ghs, weight_grams. Rows sharing a <span className="adm-mono">book_slug</span> become variants of one book.</li>
+            <li>Lists (authors, categories, tags) use commas or semicolons. Categories are shelf web addresses, e.g. <span className="adm-mono">chapter-books; christian</span>.</li>
+            <li><span className="adm-mono">condition</span> is <span className="adm-mono">new</span> (default) or <span className="adm-mono">preloved</span>. Preloved rows need <span className="adm-mono">grade</span>: <span className="adm-mono">like_new</span>, <span className="adm-mono">very_good</span> or <span className="adm-mono">good</span>. Sell one title both ways by using the same <span className="adm-mono">book_slug</span> on two rows.</li>
             <li><span className="adm-mono">opening_quantity</span> needs <span className="adm-mono">opening_reference</span> (e.g. supplier invoice) and the inventory-receive permission.</li>
             <li>Up to {MAX_IMPORT_ROWS} rows per file. Never import sample or test products into production.</li>
           </ul>

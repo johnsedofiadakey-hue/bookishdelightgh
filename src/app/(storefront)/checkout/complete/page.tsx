@@ -28,8 +28,16 @@ export default async function CheckoutCompletePage({ searchParams }: { searchPar
     return <main className="interior-page shell checkout-result"><ClearCart/>
       <p className="eyebrow">Thank you!</p><h1>Your order is confirmed.</h1>
       <p className="checkout-result-ref">Order number <strong>{result.ref}</strong></p>
-      <p>We’ve received your payment and will start preparing your order. We’ll send SMS updates to the phone number you gave us. Keep your order number to track it.</p>
+      <p>We’ve received your payment and will start preparing your order. Keep your order number to track it.</p>
       <div className="checkout-result-actions"><Link className="button button-dark" href="/track">Track your order ↗</Link><Link className="text-link" href="/shop">Continue shopping</Link></div>
+    </main>;
+  }
+  if (result.state === "attention") {
+    return <main className="interior-page shell checkout-result"><ClearCart/>
+      <p className="eyebrow">Payment received</p><h1>Your order needs a quick review.</h1>
+      <p className="checkout-result-ref">Order number <strong>{result.ref}</strong></p>
+      <p>We received a payment, but could not confirm this order for fulfilment. Please contact us with your order number. If the payment amount was wrong or an item is unavailable, we’ll help resolve it or arrange a refund.</p>
+      <div className="checkout-result-actions"><a className="button button-dark" href={bookishWhatsAppUrl} target="_blank" rel="noopener noreferrer"><WhatsAppIcon/> Message us</a><Link className="text-link" href="/track">Track this order</Link></div>
     </main>;
   }
   if (result.state === "failed") {

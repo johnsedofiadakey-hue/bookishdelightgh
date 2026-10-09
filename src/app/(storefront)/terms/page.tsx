@@ -15,7 +15,7 @@ export default function TermsPage() {
     </LegalSection>
 
     <LegalSection id="products" title="2. Our products">
-      <p>We sell children’s books and educational resources, including puzzles, games, workbooks and flashcards. We show real photos and describe each item as accurately as we can, but colours may look slightly different on your screen and packaging may change from the publisher or maker.</p>
+      <p>We sell brand new and preloved children’s books, educational resources such as workbooks and flashcards, reference books, Christian literature and bundle deals. Preloved items are graded Like new, Very good or Good, and any notable wear is described on the listing. We show real photos and describe each item as accurately as we can, but colours may look slightly different on your screen and packaging may change from the publisher or maker.</p>
       <p>Age guidance on a listing is a suggestion. Please read our <Link href="/safety">Product Safety</Link> page, especially for young children and items with small parts.</p>
     </LegalSection>
 
@@ -26,7 +26,7 @@ export default function TermsPage() {
     </LegalSection>
 
     <LegalSection id="orders" title="4. Placing an order">
-      <p>Your order is an offer to buy. A contract is formed when we confirm payment by SMS or on screen. We may decline or cancel an order, for example if an item is out of stock, delivery is not possible to your address, or we suspect fraud. If we cancel, we refund any amount you paid.</p>
+      <p>Your order is an offer to buy. We confirm accepted orders on screen after payment is verified. We may decline or cancel an order, for example if an item is out of stock, delivery is not possible to your address, or we suspect fraud. If we cancel, we refund any amount you paid.</p>
       <p>Please check your phone number and delivery address. We use them to deliver your order and send updates.</p>
     </LegalSection>
 

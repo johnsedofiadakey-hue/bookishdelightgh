@@ -13,12 +13,14 @@ import {
   type AgeBand,
   type Book,
   type BookVariant,
+  type BundleItem,
   type Category,
   type ImageRef,
   type InventoryRecord,
   type PublishStatus,
 } from "@/lib/admin/types";
 import { isValidIsbn, isValidSku, isValidSlug, normalizeIsbn, normalizeSku, slugify } from "@/lib/admin/validation";
+import { BUNDLE_CONDITIONS, ITEM_CONDITIONS, optionLabel, PRELOVED_GRADES, type ItemCondition, type PrelovedGrade } from "@/lib/contracts/catalog";
 
 /* ------------------------------------------------------------- Validation */
 
@@ -75,14 +77,34 @@ export function validateBookInput(input: BookInput): { value: BookInput; errors:
 export interface VariantInput {
   sku: string;
   format: AdminBookFormat;
+  condition: ItemCondition;
+  conditionGrade?: PrelovedGrade;
+  conditionNote?: string;
   edition?: string;
   isbn?: string;
   pricePesewas: number;
   costPesewas?: number;
   weightGrams: number;
   active: boolean;
+  compareAtPesewas?: number;
+  /** Bundles only. */
+  bundleItems?: BundleItem[];
   /** Staff confirmed this ISBN+format is a deliberate separate listing. */
   confirmDuplicateIsbn?: boolean;
+}
+
+export const MAX_BUNDLE_ITEMS = 30;
+
+function normalizeBundleItems(items: BundleItem[] | undefined, errors: Record<string, string>): BundleItem[] {
+  const cleaned = (items ?? [])
+    .map((item) => ({ ...(item.sku?.trim() ? { sku: normalizeSku(item.sku) } : {}), title: item.title.trim().slice(0, 120), quantity: item.quantity }))
+    .filter((item) => item.sku || item.title);
+  if (!cleaned.length) errors.bundleItems = "List what’s inside the bundle.";
+  if (cleaned.length > MAX_BUNDLE_ITEMS) errors.bundleItems = `A bundle can list up to ${MAX_BUNDLE_ITEMS} items.`;
+  if (cleaned.some((item) => !Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > 20)) errors.bundleItems = "Each item’s quantity must be 1–20.";
+  const skus = cleaned.flatMap((item) => (item.sku ? [item.sku] : []));
+  if (new Set(skus).size !== skus.length) errors.bundleItems = "List each stocked SKU once; use the quantity for several copies.";
+  return cleaned;
 }
 
 export function validateVariantInput(input: VariantInput): { value: VariantInput; errors: Record<string, string> } {
@@ -95,7 +117,22 @@ export function validateVariantInput(input: VariantInput): { value: VariantInput
   if (!Number.isSafeInteger(input.pricePesewas) || input.pricePesewas < 0 || input.pricePesewas > 10_000_000) errors.pricePesewas = "Enter a price between GH₵0 and GH₵100,000.";
   if (input.costPesewas !== undefined && (!Number.isSafeInteger(input.costPesewas) || input.costPesewas < 0)) errors.costPesewas = "Cost must be a positive amount.";
   if (!Number.isInteger(input.weightGrams) || input.weightGrams < 0 || input.weightGrams > 30_000) errors.weightGrams = "Weight must be 0–30,000 g.";
-  return { value: { ...input, sku, isbn, edition: input.edition?.trim() || undefined }, errors };
+  const isBundle = input.format === "Bundle";
+  const allowed = isBundle ? BUNDLE_CONDITIONS : ITEM_CONDITIONS;
+  const condition: ItemCondition = allowed.includes(input.condition) ? input.condition : "new";
+  if (!allowed.includes(input.condition)) errors.condition = isBundle ? "Choose Brand new, Preloved or Mixed." : "Choose Brand new or Preloved. Mixed is for bundles only.";
+  const preloved = condition === "preloved";
+  if (input.compareAtPesewas !== undefined && (!Number.isSafeInteger(input.compareAtPesewas) || input.compareAtPesewas <= input.pricePesewas)) {
+    errors.compareAtPesewas = "The “worth” price must be higher than the selling price, or left empty.";
+  }
+  const bundleItems = isBundle ? normalizeBundleItems(input.bundleItems, errors) : undefined;
+  if (preloved && !(PRELOVED_GRADES as readonly string[]).includes(input.conditionGrade ?? "")) errors.conditionGrade = "Choose how good the preloved copy is.";
+  const conditionNote = preloved ? input.conditionNote?.trim() || undefined : undefined;
+  if (conditionNote && conditionNote.length > 160) errors.conditionNote = "Keep the condition note under 160 characters.";
+  return {
+    value: { ...input, sku, isbn, edition: input.edition?.trim() || undefined, condition, conditionGrade: preloved ? input.conditionGrade : undefined, conditionNote, bundleItems },
+    errors,
+  };
 }
 
 function throwIfErrors(errors: Record<string, string>) {
@@ -109,7 +146,7 @@ export function publishBlockers(book: Book, variants: BookVariant[]): string[] {
   else if (!book.cover.alt.trim()) blockers.push("Add alt text to the cover image.");
   if (book.description.trim().length < 20) blockers.push("Write a description (at least 20 characters).");
   if (!book.categoryIds.length) blockers.push("Choose at least one category.");
-  const sellable = variants.filter((variant) => variant.active && variant.pricePesewas > 0 && variant.weightGrams > 0);
+  const sellable = variants.filter((variant) => variant.active && variant.pricePesewas > 0 && variant.weightGrams > 0 && (variant.format !== "Bundle" || (variant.bundleItems?.length ?? 0) > 0));
   if (!sellable.length) blockers.push("Add at least one active variant with a price and shipping weight.");
   return blockers;
 }
@@ -121,12 +158,27 @@ async function assertSlugFree(tx: AdminTransaction, slug: string, exceptBookId?:
   if (existing.some((book) => book.id !== exceptBookId)) throw new AdminError("conflict", "Another book already uses this URL slug.", { slug: "Already in use" });
 }
 
+async function readSelectedCategories(tx: AdminTransaction, categoryIds: string[]): Promise<Category[]> {
+  const categories = await Promise.all(categoryIds.map((id) => tx.get("categories", id)));
+  if (categories.some((category) => !category)) {
+    throw new AdminError("invalid", "One or more selected categories no longer exist. Choose categories again.", { categoryIds: "Remove missing categories" });
+  }
+  return categories as Category[];
+}
+
+function assertPublishedShelf(categories: Category[]) {
+  if (!categories.some((category) => category.published)) {
+    throw new AdminError("precondition", "Publish at least one selected category before publishing this book.");
+  }
+}
+
 export async function createBook(store: AdminDataStore, ctx: StaffContext, input: BookInput, idempotencyKey: string) {
   assertPermission(ctx, "catalogue.edit");
   const { value, errors } = validateBookInput(input);
   throwIfErrors(errors);
   return runIdempotent(store, ctx, "catalogue.createBook", idempotencyKey, async (tx) => {
     await assertSlugFree(tx, value.slug!);
+    await readSelectedCategories(tx, value.categoryIds);
     const at = nowIso();
     const book: Book = stripUndefined({
       id: newId("book"),
@@ -164,6 +216,8 @@ export async function updateBook(store: AdminDataStore, ctx: StaffContext, bookI
     const book = await tx.get("books", bookId);
     if (!book) throw new AdminError("not_found", "Book not found.");
     await assertSlugFree(tx, value.slug!, bookId);
+    const selectedCategories = await readSelectedCategories(tx, value.categoryIds);
+    if (book.status === "published") assertPublishedShelf(selectedCategories);
     if (value.relatedBookIds.includes(bookId)) throw new AdminError("invalid", "A book cannot be related to itself.", { relatedBookIds: "Remove this book" });
     const next: Book = stripUndefined({
       ...book,
@@ -208,6 +262,7 @@ export async function setBookStatus(store: AdminDataStore, ctx: StaffContext, bo
     if (!book) throw new AdminError("not_found", "Book not found.");
     const variants = await tx.query("bookVariants", { where: [["bookId", "==", bookId]] });
     if (status === "published") {
+      assertPublishedShelf(await readSelectedCategories(tx, book.categoryIds));
       const blockers = publishBlockers(book, variants);
       if (blockers.length) throw new AdminError("precondition", `Not ready to publish: ${blockers.join(" ")}`);
     }
@@ -273,14 +328,43 @@ export async function removeGalleryImage(store: AdminDataStore, ctx: StaffContex
 
 async function assertIsbnFormatFree(tx: AdminTransaction, value: VariantInput, exceptSku?: string) {
   if (!value.isbn) return;
-  const sameIsbn = (await tx.query("bookVariants", { where: [["isbn", "==", value.isbn]] })).filter((variant) => variant.sku !== exceptSku);
-  const clash = sameIsbn.find((variant) => variant.format === value.format && (variant.edition ?? "") === (value.edition ?? ""));
-  if (clash) throw new AdminError("conflict", `ISBN ${value.isbn} is already listed as ${clash.format} under SKU ${clash.sku}.`, { isbn: `Used by ${clash.sku}` });
-  const sameFormat = sameIsbn.find((variant) => variant.format === value.format);
+  // The same ISBN may be sold brand new and preloved (and preloved in different grades):
+  // those are separate options with their own price and stock, not duplicates.
+  const sameOption = (variant: BookVariant) =>
+    variant.format === value.format && (variant.condition ?? "new") === value.condition && (variant.conditionGrade ?? "") === (value.conditionGrade ?? "");
+  const sameIsbn = (await tx.query("bookVariants", { where: [["isbn", "==", value.isbn]] })).filter((variant) => variant.sku !== exceptSku && sameOption(variant));
+  const clash = sameIsbn.find((variant) => (variant.edition ?? "") === (value.edition ?? ""));
+  if (clash) throw new AdminError("conflict", `ISBN ${value.isbn} is already listed as ${optionLabel(clash.format, clash.condition, clash.conditionGrade)} under SKU ${clash.sku}. Receive more stock on that SKU instead.`, { isbn: `Used by ${clash.sku}` });
+  const sameFormat = sameIsbn[0];
   if (sameFormat && !value.confirmDuplicateIsbn) {
     throw new AdminError("conflict", `ISBN ${value.isbn} already exists as ${sameFormat.format} (${sameFormat.sku}). Tick “separate listing” if this is deliberate.`, { isbn: `Also on ${sameFormat.sku}` });
   }
 }
+
+/**
+ * Check linked bundle SKUs inside the transaction and fill missing titles
+ * from their books. A bundle cannot contain itself or another bundle.
+ */
+async function resolveBundleItems(tx: AdminTransaction, bundleSku: string, items: BundleItem[] | undefined): Promise<BundleItem[] | undefined> {
+  if (!items) return undefined;
+  const resolved: BundleItem[] = [];
+  for (const item of items) {
+    if (!item.sku) {
+      resolved.push(item);
+      continue;
+    }
+    if (item.sku === bundleSku) throw new AdminError("invalid", "A bundle cannot contain itself.", { bundleItems: "Remove this bundle’s own SKU" });
+    const component = await tx.get("bookVariants", item.sku);
+    if (!component) throw new AdminError("invalid", `SKU ${item.sku} does not exist.`, { bundleItems: `Unknown SKU ${item.sku}` });
+    if (component.format === "Bundle") throw new AdminError("invalid", `${item.sku} is itself a bundle. Bundles cannot contain bundles.`, { bundleItems: "No bundles inside bundles" });
+    const title = item.title || (await tx.get("books", component.bookId))?.title || item.sku;
+    resolved.push({ sku: item.sku, title, quantity: item.quantity });
+  }
+  return resolved;
+}
+
+const linkedKey = (items: BundleItem[] | undefined) =>
+  JSON.stringify((items ?? []).filter((item) => item.sku).map((item) => [item.sku, item.quantity]).sort());
 
 export async function createVariant(store: AdminDataStore, ctx: StaffContext, bookId: string, input: VariantInput, idempotencyKey: string) {
   assertPermission(ctx, "catalogue.edit");
@@ -293,15 +377,21 @@ export async function createVariant(store: AdminDataStore, ctx: StaffContext, bo
     const existing = await tx.get("bookVariants", value.sku);
     if (existing) throw new AdminError("conflict", `SKU ${value.sku} is already used.`, { sku: "Already in use" });
     await assertIsbnFormatFree(tx, value);
+    const bundleItems = await resolveBundleItems(tx, value.sku, value.bundleItems);
     const settings = await tx.get("siteSettings", "site");
     const at = nowIso();
     const variant: BookVariant = stripUndefined({
       sku: value.sku,
       bookId,
       format: value.format,
+      condition: value.condition,
+      conditionGrade: value.conditionGrade,
+      conditionNote: value.conditionNote,
       edition: value.edition,
       isbn: value.isbn,
       pricePesewas: value.pricePesewas,
+      compareAtPesewas: value.compareAtPesewas,
+      bundleItems,
       costPesewas: value.costPesewas,
       weightGrams: value.weightGrams,
       active: value.active,
@@ -315,7 +405,7 @@ export async function createVariant(store: AdminDataStore, ctx: StaffContext, bo
     tx.create("bookVariants", variant.sku, variant);
     tx.create("inventory", variant.sku, inventory);
     tx.update("books", bookId, { updatedAt: at, updatedBy: ctx.uid });
-    recordAudit(tx, ctx, { action: "catalogue.variant.create", entityType: "bookVariant", entityId: variant.sku, summary: `Added ${variant.format} ${variant.sku} to “${book.title}” at ${variant.pricePesewas} pesewas` });
+    recordAudit(tx, ctx, { action: "catalogue.variant.create", entityType: "bookVariant", entityId: variant.sku, summary: `Added ${optionLabel(variant.format, variant.condition, variant.conditionGrade)} ${variant.sku} to “${book.title}” at ${variant.pricePesewas} pesewas` });
     return { sku: variant.sku };
   });
 }
@@ -328,14 +418,24 @@ export async function updateVariant(store: AdminDataStore, ctx: StaffContext, sk
     const variant = await tx.get("bookVariants", sku);
     if (!variant) throw new AdminError("not_found", "Variant not found.");
     await assertIsbnFormatFree(tx, value, sku);
+    const bundleItems = await resolveBundleItems(tx, sku, value.bundleItems);
+    const inventory = await tx.get("inventory", sku);
+    if (inventory && inventory.onHand > 0 && linkedKey(variant.bundleItems) !== linkedKey(bundleItems)) {
+      throw new AdminError("precondition", `${inventory.onHand} of these bundles are already made up from stock. Unpack them in Inventory before changing the stocked items inside.`, { bundleItems: "Unpack made-up bundles first" });
+    }
     const book = await tx.get("books", variant.bookId);
     const siblings = book?.status === "published" ? await tx.query("bookVariants", { where: [["bookId", "==", variant.bookId]] }) : [];
     const next: BookVariant = stripUndefined({
       ...variant,
       format: value.format,
+      condition: value.condition,
+      conditionGrade: value.conditionGrade,
+      conditionNote: value.conditionNote,
       edition: value.edition,
       isbn: value.isbn,
       pricePesewas: value.pricePesewas,
+      compareAtPesewas: value.compareAtPesewas,
+      bundleItems,
       costPesewas: can(ctx, "finance.view") ? value.costPesewas : variant.costPesewas,
       weightGrams: value.weightGrams,
       active: value.active,
@@ -352,8 +452,8 @@ export async function updateVariant(store: AdminDataStore, ctx: StaffContext, sk
       entityType: "bookVariant",
       entityId: sku,
       summary: `Edited ${sku}`,
-      before: pick(variant, ["pricePesewas", "weightGrams", "active", "format", "isbn"]),
-      after: pick(next, ["pricePesewas", "weightGrams", "active", "format", "isbn"]),
+      before: pick(variant, ["pricePesewas", "weightGrams", "active", "format", "condition", "conditionGrade", "isbn"]),
+      after: pick(next, ["pricePesewas", "weightGrams", "active", "format", "condition", "conditionGrade", "isbn"]),
     });
     return { sku };
   });
@@ -496,7 +596,7 @@ export interface StorefrontBookContract {
   gallery: { url: string; alt: string; width: number; height: number }[];
   seo: { title: string; description: string };
   relatedSlugs: string[];
-  variants: { sku: string; format: string; edition?: string; isbn?: string; pricePesewas: number; weightGrams: number; available: number; inStock: boolean }[];
+  variants: { sku: string; format: string; condition: ItemCondition; conditionGrade?: PrelovedGrade; conditionNote?: string; label: string; edition?: string; isbn?: string; pricePesewas: number; weightGrams: number; available: number; inStock: boolean }[];
 }
 
 export async function storefrontContractFor(store: AdminDataStore, ctx: StaffContext, bookId: string): Promise<StorefrontBookContract | null> {
@@ -529,7 +629,7 @@ export async function storefrontContractFor(store: AdminDataStore, ctx: StaffCon
       .map((variant) => {
         const record = inventoryBySku.get(variant.sku);
         const available = record ? Math.max(0, availableOf(record)) : 0;
-        return { sku: variant.sku, format: variant.format, edition: variant.edition, isbn: variant.isbn, pricePesewas: variant.pricePesewas, weightGrams: variant.weightGrams, available, inStock: available > 0 };
+        return { sku: variant.sku, format: variant.format, condition: variant.condition ?? "new", conditionGrade: variant.conditionGrade, conditionNote: variant.conditionNote, label: optionLabel(variant.format, variant.condition, variant.conditionGrade), edition: variant.edition, isbn: variant.isbn, pricePesewas: variant.pricePesewas, weightGrams: variant.weightGrams, available, inStock: available > 0 };
       }),
   });
 }

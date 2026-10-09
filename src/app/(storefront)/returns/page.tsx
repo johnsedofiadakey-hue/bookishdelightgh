@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 };
 
 export default function ReturnsPage() {
-  return <LegalPage current="/returns" title="Returns & Refunds" intro={<p>We want every book, puzzle and game to arrive in perfect condition. If something is wrong, tell us and we will put it right.</p>}>
+  return <LegalPage current="/returns" title="Returns & Refunds" intro={<p>We want every book to arrive as described, brand new or preloved. If something is wrong, tell us and we will put it right.</p>}>
     <LegalSection id="faulty" title="1. Damaged, faulty or wrong items">
       <p>If an item arrives damaged, has missing pieces or pages, or is not what you ordered, message us on WhatsApp at {legalFacts.whatsappDisplay} within <Fact value={legalFacts.returnWindowDays} missing="number of days"/> days of delivery. Please include your order number and a photo of the problem.</p>
       <p>We will offer a replacement or a full refund, including the delivery charge for that item. We arrange and pay for the return.</p>
@@ -21,7 +21,7 @@ export default function ReturnsPage() {
     <LegalSection id="exceptions" title="3. Items we cannot take back">
       <p>For hygiene and safety reasons, and unless they are faulty, we cannot accept returns of:</p>
       <ul>
-        <li>puzzles and games that have been opened or whose seal has been broken;</li>
+        <li>activity books, workbooks or sticker books that have been written in or used;</li>
         <li>activity books, workbooks or colouring books that have been written or drawn in;</li>
         <li>items damaged after delivery.</li>
       </ul>

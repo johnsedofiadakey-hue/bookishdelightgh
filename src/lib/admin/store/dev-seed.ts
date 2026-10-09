@@ -1,6 +1,7 @@
 import { getDevelopmentIdentity } from "@/lib/admin/auth/identity";
 import { DEFAULT_HOMEPAGE, DEFAULT_SETTINGS } from "@/lib/admin/ops/content";
 import { notificationIdFor } from "@/lib/admin/ops/notifications";
+import { RECOMMENDED_CATEGORIES } from "@/lib/admin/recommended-categories";
 import type { MemoryAdminStore } from "@/lib/admin/store/memory";
 import { SCHEMA_VERSION, STAFF_ROLES, type AdminProfile, type Book, type BookVariant, type Category, type DeliveryRate, type InventoryRecord, type NotificationRecord, type Order, type PaymentRecord, type StockMovement } from "@/lib/admin/types";
 
@@ -43,14 +44,7 @@ export function seedDevelopmentStore(store: MemoryAdminStore): void {
   store.seed("siteSettings", "site", { ...DEFAULT_SETTINGS, supportEmail: "support@dev.bookish.test", smsEnabled: true, checkoutEnabled: true, updatedAt: t0, updatedBy: "dev-seed" });
   store.seed("siteContent", "homepage", { id: "homepage", draft: DEFAULT_HOMEPAGE, updatedAt: t0, updatedBy: "dev-seed" });
 
-  const categories: Category[] = [
-    { id: "picture-books", slug: "picture-books", name: "Picture books", caption: "Bright pages for little ones", order: 1, published: true, updatedAt: t0 },
-    { id: "storybooks", slug: "storybooks", name: "Storybooks", caption: "For growing readers", order: 2, published: true, updatedAt: t0 },
-    { id: "learning", slug: "learning", name: "Learning resources", caption: "Workbooks, flashcards and more", order: 3, published: true, updatedAt: t0 },
-    { id: "puzzles", slug: "puzzles", name: "Puzzles", caption: "Piece by piece, mind by mind", order: 4, published: true, updatedAt: t0 },
-    { id: "games", slug: "games", name: "Educational games", caption: "Play that teaches", order: 5, published: true, updatedAt: t0 },
-    { id: "ghanaian", slug: "ghanaian", name: "Ghanaian stories", caption: "Stories from close to home", order: 6, published: true, updatedAt: t0 },
-  ];
+  const categories: Category[] = RECOMMENDED_CATEGORIES.map((category) => ({ id: category.slug, slug: category.slug, name: category.name, caption: category.caption, order: category.order, published: true, updatedAt: t0 }));
   for (const category of categories) store.seed("categories", category.id, category);
 
   const rates: Omit<DeliveryRate, "familyId" | "version" | "active" | "createdAt" | "createdBy" | "activeFrom">[] = [
@@ -62,10 +56,10 @@ export function seedDevelopmentStore(store: MemoryAdminStore): void {
   for (const rate of rates) store.seed("deliveryRates", rate.id, { ...rate, familyId: rate.id, version: 1, active: true, activeFrom: t0, createdAt: t0, createdBy: "dev-seed" });
 
   const books: { book: Book; variant: BookVariant; onHand: number }[] = [
-    ["sample-mango", "the-mango-season", "The Mango Season (Sample)", "A. Mensah", ["storybooks", "ghanaian"], "8-12", "SAMPLE-MANGO-PB", "Paperback", 9500, 320, 8],
-    ["sample-sky", "little-sky-explorer", "Little Sky Explorer (Sample)", "N. Adjei", ["picture-books"], "4-7", "SAMPLE-SKY-HC", "Hardcover", 12000, 450, 5],
-    ["sample-begin", "counting-puzzle-30", "Counting Puzzle, 30 pieces (Sample)", "", ["puzzles"], "4-7", "SAMPLE-COUNT-PZ", "Puzzle", 11000, 300, 12],
-    ["sample-atlas", "atlas-of-wonder", "Atlas of Wonder (Sample)", "K. Owusu", ["learning"], "8-12", "SAMPLE-ATLAS-HC", "Hardcover", 14500, 900, 2],
+    ["sample-mango", "the-mango-season", "The Mango Season (Sample)", "A. Mensah", ["chapter-books"], "8-12", "SAMPLE-MANGO-PB", "Paperback", 9500, 320, 8],
+    ["sample-sky", "little-sky-explorer", "Little Sky Explorer (Sample)", "N. Adjei", ["story-collections"], "4-7", "SAMPLE-SKY-HC", "Hardcover", 12000, 450, 5],
+    ["sample-begin", "phonics-starter-set", "Phonics Starter Set, 12 books (Sample)", "", ["early-readers"], "4-7", "SAMPLE-PHONICS-BOX", "Box set", 11000, 300, 12],
+    ["sample-atlas", "atlas-of-wonder", "Atlas of Wonder (Sample)", "K. Owusu", ["reference"], "8-12", "SAMPLE-ATLAS-HC", "Hardcover", 14500, 900, 2],
   ].map(([id, slug, title, author, categoryIds, ageBand, sku, format, price, weight, onHand]) => ({
     book: {
       id: id as string,
@@ -86,16 +80,30 @@ export function seedDevelopmentStore(store: MemoryAdminStore): void {
       updatedBy: "dev-seed",
       schemaVersion: SCHEMA_VERSION,
     },
-    variant: { sku: sku as string, bookId: id as string, format: format as BookVariant["format"], pricePesewas: price as number, costPesewas: Math.round((price as number) * 0.6), weightGrams: weight as number, active: true, createdAt: t0, updatedAt: t0, updatedBy: "dev-seed", schemaVersion: SCHEMA_VERSION },
+    variant: { sku: sku as string, bookId: id as string, format: format as BookVariant["format"], condition: "new", pricePesewas: price as number, costPesewas: Math.round((price as number) * 0.6), weightGrams: weight as number, active: true, createdAt: t0, updatedAt: t0, updatedBy: "dev-seed", schemaVersion: SCHEMA_VERSION },
     onHand: onHand as number,
   }));
+
+  // A preloved copy of a published sample, so both conditions show on one book page.
+  books.push({
+    book: books.find((entry) => entry.book.id === "sample-sky")!.book,
+    variant: { sku: "SAMPLE-SKY-HC-PL-VG", bookId: "sample-sky", format: "Hardcover", condition: "preloved", conditionGrade: "very_good", conditionNote: "Light wear on the corners; a name written inside the cover.", pricePesewas: 6000, costPesewas: 2500, weightGrams: 450, active: true, createdAt: t0, updatedAt: t0, updatedBy: "dev-seed", schemaVersion: SCHEMA_VERSION },
+    onHand: 2,
+  });
+
+  // A sample bundle built from two stocked samples; staff make it up from stock in Inventory.
+  books.push({
+    book: { ...books[0].book, id: "sample-bundle", slug: "starter-readers-bundle", title: "Starter Readers Bundle (Sample)", authors: [], categoryIds: ["bundles", "early-readers"], ageBand: "4-7", status: "published", description: "Illustrative sample bundle for local development only: a phonics box set and a story collection at a discount." },
+    variant: { sku: "SAMPLE-BUNDLE-STARTER", bookId: "sample-bundle", format: "Bundle", condition: "mixed", pricePesewas: 15000, compareAtPesewas: 17000, bundleItems: [{ sku: "SAMPLE-PHONICS-BOX", title: "Phonics Starter Set, 12 books (Sample)", quantity: 1 }, { sku: "SAMPLE-SKY-HC-PL-VG", title: "Little Sky Explorer (Sample)", quantity: 1 }], weightGrams: 750, active: true, createdAt: t0, updatedAt: t0, updatedBy: "dev-seed", schemaVersion: SCHEMA_VERSION },
+    onHand: 0,
+  });
 
   const inventory = new Map<string, InventoryRecord>();
   for (const { book, variant, onHand } of books) {
     store.seed("books", book.id, book);
     store.seed("bookVariants", variant.sku, variant);
     const movement: StockMovement = { id: `mov_dev_open_${variant.sku}`, sku: variant.sku, type: "STOCK_RECEIVED", onHandDelta: onHand, reservedDelta: 0, onHandAfter: onHand, reservedAfter: 0, reason: "DEV opening stock", reference: "DEV-SEED", actorUid: "dev-seed", actorName: "Dev seed", createdAt: t0 };
-    store.seed("stockMovements", movement.id, movement);
+    if (onHand > 0) store.seed("stockMovements", movement.id, movement);
     inventory.set(variant.sku, { sku: variant.sku, onHand, reserved: 0, lowStockThreshold: 3, version: 1, updatedAt: t0 });
   }
 

@@ -152,12 +152,21 @@
   transform: translateY(-6px);
   box-shadow: 0 16px 26px #263a5618;
 }
-.storefront .home-page .category-picture-books { background: #ffebb8; color: #805413; }
-.storefront .home-page .category-storybooks { background: #eadcf1; color: #512f6d; }
-.storefront .home-page .category-learning { background: #e0eee5; color: #2a7056; }
-.storefront .home-page .category-puzzles { background: #dceef8; color: #215f88; }
-.storefront .home-page .category-games { background: #f9dacb; color: #914d32; }
-.storefront .home-page .category-ghanaian { background: #f9dacb; color: #914d32; }
+.storefront .home-page .category-tone-0 { background: #ffebb8; color: #805413; }
+.storefront .home-page .category-tone-1 { background: #eadcf1; color: #512f6d; }
+.storefront .home-page .category-tone-2 { background: #e0eee5; color: #2a7056; }
+.storefront .home-page .category-tone-3 { background: #dceef8; color: #215f88; }
+.storefront .home-page .category-tone-4 { background: #f9dacb; color: #914d32; }
+.storefront .home-page .category-tone-5 { background: #f3e6d3; color: #6d4b1f; }
+.storefront .home-page .condition-entry { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-bottom: 14px; }
+.storefront .home-page .condition-card { position: relative; display: grid; gap: 6px; padding: 20px 52px 20px 22px; border-radius: 13px; color: #fff; transition: transform .25s ease, box-shadow .25s ease; }
+.storefront .home-page .condition-card strong { font-family: var(--serif); font-size: clamp(22px, 2.2vw, 30px); font-weight: 500; letter-spacing: -.03em; line-height: 1.05; }
+.storefront .home-page .condition-card span { font-size: 13px; line-height: 1.4; opacity: .9; }
+.storefront .home-page .condition-card b { position: absolute; right: 20px; top: 20px; font-size: 18px; font-weight: 400; }
+.storefront .home-page .condition-card:hover, .storefront .home-page .condition-card:focus-visible { transform: translateY(-4px); box-shadow: 0 16px 26px #263a5622; }
+.storefront .home-page .condition-new { background: var(--home-blue); }
+.storefront .home-page .condition-preloved { background: #2f6f57; }
+.storefront .home-page .condition-bundles { background: #b8562f; }
 .storefront .home-page .category-index { position: relative; z-index: 1; font-size: 11px; font-weight: 700; opacity: .75; }
 .storefront .home-page .category-real .category-name { position: relative; z-index: 1; color: var(--home-ink); font-size: clamp(20px, 2vw, 27px); }
 .storefront .home-page .category-real .category-name b { color: currentColor; opacity: .8; }
@@ -212,7 +221,9 @@
   .storefront .home-page .categories { padding-top: 67px; padding-bottom: 68px; }
   .storefront .home-page .category-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
   .storefront .home-page .category-real { min-height: 168px; padding: 16px; border: 0; }
-  .storefront .home-page .category-real:last-child { grid-column: 1 / -1; min-height: 130px; }
+  .storefront .home-page .category-real:last-child:nth-child(odd) { grid-column: 1 / -1; min-height: 130px; }
+  .storefront .home-page .condition-entry { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .storefront .home-page .condition-card { padding: 16px 46px 16px 18px; }
   .storefront .home-page .category-real .category-name { font-size: 21px; }
   .storefront .home-page .shelf-pending { padding-top: 64px; padding-bottom: 64px; }
   .storefront .home-page .shelf-help { padding: 25px; }
