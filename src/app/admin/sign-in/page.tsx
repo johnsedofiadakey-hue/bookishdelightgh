@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
+import { icons } from "@/components/admin/icons";
 import { Callout } from "@/components/admin/ui";
 import { currentSession } from "@/lib/admin/auth/guard";
 import { devSignInEnabled, firebaseSignInConfigured, firebaseWebConfig } from "@/lib/admin/env";
@@ -50,6 +52,10 @@ export default async function SignInPage({ searchParams }: { searchParams: Promi
       </section>
       <section className="adm-auth-panel">
         <div className="adm-auth-card">
+          <Link className="adm-btn adm-auth-back" data-variant="ghost" data-size="sm" href="/">
+            {icons.back}
+            Back to store
+          </Link>
           <div>
             <p className="adm-eyebrow">STAFF ONLY</p>
             <h2>Sign in</h2>
