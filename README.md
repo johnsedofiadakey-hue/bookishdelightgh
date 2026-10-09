@@ -17,6 +17,12 @@ npm run dev -- --port 3005
 
 Open `http://localhost:3005/`. The preview includes the homepage, browse/search page, empty cart, contact page, and a disabled checkout layout. No order or payment is created. `src/lib/stock-catalog.ts` is empty until verified inventory and real cover photos are available.
 
+## Policies and order tracking
+
+`/terms`, `/privacy`, `/returns`, `/delivery` and `/safety` are drafted for a Ghanaian children's books and educational resources shop. Unconfirmed business facts (registered name, registration and Data Protection Commission numbers, privacy email, return window, refund time, pickup) live in `src/lib/legal.ts` and render as highlighted “To confirm” markers until filled. Have a Ghanaian lawyer review the final text before online ordering opens.
+
+`/track` lets a customer check an order with its `BD-` reference and the phone number on the order. Both must match; mismatches return one generic “not found” message, lookups are rate-limited per address, and the public view omits names, contact details, street address and staff notes (`src/lib/storefront/order-tracking.ts`).
+
 ## Shared work
 
 - `PROJECT_PLAN.md` is the product, data, commerce, delivery, and launch plan.

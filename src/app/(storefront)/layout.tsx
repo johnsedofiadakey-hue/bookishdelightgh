@@ -7,6 +7,7 @@ import "../brand-refresh.css";
 import "../realism.css";
 import "../human-touch.css";
 import "../home-vibrant.css";
+import "../policies.css";
 
 export default function StorefrontLayout({ children }: { children: ReactNode }) {
   return <div className="storefront"><CartProvider><MotionController/><SiteHeader/>{children}<SiteFooter/><FloatingWhatsApp/><MobileNav/></CartProvider></div>;

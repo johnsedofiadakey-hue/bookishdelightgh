@@ -41,7 +41,7 @@ function validateHomepage(content: HomepageContent, publishedBookIds: Set<string
     if (missing.length) problems.push(`Shelf “${shelf.title}” includes ${missing.length} book(s) that are not published.`);
   }
   const missingPicks = content.ghanaianPicks.filter((id) => !publishedBookIds.has(id));
-  if (missingPicks.length) problems.push(`Ghanaian reads includes ${missingPicks.length} unpublished book(s).`);
+  if (missingPicks.length) problems.push(`Ghanaian stories includes ${missingPicks.length} unpublished book(s).`);
   return problems;
 }
 

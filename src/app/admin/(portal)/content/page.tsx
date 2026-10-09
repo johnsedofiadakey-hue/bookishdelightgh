@@ -88,7 +88,7 @@ export default async function ContentPage() {
                 <Field name="newShelfTitle" label="Add a shelf" hint="Type a title to add a new shelf on save."><input type="text" name="newShelfTitle" placeholder="e.g. Back-to-school picks" /></Field>
               </div>
             </Card>
-            <Card title="Ghanaian reads picks">
+            <Card title="Ghanaian stories picks">
               <BookChecks name="ghanaianPicks" books={published} selected={draft.ghanaianPicks} />
             </Card>
             <Card title="Trust & delivery copy">
