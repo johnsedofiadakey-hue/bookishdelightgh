@@ -4,6 +4,8 @@ An online bookstore in progress. The current public app is a **store preview** s
 
 The public preview is live at [Bookish Delight GH](https://bookish-delight-gh--bookishdelightghh.europe-west4.hosted.app/). It is marked as a preview and excluded from search indexing while the catalogue and checkout are prepared. The [staff sign-in](https://bookish-delight-gh--bookishdelightghh.europe-west4.hosted.app/admin/sign-in) uses the real Firebase project. An approved staff account can sign in with its password even if its email has not yet been verified.
 
+The custom domain `bookishdelightgh.com` and a `www` redirect are registered with App Hosting. Namecheap DNS and Firebase certificate verification must complete before the custom address is considered live.
+
 ## Review the storefront
 
 Use Node.js 22 or newer.
