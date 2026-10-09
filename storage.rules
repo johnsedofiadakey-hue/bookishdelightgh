@@ -1,0 +1,9 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Media access rules will be added with the real catalogue and upload workflow.
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

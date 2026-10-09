@@ -1,0 +1,110 @@
+/* Storefront typography: familiar bookish letterforms and plainspoken labels. */
+.storefront {
+  --serif: Palatino, "Palatino Linotype", "Book Antiqua", Georgia, serif;
+  --sans: "Trebuchet MS", "Lucida Grande", Arial, sans-serif;
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.storefront :is(.hero-real h1, .section h2, .ghana-real h2, .interior-heading h1, .contact-intro h1, .ask-banner h2, .empty-state h2) {
+  font-family: var(--serif);
+  font-style: normal;
+  font-weight: 400;
+  letter-spacing: -.025em;
+  line-height: 1.13;
+}
+.storefront .hero-real h1 { font-size: clamp(45px, 4.8vw, 68px); line-height: 1.1; }
+.storefront :is(.section h2, .ghana-real h2) { font-size: clamp(36px, 3.7vw, 52px); }
+.storefront .contact-intro h1 { font-size: clamp(47px, 5.7vw, 76px); }
+.storefront :is(.interior-heading h1, .empty-state h2) { font-size: clamp(38px, 4.7vw, 62px); }
+.storefront :is(h1 em, h2 em) { font-style: normal; font-weight: inherit; color: inherit !important; }
+
+.storefront .eyebrow {
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .01em;
+  text-transform: none;
+}
+.storefront .preview-ribbon { font-size: 11px; font-weight: 500; letter-spacing: 0; }
+.storefront .announcement { font-size: 13px; font-weight: 500; letter-spacing: 0; }
+.storefront .desktop-nav a { font-size: 14px; font-weight: 600; }
+.storefront .search-shortcut { border-radius: 7px; font-size: 13px; }
+.storefront .header-whatsapp { border-radius: 7px; font-size: 13px; font-weight: 600; }
+.storefront .brand-lockup-type strong { font-family: var(--serif); font-size: 22px; font-weight: 600; letter-spacing: -.035em; }
+.storefront .brand-lockup-type strong b { font-weight: 600; }
+.storefront .brand-lockup-type small { font-size: 9px; font-weight: 500; letter-spacing: .015em; }
+
+.storefront .hero-real .hero-intro { font-size: 16px; line-height: 1.7; }
+.storefront .hero-real .hero-note { font-size: 12px; font-weight: 500; }
+.storefront .button { min-height: 47px; border-radius: 7px; font-size: 14px; font-weight: 600; }
+.storefront :is(.text-link, .section-link) { font-size: 14px; font-weight: 600; }
+.storefront .benefit-inner span { font-size: 12px; font-weight: 500; }
+.storefront .category-real { min-height: 158px; justify-content: center; gap: 11px; }
+.storefront .category-real .category-name { font-size: clamp(21px, 2vw, 27px); font-weight: 500; line-height: 1.2; }
+.storefront .category-real .category-caption { font-size: 12px; font-weight: 400; line-height: 1.4; }
+.storefront .section-description, .storefront .shelf-pending p:not(.eyebrow) { font-size: 15px; line-height: 1.7; }
+.storefront .shelf-help { padding: 28px 0 28px 30px; border-left: 1px solid #cbd5df; }
+.storefront .shelf-help h3 { font: 400 27px/1.2 var(--serif); letter-spacing: -.015em; margin: 0 0 10px; }
+.storefront .shelf-help p { margin: 0; color: #526071; }
+.storefront .ghana-detail span { font-size: 12px; font-weight: 600; letter-spacing: .01em; }
+.storefront .ghana-detail strong { letter-spacing: -.02em; }
+.storefront .ask-banner h2 { font-size: clamp(34px, 3.4vw, 46px); letter-spacing: -.025em; }
+.storefront .contact-details dt { font-size: 12px; font-weight: 600; letter-spacing: 0; text-transform: none; }
+.storefront .contact-details dd { font-weight: 500; }
+.storefront .preview-pill { font-size: 11px; font-weight: 600; letter-spacing: 0; }
+.storefront .empty-state p { font-size: 14px; }
+
+.storefront .footer-preview { color: #dbe5f2; border: 0; border-radius: 0; padding: 0; font-size: 12px; font-weight: 500; letter-spacing: 0; }
+.storefront .footer h2 { font-size: 14px; font-weight: 600; letter-spacing: 0; text-transform: none; }
+.storefront .footer-links a, .storefront .footer-contact a { font-size: 13px; font-weight: 500; }
+.storefront .footer-contact p, .storefront .footer-identity p { font-size: 13px; }
+.storefront .footer-bottom { align-items: center; font-size: 12px; }
+.storefront .footer-bottom-actions { display: flex; align-items: center; gap: 18px; }
+.storefront .footer-bottom-actions > a { font-size: 12px; font-weight: 500; }
+.storefront .footer-admin-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 38px;
+  padding: 0 12px;
+  color: #d9e4f0;
+  border: 1px solid #8ea5bf;
+  border-radius: 6px;
+  opacity: .8;
+  transition: opacity .2s, background .2s, border-color .2s;
+}
+.storefront .footer-admin-link:hover, .storefront .footer-admin-link:focus-visible {
+  color: #fff;
+  opacity: 1;
+  background: #ffffff14;
+  border-color: #d9e4f0;
+}
+
+@media (max-width: 900px) {
+  .storefront .hero-real h1 { font-size: clamp(43px, 6vw, 61px); }
+  .storefront .category-real { min-height: 145px; }
+}
+@media (max-width: 600px) {
+  .storefront .footer { padding-bottom: calc(100px + env(safe-area-inset-bottom)); }
+  .storefront .brand-lockup-type strong { font-size: 16px; letter-spacing: -.035em; }
+  .storefront .brand-lockup-type small { font-size: 7px; letter-spacing: 0; }
+  .storefront .hero-real h1 { font-size: clamp(39px, 10.4vw, 49px); }
+  .storefront .hero-real .hero-intro { font-size: 15px; line-height: 1.65; }
+  .storefront :is(.section h2, .ghana-real h2) { font-size: clamp(34px, 9vw, 43px); }
+  .storefront .contact-intro h1 { font-size: clamp(43px, 11vw, 59px); }
+  .storefront :is(.interior-heading h1, .empty-state h2) { font-size: 42px; }
+  .storefront .eyebrow { font-size: 11px; }
+  .storefront .button { font-size: 13px; }
+  .storefront .benefit-inner span { font-size: 11px; }
+  .storefront .category-real { min-height: 140px; }
+  .storefront .category-real .category-name { font-size: 21px; }
+  .storefront .category-real .category-caption { font-size: 11px; }
+  .storefront .shelf-pending p:not(.eyebrow) { font-size: 14px; }
+  .storefront .shelf-help { padding: 20px 0 0; border-left: 0; border-top: 1px solid #cbd5df; }
+  .storefront .shelf-help h3 { font-size: 24px; }
+  .storefront .footer-contact p { display: block; font-size: 12px; line-height: 1.5; margin-bottom: 9px; }
+  .storefront .footer-bottom { align-items: flex-start; flex-wrap: wrap; gap: 12px; }
+  .storefront .footer-bottom-actions { width: 100%; justify-content: space-between; gap: 10px; }
+  .storefront .footer-admin-link { min-height: 44px; }
+}

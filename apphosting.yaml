@@ -1,0 +1,52 @@
+# Public Firebase web config is required in the Next.js build and server runtime.
+# Payment and messaging secrets must be configured separately when those services are implemented.
+runConfig:
+  minInstances: 0
+  maxInstances: 2
+  memoryMiB: 1024
+env:
+  - variable: NEXT_PUBLIC_FIREBASE_API_KEY
+    value: "AIzaSyC6Ah5obKzVFGwqd3bmZ8KrN3WDUESJYpM"
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+    value: "bookishdelightghh.firebaseapp.com"
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    value: "bookishdelightghh"
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    value: "bookishdelightghh.firebasestorage.app"
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+    value: "231899789603"
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: NEXT_PUBLIC_FIREBASE_APP_ID
+    value: "1:231899789603:web:5ccf485b4105b3cff67496"
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: NEXT_PUBLIC_SITE_URL
+    value: "https://bookish-delight-gh--bookishdelightghh.europe-west4.hosted.app"
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: FIREBASE_PROJECT_ID
+    value: "bookishdelightghh"
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: BOOKISH_ADMIN_STORE
+    value: "firestore"
+    availability:
+      - BUILD
+      - RUNTIME
