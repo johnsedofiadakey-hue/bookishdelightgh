@@ -32,11 +32,17 @@ export interface PublicBook {
   slug: string;
   title: string;
   author: string;
-  categories: BookCategory[];
+  /** Category slugs; the storefront filters use the `BookCategory` values. */
+  categories: string[];
+  /** Short card label, e.g. "Ages 4–7". */
   label: string;
   description: string;
   coverImageUrl?: string;
+  coverAlt?: string;
+  /** Default variant: the cheapest one in stock, else the cheapest. */
   variant: BookVariant;
+  /** Every active variant, cheapest first. */
+  variants: BookVariant[];
 }
 
 export function formatGhs(pesewas: number): string {

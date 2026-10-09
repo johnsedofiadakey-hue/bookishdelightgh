@@ -257,6 +257,8 @@ export interface Order {
   deliveryProofNote?: string;
   exception?: { kind: "late_payment_no_stock" | "payment_mismatch" | "stock_conflict" | "delivery_failed" | "other"; detail: string; raisedAt: IsoTime; resolvedAt?: IsoTime };
   stockState: "reserved" | "sold" | "released" | "restocked";
+  /** Website orders: when unpaid reserved stock is released back to the shelf. */
+  reservationExpiresAt?: IsoTime;
   staffNotes: StaffNote[];
   createdAt: IsoTime;
   paidAt?: IsoTime;

@@ -1,8 +1,34 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { connection } from "next/server";
+import { WhatsAppIcon } from "@/components/storefront/icons";
+import { getAdminStore } from "@/lib/admin/store";
+import { GHANA_REGIONS } from "@/lib/admin/validation";
+import { bookishBrand, bookishWhatsAppUrl } from "@/lib/brand";
+import { paystackConfigured, paystackTestMode } from "@/lib/commerce/paystack";
+import { CheckoutForm } from "./checkout-form";
 
-export const metadata: Metadata = { title: "Checkout preview | Bookish Delight" };
+export const metadata: Metadata = { title: "Checkout | Bookish Delight GH", robots: { index: false } };
 
-export default function CheckoutPage() {
-  return <main className="interior-page shell"><p className="eyebrow">Checkout preview</p><div className="interior-heading"><div><h1>Checkout isn’t open yet.</h1><p>Online ordering will open when our books and delivery prices are ready.</p></div><span className="preview-pill">Payment unavailable</span></div><div className="checkout-notice"><strong>This is a store preview.</strong> No address or payment details are submitted. We’ll open online ordering after the catalogue and delivery prices are ready.</div><div className="checkout-layout"><div className="checkout-form-preview"><section><h2>1. Your details</h2><div className="form-grid"><label>Full name<input disabled placeholder="Your name"/></label><label>Phone number<input disabled placeholder="+233"/></label><label className="wide">Email address<input disabled placeholder="you@example.com"/></label></div></section><section><h2>2. Delivery across Ghana</h2><div className="form-grid"><label>Region<select disabled defaultValue=""><option value="">Choose region</option></select></label><label>City or town<input disabled placeholder="City or town"/></label><label className="wide">Address and landmark<input disabled placeholder="Street, area, landmark"/></label><label className="wide">GhanaPost GPS (if available)<input disabled placeholder="Example: GA-000-0000"/></label></div><p className="form-help">The delivery price will be shown before payment when ordering opens.</p></section><section><h2>3. Payment</h2><div className="payment-preview"><div><strong>Online payment</strong><small>Mobile money and card are planned for launch.</small></div></div></section></div><aside className="order-summary"><h2>Before you pay</h2><p className="summary-placeholder">Your books and delivery charge will appear here when online ordering opens.</p><button className="button button-dark summary-button" disabled type="button">Payment unavailable in preview</button><Link className="checkout-back" href="/cart">← Back to your bag</Link></aside></div></main>;
+async function checkoutOpen(): Promise<boolean> {
+  try {
+    return Boolean((await getAdminStore().get("siteSettings", "site"))?.checkoutEnabled);
+  } catch (error) {
+    console.error("[checkout settings]", error);
+    return false;
+  }
+}
+
+export default async function CheckoutPage() {
+  await connection();
+  const open = (await checkoutOpen()) && paystackConfigured();
+  if (!open) {
+    return <main className="interior-page shell"><p className="eyebrow">Checkout</p><div className="interior-heading"><div><h1>Online checkout is closed.</h1><p>We’re not taking online payments right now, but we’re happy to take your order on WhatsApp.</p></div></div><div className="empty-state"><h2>Order on WhatsApp</h2><p>Send us what’s in your bag and your town, and we’ll confirm the price, delivery and payment.</p><a className="button button-dark" href={bookishWhatsAppUrl} target="_blank" rel="noopener noreferrer"><WhatsAppIcon/> WhatsApp {bookishBrand.whatsappDisplay}</a><p><Link href="/cart">← Back to your bag</Link></p></div></main>;
+  }
+  return <main className="interior-page shell checkout-page">
+    <p className="eyebrow">Checkout</p>
+    <div className="interior-heading"><div><h1>Checkout</h1><p>Delivery across Ghana. Pay securely with Mobile Money or card through Paystack.</p></div></div>
+    {paystackTestMode() ? <div className="checkout-test-banner" role="note"><strong>Test mode.</strong> Payments use Paystack test keys. No real money is taken. Use Paystack’s test card or test Mobile Money number.</div> : null}
+    <CheckoutForm regions={[...GHANA_REGIONS]}/>
+  </main>;
 }

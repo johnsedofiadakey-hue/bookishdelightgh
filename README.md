@@ -17,6 +17,14 @@ npm run dev -- --port 3005
 
 Open `http://localhost:3005/`. The preview includes the homepage, browse/search page, empty cart, contact page, and a disabled checkout layout. No order or payment is created. `src/lib/stock-catalog.ts` is empty until verified inventory and real cover photos are available.
 
+## Catalogue and checkout
+
+The shop, product pages, bag and checkout read the admin catalogue at request time (`src/lib/storefront/catalog.ts`): only `published` items with an active, priced variant appear, availability is on-hand minus reserved, and cost prices never leave the server.
+
+Checkout (`src/lib/commerce/`) reprices the bag and quotes delivery from the database, creates a `pending` website order that reserves stock for 30 minutes, then redirects to Paystack. `/checkout/complete` and the signed webhook `/api/paystack/webhook` both re-verify the transaction with Paystack before marking an order paid; applying a result is idempotent. Failed payments and expired reservations release stock; a late payment is honoured if stock remains, otherwise the order is raised as a `late_payment_no_stock` exception. Checkout only opens when **Admin → Settings → Checkout** is on and `PAYSTACK_SECRET_KEY` is set. A `sk_test_` key shows a test-mode banner.
+
+Local end-to-end testing without touching business data: `BOOKISH_ADMIN_STORE=memory BOOKISH_ADMIN_DEV_STORE=1 npx next start -p 3010` after a build. The in-memory fixtures publish two sample products and enable checkout.
+
 ## Policies and order tracking
 
 `/terms`, `/privacy`, `/returns`, `/delivery` and `/safety` are drafted for a Ghanaian children's books and educational resources shop. Unconfirmed business facts (registered name, registration and Data Protection Commission numbers, privacy email, return window, refund time, pickup) live in `src/lib/legal.ts` and render as highlighted “To confirm” markers until filled. Have a Ghanaian lawyer review the final text before online ordering opens.

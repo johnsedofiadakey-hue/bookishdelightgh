@@ -40,7 +40,7 @@ export function seedDevelopmentStore(store: MemoryAdminStore): void {
   // A Firebase user without a staff profile, to exercise provisioning.
   identity.users.set("dev-new-hire", { uid: "dev-new-hire", email: "new.hire@dev.bookish.test", displayName: "Dev New Hire", staffClaim: false, disabled: false });
 
-  store.seed("siteSettings", "site", { ...DEFAULT_SETTINGS, supportEmail: "support@dev.bookish.test", smsEnabled: true, updatedAt: t0, updatedBy: "dev-seed" });
+  store.seed("siteSettings", "site", { ...DEFAULT_SETTINGS, supportEmail: "support@dev.bookish.test", smsEnabled: true, checkoutEnabled: true, updatedAt: t0, updatedBy: "dev-seed" });
   store.seed("siteContent", "homepage", { id: "homepage", draft: DEFAULT_HOMEPAGE, updatedAt: t0, updatedBy: "dev-seed" });
 
   const categories: Category[] = [
@@ -79,7 +79,8 @@ export function seedDevelopmentStore(store: MemoryAdminStore): void {
       tags: ["sample"],
       gallery: [],
       relatedBookIds: [],
-      status: "draft",
+      // Two samples are published so local checkout can be exercised end to end.
+      status: id === "sample-sky" || id === "sample-begin" ? "published" : "draft",
       createdAt: t0,
       updatedAt: t0,
       updatedBy: "dev-seed",

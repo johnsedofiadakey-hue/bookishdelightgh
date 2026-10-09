@@ -1,5 +1,5 @@
 # Public Firebase web config is required in the Next.js build and server runtime.
-# Payment and messaging secrets must be configured separately when those services are implemented.
+# Secrets (PAYSTACK_SECRET_KEY) come from Cloud Secret Manager; see the end of this file.
 runConfig:
   minInstances: 0
   maxInstances: 2
@@ -49,4 +49,10 @@ env:
     value: "firestore"
     availability:
       - BUILD
+      - RUNTIME
+  # Paystack secret key, stored in Cloud Secret Manager (never in this file).
+  # Create it first: firebase apphosting:secrets:set PAYSTACK_SECRET_KEY --project bookishdelightghh
+  - variable: PAYSTACK_SECRET_KEY
+    secret: PAYSTACK_SECRET_KEY
+    availability:
       - RUNTIME
