@@ -10,6 +10,7 @@ import "../human-touch.css";
 import "../home-vibrant.css";
 import "../policies.css";
 import "../commerce.css";
+import "../home-motion.css";
 
 export default async function StorefrontLayout({ children }: { children: ReactNode }) {
   const showBundles = (await getPublicCategories()).some((category) => category.slug === "bundles");

@@ -20,12 +20,28 @@ export default async function HomePage() {
         <div className="hero-actions"><a className="button button-dark" href={bookishWhatsAppUrl} target="_blank" rel="noopener noreferrer">Ask us on WhatsApp <span aria-hidden="true">↗</span></a><Link className="text-link" href="#categories">Browse the shelves <span aria-hidden="true">↓</span></Link></div>
         <div className="hero-note"><span className="hero-note-rule" aria-hidden="true"/>{bookishBrand.tagline}</div>
       </div>
-      <div className="hero-art-panel"><Image src={heroArtwork} alt="Illustration of an open book with colourful paper shapes" fill sizes="(max-width: 900px) 100vw, 46vw" preload/><div className="hero-art-caption"><span>For curious young minds</span><strong>Read, play, learn.</strong></div></div>
+      <div className="hero-art-panel">
+        <Image src={heroArtwork} alt="Illustration of an open book with colourful paper shapes" fill sizes="(max-width: 900px) 100vw, 46vw" preload/>
+        <div className="hero-paper-motion" aria-hidden="true">
+          <svg className="paper-spark paper-spark-one" viewBox="0 0 48 48" fill="none"><path d="M24 3v42M3 24h42M9 9l30 30M39 9 9 39" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/></svg>
+          <svg className="paper-spark paper-spark-two" viewBox="0 0 48 48" fill="none"><path d="M24 3v42M3 24h42M9 9l30 30M39 9 9 39" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/></svg>
+          <span className="paper-ring"/><span className="paper-dot"/>
+        </div>
+        <div className="hero-art-caption"><span>For curious young minds</span><strong>Read, play, learn.</strong></div>
+      </div>
     </section>
 
     <div className="benefit-strip"><div className="shell benefit-inner"><span>Based in Kumasi</span><span>Brand new &amp; preloved books</span><span>Nationwide delivery planned</span><span>Message us to check stock</span></div></div>
 
-    <section className="categories shell section" id="categories" aria-labelledby="categories-heading"><div className="section-heading-row"><div><p className="eyebrow">Browse the shelves</p><h2 id="categories-heading">What are you looking for?</h2></div><Link className="section-link" href="/shop">View the shop <span aria-hidden="true">↗</span></Link></div><div className="condition-entry" aria-label="Shop by condition"><Link className="condition-card condition-new" href="/shop?condition=new"><strong>Brand new</strong><span>Fresh copies, straight from the publisher</span><b aria-hidden="true">↗</b></Link><Link className="condition-card condition-preloved" href="/shop?condition=preloved"><strong>Preloved</strong><span>Gently used, checked and graded · friendlier prices</span><b aria-hidden="true">↗</b></Link>{showBundles ? <Link className="condition-card condition-bundles" href="/shop?category=bundles"><strong>Bundle deals</strong><span>Hand-picked sets at a discount</span><b aria-hidden="true">↗</b></Link> : null}</div><div className="category-grid">{bookTypes.map((category, index) => <Link className={`category-card category-real category-tone-${index % 6}`} href={`/shop?category=${category.slug}`} key={category.slug}><span className="category-index">{String(index + 1).padStart(2, "0")}</span><span className="category-name">{category.name} <b aria-hidden="true">↗</b></span>{category.caption ? <span className="category-caption">{category.caption}</span> : null}</Link>)}</div></section>
+    <section className="categories shell section" id="categories" aria-labelledby="categories-heading">
+      <div className="section-heading-row" data-reveal><div><p className="eyebrow">Browse the shelves</p><h2 id="categories-heading">What are you looking for?</h2></div><Link className="section-link" href="/shop">View the shop <span aria-hidden="true">↗</span></Link></div>
+      <div className="condition-entry" aria-label="Shop by condition">
+        <Link className="condition-card condition-new" href="/shop?condition=new" data-reveal><strong>Brand new</strong><span>Fresh copies, straight from the publisher</span><span className="condition-art" aria-hidden="true"><i/><i/><i/></span><b aria-hidden="true">↗</b></Link>
+        <Link className="condition-card condition-preloved" href="/shop?condition=preloved" data-reveal><strong>Preloved</strong><span>Gently used, checked and graded · friendlier prices</span><span className="condition-art" aria-hidden="true"><i/><i/><i/></span><b aria-hidden="true">↗</b></Link>
+        {showBundles ? <Link className="condition-card condition-bundles" href="/shop?category=bundles" data-reveal><strong>Bundle deals</strong><span>Hand-picked sets at a discount</span><span className="condition-art" aria-hidden="true"><i/><i/><i/></span><b aria-hidden="true">↗</b></Link> : null}
+      </div>
+      <div className="category-grid">{bookTypes.map((category, index) => <Link className={`category-card category-real category-tone-${index % 6}`} href={`/shop?category=${category.slug}`} key={category.slug} data-reveal><span className="category-index">{String(index + 1).padStart(2, "0")}</span><span className="category-name">{category.name} <b aria-hidden="true">↗</b></span>{category.caption ? <span className="category-caption">{category.caption}</span> : null}<span className="category-books" aria-hidden="true"><i/><i/><i/></span></Link>)}</div>
+    </section>
 
     <section className="shelf section" id="shop" aria-labelledby="shelf-heading"><div className="shell shelf-pending"><div><p className="eyebrow">Our online shop</p><h2 id="shelf-heading">We’re adding our products online.</h2><p>Each listing will show a real photo, the price and availability. For now, tell us what you need and we’ll check our stock.</p><a className="button button-dark" href={bookishWhatsAppUrl} target="_blank" rel="noopener noreferrer"><WhatsAppIcon/> Check stock on WhatsApp</a></div><aside className="shelf-help"><h3>Looking for something specific?</h3><p>Send us a title, a child’s age or a photo of the item. We’ll check what we have and reply on WhatsApp.</p></aside></div></section>
 

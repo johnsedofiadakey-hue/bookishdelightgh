@@ -1,0 +1,168 @@
+/* Paper-cut details echo the original logo and the book in the hero artwork. */
+.storefront .brand-symbol { transition: transform .35s cubic-bezier(.2,.8,.2,1); }
+.storefront .brand:hover .brand-symbol,
+.storefront .brand:focus-visible .brand-symbol { transform: rotate(-7deg) scale(1.05); }
+.storefront .filter-row a { transition: transform .22s ease, background .22s ease, border-color .22s ease; }
+.storefront .filter-row a:hover,
+.storefront .filter-row a:focus-visible { transform: translateY(-2px); }
+.storefront .home-hero .hero-actions .button span[aria-hidden] { display: inline-block; transition: transform .25s ease; }
+.storefront .home-hero .hero-actions .button:hover span[aria-hidden],
+.storefront .home-hero .hero-actions .button:focus-visible span[aria-hidden] { transform: translate(3px, -3px); }
+.storefront .home-hero h1 span {
+  box-shadow: none;
+  background: linear-gradient(#f6d989, #f6d989) left 92% / 0 .15em no-repeat;
+  animation: bookish-underline .8s .6s ease-out both;
+}
+.storefront .hero-paper-motion {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
+.storefront .paper-spark {
+  position: absolute;
+  width: 38px;
+  height: 38px;
+  filter: drop-shadow(0 2px 5px #1d244044);
+  animation: bookish-spark 6s ease-in-out infinite;
+}
+.storefront .paper-spark-one { top: 13%; left: 17%; color: #fffaf1; }
+.storefront .paper-spark-two { top: 46%; right: 11%; width: 25px; height: 25px; color: #ffdd75; animation-delay: -2.8s; }
+.storefront .paper-ring {
+  position: absolute;
+  left: 8%;
+  bottom: 25%;
+  width: 29px;
+  height: 29px;
+  border: 4px solid #fce9ab;
+  border-radius: 50%;
+  box-shadow: 0 4px 10px #28284626;
+  animation: bookish-ring 8s ease-in-out infinite;
+}
+.storefront .paper-dot {
+  position: absolute;
+  right: 22%;
+  bottom: 18%;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: #f3b94e;
+  box-shadow: 0 4px 8px #48241630;
+  animation: bookish-dot 5.5s ease-in-out -1.7s infinite;
+}
+
+/* Three fanned books move only when a shopper explores a section. */
+.storefront .home-page .condition-card { isolation: isolate; overflow: hidden; }
+.storefront .home-page .condition-card > strong,
+.storefront .home-page .condition-card > span:not(.condition-art) { position: relative; z-index: 1; }
+.storefront .home-page .condition-card .condition-art {
+  position: absolute;
+  z-index: 0;
+  right: 10px;
+  bottom: -6px;
+  width: 79px;
+  height: 66px;
+  color: #fff;
+  opacity: .23;
+  transform: rotate(8deg);
+  transition: transform .4s cubic-bezier(.2,.8,.2,1), opacity .4s;
+  pointer-events: none;
+}
+.storefront .home-page .condition-art i {
+  position: absolute;
+  bottom: 8px;
+  display: block;
+  width: 18px;
+  height: 50px;
+  border: 3px solid currentColor;
+  border-radius: 3px;
+  transform-origin: center bottom;
+  transition: transform .4s cubic-bezier(.2,.8,.2,1);
+}
+.storefront .home-page .condition-art i:nth-child(1) { left: 15px; transform: rotate(-23deg); }
+.storefront .home-page .condition-art i:nth-child(2) { left: 32px; transform: rotate(0); }
+.storefront .home-page .condition-art i:nth-child(3) { left: 49px; transform: rotate(23deg); }
+.storefront .home-page .condition-card:hover .condition-art,
+.storefront .home-page .condition-card:focus-visible .condition-art { transform: translateY(-7px) rotate(0); opacity: .43; }
+.storefront .home-page .condition-card:hover .condition-art i:nth-child(1),
+.storefront .home-page .condition-card:focus-visible .condition-art i:nth-child(1) { transform: rotate(-34deg); }
+.storefront .home-page .condition-card:hover .condition-art i:nth-child(3),
+.storefront .home-page .condition-card:focus-visible .condition-art i:nth-child(3) { transform: rotate(34deg); }
+.storefront .home-page .condition-card:hover b,
+.storefront .home-page .condition-card:focus-visible b { transform: translate(3px, -3px); }
+.storefront .home-page .condition-card b { transition: transform .25s ease; }
+
+/* Small shelf marks give each book type a visual rhythm without fake covers. */
+.storefront .home-page .category-books {
+  position: absolute;
+  right: 21px;
+  bottom: 18px;
+  width: 70px;
+  height: 54px;
+  opacity: .16;
+  transform: rotate(-5deg);
+  transition: transform .38s cubic-bezier(.2,.8,.2,1), opacity .38s;
+  pointer-events: none;
+}
+.storefront .home-page .category-books i {
+  position: absolute;
+  bottom: 0;
+  display: block;
+  width: 15px;
+  height: 45px;
+  border-radius: 2px 4px 3px 2px;
+  background: currentColor;
+  transform-origin: bottom center;
+  transition: transform .38s cubic-bezier(.2,.8,.2,1);
+}
+.storefront .home-page .category-books i:nth-child(1) { left: 5px; height: 37px; transform: rotate(-18deg); }
+.storefront .home-page .category-books i:nth-child(2) { left: 27px; height: 49px; }
+.storefront .home-page .category-books i:nth-child(3) { left: 48px; height: 41px; transform: rotate(15deg); }
+.storefront .home-page .category-real:hover .category-books,
+.storefront .home-page .category-real:focus-visible .category-books { opacity: .32; transform: translateY(-8px) rotate(0); }
+.storefront .home-page .category-real:hover .category-books i:nth-child(1),
+.storefront .home-page .category-real:focus-visible .category-books i:nth-child(1) { transform: rotate(-27deg); }
+.storefront .home-page .category-real:hover .category-books i:nth-child(3),
+.storefront .home-page .category-real:focus-visible .category-books i:nth-child(3) { transform: rotate(24deg); }
+.storefront .home-page .category-real .category-name b { display: inline-block; transition: transform .25s ease; }
+.storefront .home-page .category-real:hover .category-name b,
+.storefront .home-page .category-real:focus-visible .category-name b { transform: translate(3px, -3px); }
+
+/* Reveal each shelf as it enters view. The controller leaves content visible without JS. */
+.storefront.motion-active .home-page .condition-card[data-reveal],
+.storefront.motion-active .home-page .category-real[data-reveal] {
+  transform: translateY(22px) rotate(-1deg) scale(.97);
+  transition: opacity .55s ease, transform .65s cubic-bezier(.18,.78,.24,1), box-shadow .3s;
+}
+.storefront.motion-active .home-page .condition-card[data-reveal].is-visible,
+.storefront.motion-active .home-page .category-real[data-reveal].is-visible { transform: none; }
+.storefront.motion-active .home-page .condition-card:nth-child(2) { transition-delay: .08s; }
+.storefront.motion-active .home-page .condition-card:nth-child(3) { transition-delay: .16s; }
+.storefront.motion-active .home-page .category-real:nth-child(3n + 2) { transition-delay: .07s; }
+.storefront.motion-active .home-page .category-real:nth-child(3n + 3) { transition-delay: .14s; }
+.storefront.motion-active .home-page .condition-card[data-reveal].is-visible:hover,
+.storefront.motion-active .home-page .condition-card[data-reveal].is-visible:focus-visible { transform: translateY(-4px); }
+.storefront.motion-active .home-page .category-real[data-reveal].is-visible:hover,
+.storefront.motion-active .home-page .category-real[data-reveal].is-visible:focus-visible { transform: translateY(-6px) rotate(-1deg); }
+
+@keyframes bookish-underline { to { background-size: 100% .15em; } }
+@keyframes bookish-spark { 0%, 100% { transform: translateY(0) rotate(-10deg) scale(1); } 50% { transform: translateY(-13px) rotate(14deg) scale(1.08); } }
+@keyframes bookish-ring { 0%, 100% { transform: translate(0, 0) rotate(0); } 50% { transform: translate(16px, -12px) rotate(28deg); } }
+@keyframes bookish-dot { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-18px); } }
+
+@media (max-width: 600px) {
+  .storefront .paper-spark-one { width: 25px; height: 25px; left: 10%; }
+  .storefront .paper-spark-two { display: none; }
+  .storefront .paper-ring { width: 20px; height: 20px; border-width: 3px; }
+  .storefront .paper-dot { display: none; }
+  .storefront .home-page .category-books { right: 8px; bottom: 10px; transform: scale(.75) rotate(-5deg); transform-origin: bottom right; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .storefront .home-page .home-hero h1 span,
+  .storefront .paper-spark,
+  .storefront .paper-ring,
+  .storefront .paper-dot { animation: none; }
+  .storefront .home-page .home-hero h1 span { background-size: 100% .15em; }
+  .storefront.motion-active .home-page [data-reveal] { opacity: 1; transform: none; transition: none; }
+}
