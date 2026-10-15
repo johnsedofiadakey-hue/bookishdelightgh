@@ -123,6 +123,12 @@
   flex-wrap: wrap;
   gap: 10px;
 }
+.storefront .contact-icon-links {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
 .storefront .contact-details .social-icon-link,
 .storefront .footer-contact .social-icon-link {
   display: inline-flex;
@@ -162,6 +168,78 @@
   background: #28436e;
   color: #fff7df;
 }
+.storefront .contact-details .contact-icon-link,
+.storefront .contact-actions .contact-icon-link,
+.storefront .footer-contact .contact-icon-link,
+.storefront .contact-details .location-icon-link,
+.storefront .footer-contact .location-icon-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 46px;
+  height: 46px;
+  margin: 0;
+  border: 1px solid #d9bd80;
+  border-radius: 50%;
+  background: #fff9eb;
+  color: #204b7a;
+  text-decoration: none;
+  transition: transform .18s ease, background-color .18s ease, border-color .18s ease;
+}
+.storefront .contact-actions .contact-icon-link {
+  width: 58px;
+  height: 58px;
+  box-shadow: 0 8px 20px #4a617b24;
+}
+.storefront .contact-icon-link svg,
+.storefront .footer-contact .contact-icon-link svg,
+.storefront .location-icon-link svg,
+.storefront .footer-contact .location-icon-link svg {
+  display: block;
+  width: 22px;
+  height: 22px;
+  color: inherit;
+}
+.storefront .contact-actions .contact-icon-link svg { width: 27px; height: 27px; }
+.storefront .contact-details .contact-icon-whatsapp,
+.storefront .contact-actions .contact-icon-whatsapp,
+.storefront .footer-contact .contact-icon-whatsapp { color: #168149; }
+.storefront .contact-details .contact-icon-gmail,
+.storefront .contact-actions .contact-icon-gmail,
+.storefront .footer-contact .contact-icon-gmail { color: #ce463e; }
+.storefront .contact-details .contact-icon-link:hover,
+.storefront .contact-actions .contact-icon-link:hover,
+.storefront .footer-contact .contact-icon-link:hover,
+.storefront .contact-details .location-icon-link:hover,
+.storefront .footer-contact .location-icon-link:hover {
+  transform: translateY(-3px);
+  border-color: #f0bb3f;
+  background: #ffe7a3;
+}
+.storefront .contact-icon-link:focus-visible,
+.storefront .location-icon-link:focus-visible {
+  outline: 3px solid #1b6db0;
+  outline-offset: 3px;
+}
+.storefront .address-with-map,
+.storefront .footer-address {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.storefront .address-with-map span,
+.storefront .footer-address p { min-width: 0; flex: 1; }
+.storefront .footer-address { margin-bottom: 12px; }
+.storefront .footer-address p { margin-bottom: 0; }
+.storefront .footer-contact .location-icon-link { border-color: #f4d78980; background: #28436e; color: #ffe18a; }
+.storefront .footer-icon-row { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.storefront .footer-icon-row .footer-socials { margin-top: 0; }
+.storefront .footer-contact .contact-icon-link { border-color: #f4d78980; background: #28436e; }
+.storefront .footer-contact .contact-icon-whatsapp { color: #8ee5ac; }
+.storefront .footer-contact .contact-icon-gmail { color: #ff968e; }
 @media (prefers-reduced-motion: reduce) {
-  .storefront .social-icon-link { transition: none; }
+  .storefront .social-icon-link,
+  .storefront .contact-icon-link,
+  .storefront .location-icon-link { transition: none; }
 }

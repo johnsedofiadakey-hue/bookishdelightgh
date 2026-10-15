@@ -18,3 +18,6 @@ export const bookishSocials = [
 
 export const bookishWhatsAppUrl =
   "https://wa.me/233244470293?text=Hello%20Bookish%20Delight%20GH%2C%20I%27d%20like%20to%20ask%20about%20your%20products.";
+
+export const bookishMapSearchUrl =
+  `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${bookishBrand.streetAddress}, Ghana`)}`;
