@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { BrandLockup } from "@/components/storefront/brand-lockup";
-import { BagIcon, SearchIcon, WhatsAppIcon } from "@/components/storefront/icons";
+import { BagIcon, HomeIcon, OpenBookIcon, SearchIcon, ShelfIcon, WhatsAppIcon } from "@/components/storefront/icons";
 import { useCart } from "@/components/storefront/cart-context";
 import { bookishBrand, bookishSocials, bookishWhatsAppUrl } from "@/lib/brand";
 
@@ -28,9 +28,16 @@ export function SiteHeader({ showBundles }: { showBundles: boolean }) {
   </>;
 }
 
-export function MobileNav() {
+export function MobileNav({ showJourney }: { showJourney: boolean }) {
   const { count } = useCart();
-  return <nav className="mobile-bar" aria-label="Mobile navigation"><Link href="/"><span aria-hidden="true">⌂</span>Home</Link><Link href="/#categories"><span aria-hidden="true">▦</span>Categories</Link><Link href="/shop"><span aria-hidden="true">⌕</span>Search</Link><Link href="/cart"><span aria-hidden="true">♧</span>Bag{count > 0 ? ` (${count})` : ""}</Link></nav>;
+  const pathname = usePathname();
+  return <nav className="mobile-bar" aria-label="Mobile navigation">
+    <Link href="/" className={pathname === "/" ? "is-active" : ""} aria-current={pathname === "/" ? "page" : undefined}><span className="dock-icon"><HomeIcon/></span><span>Home</span></Link>
+    <Link href="/#categories"><span className="dock-icon"><ShelfIcon/></span><span>Shelves</span></Link>
+    <Link href={showJourney ? "/#reading-journey" : "/shop"} className="dock-find"><span className="dock-icon"><OpenBookIcon/></span><span>Find</span></Link>
+    <Link href="/shop" className={pathname === "/shop" ? "is-active" : ""} aria-current={pathname === "/shop" ? "page" : undefined}><span className="dock-icon"><SearchIcon/></span><span>Search</span></Link>
+    <Link href="/cart" className={pathname === "/cart" ? "is-active" : ""} aria-current={pathname === "/cart" ? "page" : undefined}><span className="dock-icon"><BagIcon/>{count > 0 ? <i className="dock-count">{count}</i> : null}</span><span>Bag</span></Link>
+  </nav>;
 }
 
 export function FloatingWhatsApp() {

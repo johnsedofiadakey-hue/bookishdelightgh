@@ -1,0 +1,117 @@
+/* A small interactive book in the hero, drawn from the logo's book and colour shapes. */
+.storefront .hero-book-guide {
+  position: absolute;
+  z-index: 3;
+  top: 7%;
+  left: 6%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 130px;
+  padding: 5px 9px 12px;
+  border: 2px solid #fff;
+  border-radius: 24px 24px 19px 19px;
+  background: #fffdf2f2;
+  box-shadow: 0 12px 25px #17254728;
+  color: #203b63;
+  text-align: center;
+  transform: rotate(-7deg);
+  transition: transform .3s cubic-bezier(.2,.8,.2,1), box-shadow .3s ease;
+}
+.storefront .hero-book-guide svg { width: 72px; height: 64px; overflow: visible; animation: guide-bob 4.5s ease-in-out 1s infinite; }
+.storefront .hero-book-guide > span { font-size: 11px; font-weight: 850; line-height: 1.2; }
+.storefront .hero-book-guide b { color: #d45f36; font-size: 15px; }
+.storefront .hero-book-guide:hover,
+.storefront .hero-book-guide:focus-visible { transform: rotate(-2deg) translateY(-5px); box-shadow: 0 17px 30px #17254735; }
+.storefront .hero-book-guide:focus-visible { outline: 3px solid #172547; outline-offset: 4px; }
+.storefront .hero-book-guide .hero-guide-page { transform-box: fill-box; transform-origin: left center; }
+.storefront .hero-book-guide.is-turning .hero-guide-page { animation: guide-turn .42s ease-in-out both; }
+.storefront .hero-book-guide.is-turning svg { animation: guide-hop .42s ease-in-out both; }
+.storefront .hero-paper-motion .paper-spark-one { display: none; }
+@keyframes guide-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+@keyframes guide-turn { 0% { transform: rotateY(0); } 50% { transform: rotateY(-150deg); } 100% { transform: rotateY(0); } }
+@keyframes guide-hop { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-9px) rotate(6deg); } }
+
+/* Live catalogue covers fill this shelf automatically when photographed stock is published. */
+.storefront .real-book-shelf { padding: 87px 0 96px; background: #fff4dc; overflow: hidden; }
+.storefront .real-book-shelf-heading { display: flex; align-items: end; justify-content: space-between; gap: 24px; margin-bottom: 29px; }
+.storefront .real-book-shelf-heading h2 { color: #172547; font: 500 clamp(39px, 4.5vw, 62px)/1.04 var(--serif); letter-spacing: -.045em; }
+.storefront .real-book-shelf-heading p:last-child { margin: 12px 0 0; color: #4d5971; font-size: 14px; }
+.storefront .real-book-shelf-heading > a { flex: none; padding-bottom: 5px; border-bottom: 2px solid currentColor; color: #215f88; font-size: 13px; font-weight: 800; }
+.storefront .real-book-swipe { display: none; }
+.storefront .real-book-track { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; padding: 0; margin: 0; list-style: none; }
+.storefront .real-book-track li { min-width: 0; }
+.storefront .real-book-track a { display: block; height: 100%; padding: 13px 13px 17px; border: 1px solid #e7dcbf; border-radius: 17px; background: #fffdf8; box-shadow: 0 6px 17px #85652212; transition: transform .25s ease, box-shadow .25s ease; }
+.storefront .real-book-track a:hover,
+.storefront .real-book-track a:focus-visible { transform: translateY(-7px) rotate(-1deg); box-shadow: 0 18px 27px #85652226; }
+.storefront .real-book-photo { position: relative; display: block; width: 100%; aspect-ratio: 4 / 5; overflow: hidden; border-radius: 11px; background: #f3ede0; }
+.storefront .real-book-photo img { object-fit: contain; padding: 9px; }
+.storefront .real-book-meta { display: flex; flex-direction: column; gap: 6px; padding: 14px 3px 0; color: #203b63; }
+.storefront .real-book-meta small { color: #a0572e; font-size: 10px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.storefront .real-book-meta strong { font: 500 22px/1.13 var(--serif); letter-spacing: -.025em; }
+.storefront .real-book-meta > span { color: #2f6f57; font-size: 12px; font-weight: 850; }
+
+@media (max-width: 900px) {
+  .storefront .real-book-track { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+}
+@media (max-width: 600px) {
+  .storefront .hero-book-guide { top: 6%; left: 6%; width: 118px; padding: 2px 6px 9px; border-radius: 20px; }
+  .storefront .hero-book-guide svg { width: 59px; height: 54px; }
+  .storefront .hero-book-guide > span { font-size: 10px; }
+  .storefront .hero-art-caption { display: none; }
+
+  .storefront .real-book-shelf { padding: 65px 0 73px; }
+  .storefront .real-book-shelf-heading { align-items: start; margin-bottom: 14px; }
+  .storefront .real-book-shelf-heading h2 { font-size: 40px; }
+  .storefront .real-book-shelf-heading p:last-child { font-size: 12px; }
+  .storefront .real-book-shelf-heading > a { display: none; }
+  .storefront .real-book-swipe { display: block; margin: 0 0 14px; color: #975b31; font-size: 11px; font-weight: 800; }
+  .storefront .real-book-track { display: flex; gap: 12px; width: calc(100% + 15px); overflow-x: auto; padding: 0 15px 14px 0; scroll-snap-type: x mandatory; overscroll-behavior-x: contain; -webkit-overflow-scrolling: touch; }
+  .storefront .real-book-track li { flex: 0 0 min(61vw, 225px); scroll-snap-align: start; }
+  .storefront .real-book-track a { padding: 9px 9px 14px; }
+  .storefront .real-book-meta strong { font-size: 19px; }
+
+  /* The dock has large, labelled targets and a raised book shortcut. */
+  .storefront .mobile-bar {
+    z-index: 50;
+    left: 10px;
+    right: 10px;
+    bottom: calc(9px + env(safe-area-inset-bottom));
+    min-height: 68px;
+    padding: 5px 4px;
+    border: 1px solid #e6d9bc;
+    border-radius: 23px;
+    background: #fffdf8f5;
+    box-shadow: 0 8px 28px #17254730, 0 2px 7px #17254712;
+    backdrop-filter: blur(12px);
+  }
+  .storefront .mobile-bar a { position: relative; flex: 1 1 0; min-width: 0; min-height: 55px; justify-content: center; gap: 3px; border-radius: 16px; color: #405273; font-size: 11px; font-weight: 750; touch-action: manipulation; -webkit-tap-highlight-color: transparent; transition: transform .2s ease, background .2s ease, color .2s ease; }
+  .storefront .mobile-bar a:first-child { color: #405273; }
+  .storefront .mobile-bar a > span:last-child { font-size: 11px; line-height: 1.1; }
+  .storefront .mobile-bar .dock-icon { position: relative; display: grid; place-items: center; width: 28px; height: 28px; line-height: 1; }
+  .storefront .mobile-bar .dock-icon svg { display: block; width: 23px; height: 23px; }
+  .storefront .mobile-bar a.is-active { color: #1d619a; background: #e9f1fa; }
+  .storefront .mobile-bar a:active { transform: scale(.91); }
+  .storefront .mobile-bar .dock-find { align-self: center; min-height: 67px; margin-top: -20px; border: 3px solid #fffdf8; border-radius: 19px; background: #f3c755; color: #183d68; box-shadow: 0 6px 15px #8b641f40; }
+  .storefront .mobile-bar .dock-find .dock-icon svg { width: 28px; height: 28px; animation: dock-hello .9s .7s both; }
+  .storefront .mobile-bar .dock-find:active { transform: translateY(2px) scale(.93); }
+  .storefront .mobile-bar .dock-count { position: absolute; right: -7px; top: -5px; display: grid; place-items: center; min-width: 16px; height: 16px; padding: 0 3px; border-radius: 100px; background: #dc6541; color: #fff; font-size: 9px; font-style: normal; font-weight: 800; }
+  .storefront .floating-whatsapp { z-index: 49; bottom: calc(93px + env(safe-area-inset-bottom)); }
+  .storefront .footer { padding-bottom: calc(118px + env(safe-area-inset-bottom)); }
+
+  .storefront .home-page .condition-card,
+  .storefront .home-page .category-real { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+  .storefront .home-page .condition-card:active { transform: translateY(-2px) scale(.98); }
+  .storefront .home-page .category-real:active { transform: translateY(-3px) rotate(-1deg) scale(.97); }
+  .storefront .home-page .condition-card:active .condition-art,
+  .storefront .home-page .category-real:active .category-books { opacity: .4; transform: translateY(-7px) rotate(0); }
+}
+@keyframes dock-hello { 0% { transform: rotate(-17deg) scale(.8); } 55% { transform: rotate(9deg) scale(1.12); } 100% { transform: rotate(0) scale(1); } }
+@media (prefers-reduced-motion: reduce) {
+  .storefront .hero-book-guide svg,
+  .storefront .hero-book-guide .hero-guide-page,
+  .storefront .mobile-bar .dock-find .dock-icon svg { animation: none !important; }
+  .storefront .hero-book-guide,
+  .storefront .real-book-track a,
+  .storefront .mobile-bar a { transition: none !important; }
+}

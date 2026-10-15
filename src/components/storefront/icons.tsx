@@ -2,6 +2,18 @@ export function SearchIcon() {
   return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><circle cx="10.7" cy="10.7" r="6.7"/><path d="m16 16 5 5"/></svg>;
 }
 
+export function HomeIcon() {
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m3 11 9-7 9 7v9H3v-9Z"/><path d="M9 20v-7h6v7"/></svg>;
+}
+
+export function ShelfIcon() {
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 20h18M5 17V6h4v11M10 17V4h4v13M16 17V7h3v10"/><path d="M5 9h4M10 7h4M16 10h3"/></svg>;
+}
+
+export function OpenBookIcon() {
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 19c-2.8-2.1-5.8-2.5-9-1.7V5.5c3.2-.8 6.2-.4 9 1.7 2.8-2.1 5.8-2.5 9-1.7v11.8c-3.2-.8-6.2-.4-9 1.7ZM12 7.2V19"/><path d="M17.5 1.5v2.3M16.3 2.7h2.4"/></svg>;
+}
+
 export function BagIcon() {
   return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M4.7 8h14.6l1.1 12H3.6L4.7 8Z"/><path d="M8.6 9V6.4a3.4 3.4 0 0 1 6.8 0V9"/></svg>;
 }

@@ -1,16 +1,20 @@
 import Image from "next/image";
 import Link from "next/link";
 import { WhatsAppIcon } from "@/components/storefront/icons";
+import { FeaturedBookShelf } from "@/components/storefront/featured-book-shelf";
+import { HeroBookGuide } from "@/components/storefront/hero-book-guide";
 import { ReadingJourney } from "@/components/storefront/reading-journey";
 import { bookishBrand, bookishWhatsAppUrl } from "@/lib/brand";
-import { getPublicCategories } from "@/lib/storefront/public-catalog";
+import { getPublicCatalog, getPublicCategories } from "@/lib/storefront/public-catalog";
 import heroArtwork from "../../../public/brand/bookish-hero-editorial.webp";
 
 
 
 export default async function HomePage() {
-  const categories = await getPublicCategories();
+  const [categories, catalog] = await Promise.all([getPublicCategories(), getPublicCatalog()]);
   const bookTypes = categories.filter((category) => category.slug !== "bundles");
+  const featuredBooks = catalog.filter((book) => book.coverImageUrl && book.variant.available > 0).slice(0, 8);
+  const showJourney = bookTypes.filter((category) => ["baby-toddler", "early-readers", "chapter-books", "teens"].includes(category.slug)).length > 1;
   const showBundles = categories.some((category) => category.slug === "bundles");
   return <main id="top" className="home-page">
     <section className="hero hero-real home-hero shell" aria-labelledby="hero-heading">
@@ -23,6 +27,7 @@ export default async function HomePage() {
       </div>
       <div className="hero-art-panel">
         <Image src={heroArtwork} alt="Illustration of an open book with colourful paper shapes" fill sizes="(max-width: 900px) 100vw, 46vw" preload/>
+        {showJourney ? <HeroBookGuide/> : null}
         <div className="hero-paper-motion" aria-hidden="true">
           <svg className="paper-spark paper-spark-one" viewBox="0 0 48 48" fill="none"><path d="M24 3v42M3 24h42M9 9l30 30M39 9 9 39" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/></svg>
           <svg className="paper-spark paper-spark-two" viewBox="0 0 48 48" fill="none"><path d="M24 3v42M3 24h42M9 9l30 30M39 9 9 39" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/></svg>
@@ -34,7 +39,7 @@ export default async function HomePage() {
 
     <div className="benefit-strip"><div className="shell benefit-inner"><span>Based in Kumasi</span><span>Brand new &amp; preloved books</span><span>Nationwide delivery planned</span><span>Message us to check stock</span></div></div>
 
-    <ReadingJourney shelves={bookTypes.map(({ slug }) => ({ slug }))}/>
+    {showJourney ? <ReadingJourney shelves={bookTypes.map(({ slug }) => ({ slug }))}/> : null}
 
     <section className="categories shell section" id="categories" aria-labelledby="categories-heading">
       <div className="section-heading-row" data-reveal><div><p className="eyebrow">Browse the shelves</p><h2 id="categories-heading">What are you looking for?</h2></div><Link className="section-link" href="/shop">View the shop <span aria-hidden="true">↗</span></Link></div>
@@ -46,7 +51,7 @@ export default async function HomePage() {
       <div className="category-grid">{bookTypes.map((category, index) => <Link className={`category-card category-real category-tone-${index % 6}`} href={`/shop?category=${category.slug}`} key={category.slug} data-reveal><span className="category-index">{String(index + 1).padStart(2, "0")}</span><span className="category-name">{category.name} <b aria-hidden="true">↗</b></span>{category.caption ? <span className="category-caption">{category.caption}</span> : null}<span className="category-books" aria-hidden="true"><i/><i/><i/></span></Link>)}</div>
     </section>
 
-    <section className="shelf section" id="shop" aria-labelledby="shelf-heading"><div className="shell shelf-pending"><div><p className="eyebrow">Our online shop</p><h2 id="shelf-heading">We’re adding our products online.</h2><p>Each listing will show a real photo, the price and availability. For now, tell us what you need and we’ll check our stock.</p><a className="button button-dark" href={bookishWhatsAppUrl} target="_blank" rel="noopener noreferrer"><WhatsAppIcon/> Check stock on WhatsApp</a></div><aside className="shelf-help"><h3>Looking for something specific?</h3><p>Send us a title, a child’s age or a photo of the item. We’ll check what we have and reply on WhatsApp.</p></aside></div></section>
+    {featuredBooks.length ? <FeaturedBookShelf books={featuredBooks}/> : <section className="shelf section" id="shop" aria-labelledby="shelf-heading"><div className="shell shelf-pending"><div><p className="eyebrow">Our online shop</p><h2 id="shelf-heading">We’re adding our products online.</h2><p>Each listing will show a real photo, the price and availability. For now, tell us what you need and we’ll check our stock.</p><a className="button button-dark" href={bookishWhatsAppUrl} target="_blank" rel="noopener noreferrer"><WhatsAppIcon/> Check stock on WhatsApp</a></div><aside className="shelf-help"><h3>Looking for something specific?</h3><p>Send us a title, a child’s age or a photo of the item. We’ll check what we have and reply on WhatsApp.</p></aside></div></section>}
 
     <section className="ghana-feature ghana-real shell" id="preloved" aria-labelledby="preloved-heading"><div className="ghana-copy"><p className="eyebrow">Preloved books</p><h2 id="preloved-heading">Good books deserve a second chapter.</h2><p>Our preloved books are checked page by page and graded Like new, Very good or Good, so you know exactly what you’re getting, for less.</p><Link className="button button-light" href="/shop?condition=preloved">Shop preloved <span aria-hidden="true">↗</span></Link></div><div className="ghana-detail"><span>Bookish Delight GH</span><strong>Like new · Very good · Good</strong><p>Every grade explained on the book page.</p></div></section>
 
