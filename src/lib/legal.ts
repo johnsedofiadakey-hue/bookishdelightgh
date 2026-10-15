@@ -17,8 +17,8 @@ export const legalFacts = {
   registrationNumber: null as string | null,
   /** Data Protection Commission registration number, once registered. */
   dataProtectionRegistration: null as string | null,
-  /** Email for privacy and data requests. */
-  contactEmail: null as string | null,
+  /** Email for privacy and data requests, confirmed by the owner. */
+  contactEmail: bookishBrand.email,
   /** Days after delivery within which a return can be requested. */
   returnWindowDays: null as number | null,
   /** Working days to issue a refund after an approved return. */

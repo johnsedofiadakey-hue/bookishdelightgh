@@ -3,6 +3,7 @@ export const bookishBrand = {
   tagline: "Nurturing young minds one book at a time",
   whatsappDisplay: "024 447 0293",
   whatsappInternational: "233244470293",
+  email: "bookishdelightgh@gmail.com",
   streetAddress: "Atonsu–Feyiase, Off Lake Road, Kumasi, Ashanti Region",
   gpsAddress: "AT-1317-5556",
   postalAddress: "P.O. Box 63, KNUST",

@@ -31,7 +31,7 @@ export function LegalPage({ current, title, intro, children }: { current: string
         <p className="legal-updated">Effective {formatLegalDate(legalFacts.effectiveDate)}</p>
         <div className="legal-intro">{intro}</div>
         {children}
-        <p className="legal-footnote">Questions about this policy? Message us on WhatsApp at {legalFacts.whatsappDisplay} or write to {legalFacts.postalAddress}.</p>
+        <p className="legal-footnote">Questions about this policy? Email <a href={`mailto:${legalFacts.contactEmail}`}>{legalFacts.contactEmail}</a>, message us on WhatsApp at {legalFacts.whatsappDisplay}, or write to {legalFacts.postalAddress}.</p>
       </article>
     </div>
   </main>;

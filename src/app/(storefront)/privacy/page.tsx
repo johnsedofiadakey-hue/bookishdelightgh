@@ -11,7 +11,7 @@ export default function PrivacyPage() {
   return <LegalPage current="/privacy" title="Privacy Policy" intro={<p>This policy explains what personal data Bookish Delight GH collects, why we collect it, and your rights under Ghana’s Data Protection Act, 2012 (Act 843). We collect only what we need to sell and deliver your order.</p>}>
     <LegalSection id="controller" title="1. Who is responsible for your data">
       <p><Fact value={legalFacts.registeredName} missing="registered business name"/>, trading as Bookish Delight GH, {legalFacts.streetAddress}, is the data controller. Data Protection Commission registration number: <Fact value={legalFacts.dataProtectionRegistration} missing="DPC registration number"/>.</p>
-      <p>For privacy questions or requests, contact us at <Fact value={legalFacts.contactEmail} missing="privacy contact email"/> or on WhatsApp at {legalFacts.whatsappDisplay}.</p>
+      <p>For privacy questions or requests, email <a href={`mailto:${legalFacts.contactEmail}`}>{legalFacts.contactEmail}</a> or message us on WhatsApp at {legalFacts.whatsappDisplay}.</p>
     </LegalSection>
 
     <LegalSection id="what" title="2. What we collect">

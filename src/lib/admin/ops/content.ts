@@ -6,6 +6,7 @@ import { runIdempotent } from "@/lib/admin/idempotency";
 import type { AdminDataStore } from "@/lib/admin/store/types";
 import type { HomepageContent, ImageRef, SiteContentDoc, SiteSettings } from "@/lib/admin/types";
 import { isValidEmail, normalizeGhanaPhone } from "@/lib/admin/validation";
+import { bookishBrand } from "@/lib/brand";
 
 /* --------------------------------------------------------------- Homepage */
 
@@ -91,7 +92,7 @@ export async function publishHomepage(store: AdminDataStore, ctx: StaffContext, 
 export const DEFAULT_SETTINGS: Omit<SiteSettings, "updatedAt" | "updatedBy"> = {
   id: "site",
   supportPhone: "",
-  supportEmail: "",
+  supportEmail: bookishBrand.email,
   supportWhatsApp: "",
   fulfilmentOrigin: { region: "Greater Accra", city: "Accra", addressLine: "" },
   returnsPolicyUrl: "/returns",
