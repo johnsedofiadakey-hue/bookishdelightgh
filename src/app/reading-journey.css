@@ -1,0 +1,149 @@
+/* A little book that responds to taps, using the colours and paper shapes in the logo. */
+.storefront .reading-journey {
+  display: grid;
+  grid-template-columns: minmax(0, .75fr) minmax(0, 1.25fr);
+  min-height: 500px;
+  margin-top: 70px;
+  margin-bottom: 0;
+  border-radius: 24px;
+  overflow: hidden;
+  background: #fffaf0;
+  box-shadow: 0 24px 55px #273a6412;
+}
+.storefront .reading-journey-intro { padding: clamp(34px, 5vw, 72px); align-self: center; }
+.storefront .reading-journey-intro .eyebrow { color: #a4552f; }
+.storefront .reading-journey-intro h2 {
+  max-width: 450px;
+  color: #172547;
+  font: 500 clamp(37px, 3.8vw, 58px)/1.04 var(--serif);
+  letter-spacing: -.045em;
+}
+.storefront .reading-journey-intro > p:last-of-type { max-width: 330px; margin: 20px 0 29px; color: #4d5971; font-size: 15px; line-height: 1.6; }
+.storefront .reading-journey-choices { display: flex; flex-wrap: wrap; gap: 9px; }
+.storefront .reading-journey-choices button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 43px;
+  padding: 9px 13px;
+  border: 1px solid #d7dce2;
+  border-radius: 100px;
+  background: #fff;
+  color: #283a5b;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: transform .2s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+.storefront .reading-journey-choices button span { font-size: 10px; color: #a65b35; }
+.storefront .reading-journey-choices button:hover,
+.storefront .reading-journey-choices button:focus-visible { transform: translateY(-3px); border-color: #286eb5; box-shadow: 0 5px 13px #286eb51b; }
+.storefront .reading-journey-choices button.is-selected { background: #286eb5; border-color: #286eb5; color: #fff; box-shadow: 0 6px 15px #286eb52b; }
+.storefront .reading-journey-choices button.is-selected span { color: #ffe8a8; }
+.storefront .reading-journey-stage {
+  --chapter-ground: #f4d87c;
+  --chapter-ink: #213e6a;
+  --chapter-accent: #e57a43;
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, .9fr);
+  align-items: center;
+  gap: 22px;
+  min-width: 0;
+  min-height: 500px;
+  padding: 50px 51px 66px 24px;
+  overflow: hidden;
+  background: var(--chapter-ground);
+  color: var(--chapter-ink);
+  transition: background .45s ease;
+}
+.storefront .reading-journey-stage[data-chapter="early-readers"] { --chapter-ground: #b9ddea; --chapter-ink: #164f79; --chapter-accent: #ef7f4f; }
+.storefront .reading-journey-stage[data-chapter="chapter-books"] { --chapter-ground: #bddcc6; --chapter-ink: #235b4a; --chapter-accent: #dd904e; }
+.storefront .reading-journey-stage[data-chapter="teens"] { --chapter-ground: #cfc5e7; --chapter-ink: #463569; --chapter-accent: #f2ac4a; }
+.storefront .reading-journey-stage::before {
+  content: "";
+  position: absolute;
+  width: 420px;
+  height: 420px;
+  left: -100px;
+  top: -190px;
+  border: 58px solid #fff7;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.storefront .reading-journey-decoration { position: absolute; inset: 0; pointer-events: none; }
+.storefront .reading-journey-decoration i { position: absolute; display: block; border-radius: 50%; background: var(--chapter-accent); }
+.storefront .reading-journey-decoration i:nth-child(1) { width: 17px; height: 17px; left: 9%; top: 19%; animation: reading-bob 4.2s ease-in-out infinite; }
+.storefront .reading-journey-decoration i:nth-child(2) { width: 10px; height: 10px; right: 9%; top: 10%; animation: reading-bob 5s ease-in-out -2s infinite; }
+.storefront .reading-journey-decoration i:nth-child(3) { width: 24px; height: 24px; right: 7%; bottom: 20%; background: #fff9; animation: reading-bob 5.5s ease-in-out -1s infinite; }
+.storefront .reading-journey-decoration i:nth-child(4) { width: 11px; height: 11px; left: 36%; bottom: 14%; background: #fff; animation: reading-bob 3.7s ease-in-out -2.2s infinite; }
+.storefront .reading-journey-book { position: relative; z-index: 1; display: flex; width: min(100%, 310px); height: 235px; margin: 0 auto; filter: drop-shadow(12px 19px 10px #26365040); perspective: 900px; transform: rotate(-8deg); animation: reading-turn .62s cubic-bezier(.18,.73,.25,1) both; }
+.storefront .reading-page { position: relative; width: 50%; height: 100%; overflow: hidden; background: #fff9e9; border: 1px solid #dcbf86; }
+.storefront .reading-page-left { border-radius: 8px 0 0 8px; background: #ffefc6; box-shadow: inset -11px 0 15px #ad754326; }
+.storefront .reading-page-left > span { position: absolute; top: 17px; left: 17px; color: #806333; font-size: 8px; font-weight: 800; letter-spacing: .12em; line-height: 1.35; }
+.storefront .reading-doodle { position: absolute; display: block; }
+.storefront .reading-doodle-one { width: 101px; height: 101px; left: 20px; top: 68px; border-radius: 50%; background: var(--chapter-accent); box-shadow: inset -18px -9px 0 #0000000b; }
+.storefront .reading-doodle-two { width: 86px; height: 50px; left: 29px; top: 125px; border: 7px solid var(--chapter-ink); border-top: 0; border-radius: 0 0 50% 50%; transform: rotate(-13deg); }
+.storefront .reading-doodle-three { width: 13px; height: 13px; right: 16px; top: 75px; border-radius: 50%; background: var(--chapter-ink); }
+.storefront .reading-journey-stage[data-chapter="early-readers"] .reading-doodle-one { width: 78px; height: 78px; left: 32px; top: 78px; border-radius: 8px; transform: rotate(45deg); }
+.storefront .reading-journey-stage[data-chapter="early-readers"] .reading-doodle-two { width: 68px; height: 60px; left: 69px; top: 137px; border-color: var(--chapter-ink); border-left: 0; transform: rotate(35deg); }
+.storefront .reading-journey-stage[data-chapter="chapter-books"] .reading-doodle-one { width: 83px; height: 118px; left: 31px; top: 67px; border-radius: 4px 85% 4px 85%; transform: rotate(20deg); }
+.storefront .reading-journey-stage[data-chapter="chapter-books"] .reading-doodle-two { width: 71px; height: 5px; left: 40px; top: 144px; border: 0; border-radius: 5px; background: var(--chapter-ink); transform: rotate(-43deg); }
+.storefront .reading-journey-stage[data-chapter="teens"] .reading-doodle-one { width: 91px; height: 91px; left: 28px; top: 77px; border: 13px solid var(--chapter-accent); background: transparent; box-shadow: none; }
+.storefront .reading-journey-stage[data-chapter="teens"] .reading-doodle-two { width: 116px; height: 55px; left: 12px; top: 94px; border: 4px solid var(--chapter-ink); border-radius: 50%; transform: rotate(-29deg); }
+.storefront .reading-page-right { display: flex; flex-direction: column; align-items: flex-start; padding: 30px 13px; border-radius: 0 8px 8px 0; box-shadow: inset 10px 0 15px #ad754323; transform-origin: left center; animation: reading-page-flip .62s cubic-bezier(.18,.73,.25,1) both; }
+.storefront .reading-page-right > span { color: #8d6031; font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.storefront .reading-page-right strong { margin: auto 0; color: var(--chapter-ink); font: 500 clamp(20px, 2.4vw, 32px)/1 var(--serif); letter-spacing: -.04em; }
+.storefront .reading-page-line { width: 55%; height: 3px; background: var(--chapter-accent); border-radius: 4px; }
+.storefront .reading-journey-story { position: relative; z-index: 1; max-width: 250px; }
+.storefront .reading-journey-story-inner { animation: reading-copy .45s ease-out both; }
+.storefront .reading-journey-story-inner > span { display: inline-block; margin-bottom: 20px; color: var(--chapter-ink); font-size: 10px; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; }
+.storefront .reading-journey-story h3 { color: var(--chapter-ink); font: 500 clamp(29px, 2.7vw, 39px)/1.08 var(--serif); letter-spacing: -.04em; }
+.storefront .reading-journey-story p { margin: 15px 0 21px; color: var(--chapter-ink); font-size: 13px; line-height: 1.55; }
+.storefront .reading-journey-story a { display: inline-flex; align-items: center; gap: 9px; padding-bottom: 5px; border-bottom: 2px solid currentColor; color: var(--chapter-ink); font-size: 13px; font-weight: 800; }
+.storefront .reading-journey-story a:hover span,
+.storefront .reading-journey-story a:focus-visible span { transform: translate(3px, -3px); }
+.storefront .reading-journey-story a span { display: inline-block; transition: transform .2s ease; }
+.storefront .reading-journey-next { position: absolute; z-index: 2; right: 23px; bottom: 21px; display: grid; place-items: center; width: 48px; height: 48px; border: 0; border-radius: 50%; background: #fff; color: var(--chapter-ink); box-shadow: 0 7px 19px #1e345229; cursor: pointer; transition: transform .22s ease, box-shadow .22s ease; }
+.storefront .reading-journey-next svg { width: 22px; height: 22px; }
+.storefront .reading-journey-next:hover,
+.storefront .reading-journey-next:focus-visible { transform: translateX(4px) rotate(-10deg); box-shadow: 0 9px 24px #1e34523d; }
+@keyframes reading-bob { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-12px) rotate(17deg); } }
+@keyframes reading-turn { from { opacity: .65; transform: rotate(-8deg) translateY(10px) scale(.96); } to { opacity: 1; transform: rotate(-8deg) translateY(0) scale(1); } }
+@keyframes reading-page-flip { from { transform: rotateY(-78deg); } to { transform: rotateY(0); } }
+@keyframes reading-copy { from { opacity: .5; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 1100px) {
+  .storefront .reading-journey { grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); }
+  .storefront .reading-journey-stage { grid-template-columns: 1fr; gap: 0; padding: 40px 40px 80px; }
+  .storefront .reading-journey-book { width: 260px; height: 193px; }
+  .storefront .reading-journey-story { max-width: 330px; margin: 10px auto 0; text-align: center; }
+  .storefront .reading-journey-story-inner > span { margin-bottom: 8px; }
+  .storefront .reading-journey-story p { margin: 8px 0 13px; }
+}
+@media (max-width: 700px) {
+  .storefront .reading-journey { display: block; margin-top: 30px; margin-bottom: 0; border-radius: 18px; }
+  .storefront .reading-journey-intro { padding: 32px 22px 25px; }
+  .storefront .reading-journey-intro h2 { max-width: 420px; font-size: clamp(36px, 9.7vw, 48px); }
+  .storefront .reading-journey-intro > p:last-of-type { margin: 12px 0 21px; font-size: 13px; }
+  .storefront .reading-journey-choices { gap: 8px; }
+  .storefront .reading-journey-choices button { min-height: 42px; padding: 8px 11px; font-size: 11px; }
+  .storefront .reading-journey-stage { min-height: 425px; padding: 38px 20px 73px; }
+  .storefront .reading-journey-book { width: min(77%, 260px); height: 190px; }
+  .storefront .reading-journey-story { margin-top: 14px; }
+  .storefront .reading-journey-story h3 { font-size: 33px; }
+  .storefront .reading-journey-next { right: 16px; bottom: 15px; }
+  .storefront .reading-journey-choices button,
+  .storefront .reading-journey-next { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+  .storefront .reading-journey-choices button:active { transform: scale(.96); }
+  .storefront .reading-journey-next:active { transform: scale(.93); }
+}
+@media (max-width: 360px) {
+  .storefront .reading-journey-book { width: 215px; height: 174px; }
+  .storefront .reading-doodle-one { transform: scale(.8); transform-origin: top left; }
+  .storefront .reading-doodle-two { transform: scale(.8) rotate(-13deg); transform-origin: top left; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .storefront .reading-journey *, .storefront .reading-journey *::before, .storefront .reading-journey *::after { animation: none !important; transition: none !important; }
+}

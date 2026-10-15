@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { WhatsAppIcon } from "@/components/storefront/icons";
+import { ReadingJourney } from "@/components/storefront/reading-journey";
 import { bookishBrand, bookishWhatsAppUrl } from "@/lib/brand";
 import { getPublicCategories } from "@/lib/storefront/public-catalog";
 import heroArtwork from "../../../public/brand/bookish-hero-editorial.webp";
@@ -32,6 +33,8 @@ export default async function HomePage() {
     </section>
 
     <div className="benefit-strip"><div className="shell benefit-inner"><span>Based in Kumasi</span><span>Brand new &amp; preloved books</span><span>Nationwide delivery planned</span><span>Message us to check stock</span></div></div>
+
+    <ReadingJourney shelves={bookTypes.map(({ slug }) => ({ slug }))}/>
 
     <section className="categories shell section" id="categories" aria-labelledby="categories-heading">
       <div className="section-heading-row" data-reveal><div><p className="eyebrow">Browse the shelves</p><h2 id="categories-heading">What are you looking for?</h2></div><Link className="section-link" href="/shop">View the shop <span aria-hidden="true">↗</span></Link></div>
