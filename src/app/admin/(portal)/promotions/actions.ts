@@ -18,7 +18,7 @@ export async function savePromotionAction(_state: ActionState, form: FormData): 
       value = parseGhsToPesewas(rawValue) ?? Number.NaN;
     }
     const minOrder = text(form, "minOrder").trim() ? parseGhsToPesewas(text(form, "minOrder")) : 0;
-    if (minOrder === null) throw new AdminError("invalid", "Enter the minimum order in GHS.", { minOrderPesewas: "e.g. 150" });
+    if (minOrder === null) throw new AdminError("invalid", "Enter the smallest order in GHS.", { minOrderPesewas: "e.g. 150" });
     const { result } = await savePromotion(
       store,
       ctx,
@@ -37,6 +37,6 @@ export async function savePromotionAction(_state: ActionState, form: FormData): 
       },
       idempotencyKey(form),
     );
-    return { message: "Promotion saved. Checkout validates it server-side.", data: { promotionId: result.promotionId } };
+    return { message: "Discount code saved.", data: { promotionId: result.promotionId } };
   });
 }

@@ -16,13 +16,13 @@ import { BOOK_FORMATS, type BookVariant } from "@/lib/admin/types";
 import { conditionLabel, optionLabel } from "@/lib/contracts/catalog";
 import { createVariantAction, removeGalleryImageAction, saveBookAction, setBookStatusAction, updateCoverAltAction, updateVariantAction } from "../actions";
 
-export const metadata = { title: "Edit book" };
+export const metadata = { title: "Edit product" };
 
 function VariantFields({ variant, showCost, skuOptions }: { variant?: BookVariant; showCost: boolean; skuOptions: SkuOption[] }) {
   return (
     <div className="adm-fields adm-fields-4">
       {!variant ? (
-        <Field name="sku" label="SKU" required hint="Unique. A–Z, 0–9, hyphens.">
+        <Field name="sku" label="Item code (SKU)" required hint="Must be different from every other item. Use A–Z, 0–9 and hyphens.">
           <input type="text" name="sku" required placeholder="MANGO-PB-NEW" style={{ textTransform: "uppercase" }} />
         </Field>
       ) : null}
@@ -39,26 +39,26 @@ function VariantFields({ variant, showCost, skuOptions }: { variant?: BookVarian
       <Field name="edition" label="Edition">
         <input type="text" name="edition" defaultValue={variant?.edition} placeholder="e.g. 2nd edition, 2024 reprint" />
       </Field>
-      <Field name="isbn" label="ISBN" hint="Optional; check digit is validated.">
+      <Field name="isbn" label="ISBN" hint="Optional. We check that it’s a real ISBN.">
         <input type="text" name="isbn" defaultValue={variant?.isbn} inputMode="numeric" placeholder="978…" />
       </Field>
       <Field name="price" label="Price (GH₵)" required>
         <input type="text" name="price" inputMode="decimal" defaultValue={variant ? pesewasToDecimal(variant.pricePesewas) : ""} placeholder="95.00" required />
       </Field>
-      <Field name="weightGrams" label="Shipping weight (g)" required hint="Used for delivery quotes.">
+      <Field name="weightGrams" label="Shipping weight (g)" required hint="Used to work out the delivery price.">
         <input type="number" name="weightGrams" min={0} max={30000} step={1} defaultValue={variant?.weightGrams} required />
       </Field>
       {showCost ? (
-        <Field name="cost" label="Cost (GH₵)" hint="Finance roles only.">
+        <Field name="cost" label="What you paid (GH₵)" hint="Only the owner and managers see this.">
           <input type="text" name="cost" inputMode="decimal" defaultValue={variant?.costPesewas !== undefined ? pesewasToDecimal(variant.costPesewas) : ""} />
         </Field>
       ) : null}
       <div className="adm-field" style={{ alignSelf: "end" }}>
         <label className="adm-check">
-          <input type="checkbox" name="active" defaultChecked={variant?.active ?? true} /> Active (sellable)
+          <input type="checkbox" name="active" defaultChecked={variant?.active ?? true} /> Can be sold
         </label>
         <label className="adm-check">
-          <input type="checkbox" name="confirmDuplicateIsbn" /> <span className="adm-small">Separate listing for an existing ISBN</span>
+          <input type="checkbox" name="confirmDuplicateIsbn" /> <span className="adm-small">List separately, even though this ISBN is already used</span>
         </label>
       </div>
     </div>
@@ -91,7 +91,7 @@ export default async function EditBookPage({ params }: { params: Promise<{ bookI
   return (
     <>
       <PageHeader
-        crumbs={[{ href: "/admin/catalogue", label: "Catalogue" }]}
+        crumbs={[{ href: "/admin/catalogue", label: "Products" }]}
         eyebrow={book.authors.join(", ")}
         title={book.title}
         lede={<><PublishBadge status={book.status} /> <span className="adm-small adm-muted">Last updated {formatDateTime(book.updatedAt)}</span></>}
@@ -105,19 +105,19 @@ export default async function EditBookPage({ params }: { params: Promise<{ bookI
               </ActionForm>
             ) : null}
             {canPublish && book.status === "published" ? (
-              <ActionForm action={setBookStatusAction} idempotencyKey={randomUUID()} submitLabel="Unpublish" variant="default" inline confirm="Unpublish this book? It disappears from the storefront immediately.">
+              <ActionForm action={setBookStatusAction} idempotencyKey={randomUUID()} submitLabel="Unpublish" variant="default" inline confirm="Unpublish this product? It will disappear from the shop right away.">
                 <input type="hidden" name="bookId" value={book.id} />
                 <input type="hidden" name="status" value="draft" />
               </ActionForm>
             ) : null}
             {canPublish && book.status !== "archived" ? (
-              <ActionForm action={setBookStatusAction} idempotencyKey={randomUUID()} submitLabel="Archive" variant="danger" inline confirm="Archive this book? It will be hidden and cannot be sold. Order history is kept.">
+              <ActionForm action={setBookStatusAction} idempotencyKey={randomUUID()} submitLabel="Archive" variant="danger" inline confirm="Archive this product? It will be hidden and can’t be sold. Past orders are kept.">
                 <input type="hidden" name="bookId" value={book.id} />
                 <input type="hidden" name="status" value="archived" />
               </ActionForm>
             ) : null}
             {canPublish && book.status === "archived" ? (
-              <ActionForm action={setBookStatusAction} idempotencyKey={randomUUID()} submitLabel="Restore to draft" inline>
+              <ActionForm action={setBookStatusAction} idempotencyKey={randomUUID()} submitLabel="Bring back as draft" inline>
                 <input type="hidden" name="bookId" value={book.id} />
                 <input type="hidden" name="status" value="draft" />
               </ActionForm>
@@ -127,33 +127,33 @@ export default async function EditBookPage({ params }: { params: Promise<{ bookI
       />
 
       {book.status === "draft" ? (
-        <ol className="adm-steps" aria-label="Publishing steps">
+        <ol className="adm-steps" aria-label="Steps to publish">
           <li data-state="done">1 · Details</li>
           <li data-state={step(hasVariant, !hasVariant)}>2 · Shop section &amp; stock option</li>
-          <li data-state={step(hasStock, hasVariant && !hasStock)}>3 · Opening stock</li>
-          <li data-state={step(Boolean(book.cover), hasVariant && hasStock && !book.cover)}>4 · Cover</li>
+          <li data-state={step(hasStock, hasVariant && !hasStock)}>3 · Stock</li>
+          <li data-state={step(Boolean(book.cover), hasVariant && hasStock && !book.cover)}>4 · Cover photo</li>
           <li data-state={step(false, blockers.length === 0)}>5 · Preview &amp; publish</li>
         </ol>
       ) : null}
       {book.status !== "published" && blockers.length ? (
         <div style={{ marginBottom: 16 }}>
-          <Callout tone="warn" title="Before this book can be published">
+          <Callout tone="warn" title="Before you can publish this">
             <ul>{blockers.map((blocker) => <li key={blocker}>{blocker}</li>)}</ul>
           </Callout>
         </div>
       ) : null}
-      {book.status === "archived" ? <div style={{ marginBottom: 16 }}><Callout tone="info">This book is archived. Restore it to draft to make changes.</Callout></div> : null}
+      {book.status === "archived" ? <div style={{ marginBottom: 16 }}><Callout tone="info">This product is archived. Bring it back as a draft to make changes.</Callout></div> : null}
 
       <div className="adm-grid adm-grid-main">
         <div className="adm-stack">
-          <Card title="Shop sections & stock options" description="Choose Brand New, Preloved or Bundle Deals when adding a stock option. Each option has its own SKU, price and stock." id="variants">
+          <Card title="Shop sections & stock options" description="Choose Brand New, Preloved or Bundle Deals when you add a stock option. Each option has its own item code, price and stock." id="variants">
             {variants.length ? (
               <div className="adm-table-wrap" style={{ marginBottom: 14 }}>
                 <table className="adm-table" data-stack>
                   <thead>
                     <tr>
-                      <th>SKU</th>
-                      <th>Format</th>
+                      <th>Item code</th>
+                      <th>Type</th>
                       <th className="num">Price</th>
                       <th className="num">Weight</th>
                       <th>Stock</th>
@@ -162,12 +162,12 @@ export default async function EditBookPage({ params }: { params: Promise<{ bookI
                   <tbody>
                     {variants.map((variant) => (
                       <tr key={variant.sku}>
-                        <td className="primary" data-label="SKU">
+                        <td className="primary" data-label="Item code">
                           <Link className="row-link adm-mono" href={`/admin/inventory/${encodeURIComponent(variant.sku)}`}>{variant.sku}</Link>
                           {variant.isbn ? <span className="sub adm-mono">ISBN {variant.isbn}</span> : null}
-                          {!variant.active ? <span className="sub">Inactive</span> : null}
+                          {!variant.active ? <span className="sub">Not for sale</span> : null}
                         </td>
-                        <td data-label="Format">{variant.format}{variant.edition ? <span className="sub">{variant.edition}</span> : null}<span className="sub"><Badge tone={variant.condition === "preloved" ? "green" : "blue"}>{conditionLabel(variant.condition, variant.conditionGrade)}</Badge></span></td>
+                        <td data-label="Type">{variant.format}{variant.edition ? <span className="sub">{variant.edition}</span> : null}<span className="sub"><Badge tone={variant.condition === "preloved" ? "green" : "blue"}>{conditionLabel(variant.condition, variant.conditionGrade)}</Badge></span></td>
                         <td className="num" data-label="Price"><Money pesewas={variant.pricePesewas} /></td>
                         <td className="num" data-label="Weight">{variant.weightGrams} g</td>
                         <td data-label="Stock"><StockBadge available={variant.available} threshold={0} /> <span className="sub">{variant.onHand} on hand</span></td>
@@ -177,7 +177,7 @@ export default async function EditBookPage({ params }: { params: Promise<{ bookI
                 </table>
               </div>
             ) : (
-              <p className="adm-muted" style={{ marginTop: 0 }}>No stock options yet. Choose Brand New, Preloved or Bundle Deals, then add its SKU, price and shipping weight. If you have both new and preloved copies, add two options.</p>
+              <p className="adm-muted" style={{ marginTop: 0 }}>No stock options yet. Choose Brand New, Preloved or Bundle Deals, then add its item code, price and weight. If you have both new and preloved copies, add two options.</p>
             )}
             {editable ? (
               <>
@@ -195,7 +195,7 @@ export default async function EditBookPage({ params }: { params: Promise<{ bookI
                 <details open={!variants.length}>
                   <summary className="adm-link" style={{ cursor: "pointer" }}>+ Add a stock option</summary>
                   <div style={{ paddingTop: 12 }}>
-                    <ActionForm action={createVariantAction} idempotencyKey={randomUUID()} submitLabel="Create stock option at zero stock" resetOnSuccess>
+                    <ActionForm action={createVariantAction} idempotencyKey={randomUUID()} submitLabel="Add stock option (starts with 0 stock)" resetOnSuccess>
                       <input type="hidden" name="bookId" value={book.id} />
                       <VariantFields showCost={showCost} skuOptions={skuOptions} />
                     </ActionForm>
@@ -204,17 +204,17 @@ export default async function EditBookPage({ params }: { params: Promise<{ bookI
               </>
             ) : null}
             {variants.length && can(ctx, "inventory.receive") ? (
-              <p className="adm-small adm-muted" style={{ marginBottom: 0 }}>Opening stock is received per SKU from <Link className="adm-link" href={`/admin/inventory/${encodeURIComponent(variants[0].sku)}`}>Inventory</Link> so it is recorded in the stock ledger.</p>
+              <p className="adm-small adm-muted" style={{ marginBottom: 0 }}>Add stock for each option on the <Link className="adm-link" href={`/admin/inventory/${encodeURIComponent(variants[0].sku)}`}>Stock</Link> page, so every change is recorded.</p>
             ) : null}
           </Card>
 
-          <Card title="Book details">
+          <Card title="Product details">
             <BookForm action={saveBookAction} idempotencyKey={randomUUID()} book={book} categories={categories} otherBooks={books.filter((other) => other.id !== book.id && other.status !== "archived").map((other) => ({ id: other.id, title: other.title, status: other.status }))} disabled={!editable} />
           </Card>
         </div>
 
         <div className="adm-stack">
-          <Card title="Cover" description="Required before publishing.">
+          <Card title="Cover photo" description="You need one before you can publish.">
             {book.cover ? (
               <div style={{ display: "flex", flexWrap: "wrap", gap: 14, alignItems: "flex-start", marginBottom: 14 }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -222,9 +222,9 @@ export default async function EditBookPage({ params }: { params: Promise<{ bookI
                 <div className="adm-small adm-muted" style={{ flex: "1 1 200px", minWidth: 0 }}>
                   {book.cover.width}×{book.cover.height}px · {Math.round(book.cover.bytes / 1024)} KB WebP
                   {editable ? (
-                    <ActionForm action={updateCoverAltAction} idempotencyKey={randomUUID()} submitLabel="Save alt text" size="sm" variant="default">
+                    <ActionForm action={updateCoverAltAction} idempotencyKey={randomUUID()} submitLabel="Save photo description" size="sm" variant="default">
                       <input type="hidden" name="bookId" value={book.id} />
-                      <Field name="alt" label="Alt text">
+                      <Field name="alt" label="Photo description">
                         <input type="text" name="alt" defaultValue={book.cover.alt} maxLength={250} />
                       </Field>
                     </ActionForm>
@@ -236,10 +236,10 @@ export default async function EditBookPage({ params }: { params: Promise<{ bookI
             ) : (
               <div className="adm-cover" style={{ width: 96, marginBottom: 14 }}>No cover yet</div>
             )}
-            {editable ? <ImageUpload target="cover" ownerId={book.id} label={book.cover ? "Replace cover" : "Upload cover"} defaultAlt={book.cover ? "" : `Cover of ${book.title}`} replaceNote={book.cover ? "The previous file is deleted after the swap." : undefined} /> : null}
+            {editable ? <ImageUpload target="cover" ownerId={book.id} label={book.cover ? "Replace cover" : "Upload cover"} defaultAlt={book.cover ? "" : `Cover of ${book.title}`} replaceNote={book.cover ? "The old photo is deleted once the new one is saved." : undefined} /> : null}
           </Card>
 
-          <Card title="Gallery" description="Optional extra images (up to 8).">
+          <Card title="Gallery" description="Extra photos if you want them (up to 8).">
             {book.gallery.length ? (
               <div className="adm-thumbs" style={{ marginBottom: 12 }}>
                 {book.gallery.map((image) => (
@@ -256,7 +256,7 @@ export default async function EditBookPage({ params }: { params: Promise<{ bookI
                 ))}
               </div>
             ) : null}
-            {editable && book.gallery.length < 8 ? <ImageUpload target="gallery" ownerId={book.id} label="Add gallery image" /> : null}
+            {editable && book.gallery.length < 8 ? <ImageUpload target="gallery" ownerId={book.id} label="Add a photo" /> : null}
           </Card>
         </div>
       </div>

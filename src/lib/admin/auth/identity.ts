@@ -44,7 +44,7 @@ export class DevelopmentIdentityAdmin implements IdentityAdmin {
 
   async setStaffClaim(uid: string, staff: boolean): Promise<void> {
     const user = this.users.get(uid);
-    if (!user) throw new AdminError("not_found", "No such development user.");
+    if (!user) throw new AdminError("not_found", "That test user doesn’t exist.");
     user.staffClaim = staff;
   }
 

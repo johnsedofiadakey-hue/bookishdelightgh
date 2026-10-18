@@ -10,7 +10,7 @@ import { getAdminStore } from "@/lib/admin/store";
 import type { Category, Promotion } from "@/lib/admin/types";
 import { savePromotionAction } from "./actions";
 
-export const metadata = { title: "Promotions" };
+export const metadata = { title: "Discount codes" };
 
 const STATE_TONE = { active: "green", scheduled: "blue", expired: "plain", paused: "amber", exhausted: "plain" } as const;
 
@@ -20,23 +20,23 @@ function PromotionFields({ promotion, categories }: { promotion?: Promotion; cat
       <Field name="code" label="Code" required hint="Letters and numbers, e.g. READMORE10"><input type="text" name="code" defaultValue={promotion?.code} required style={{ textTransform: "uppercase" }} /></Field>
       <Field name="kind" label="Discount type" required>
         <select name="kind" defaultValue={promotion?.kind ?? "percent"}>
-          <option value="percent">Percent off books</option>
-          <option value="fixed">Fixed GH₵ off</option>
+          <option value="percent">Percent off (%)</option>
+          <option value="fixed">Amount off (GH₵)</option>
         </select>
       </Field>
-      <Field name="value" label="Value" required hint="Percent (e.g. 10) or GH₵ amount (e.g. 20.00)">
+      <Field name="value" label="How much off" required hint="A percent (e.g. 10) or a GH₵ amount (e.g. 20.00)">
         <input type="text" name="value" inputMode="decimal" defaultValue={promotion ? (promotion.kind === "percent" ? String(promotion.value / 100) : pesewasToDecimal(promotion.value)) : ""} required />
       </Field>
       <Field name="minOrderPesewas" label="Minimum order (GH₵)"><input type="text" name="minOrder" inputMode="decimal" defaultValue={promotion?.minOrderPesewas ? pesewasToDecimal(promotion.minOrderPesewas) : ""} /></Field>
-      <Field name="usageLimit" label="Total uses" hint="Blank = unlimited"><input type="number" name="usageLimit" min={1} defaultValue={promotion?.usageLimit} /></Field>
-      <Field name="perCustomerLimit" label="Uses per customer" hint="Blank = unlimited"><input type="number" name="perCustomerLimit" min={1} defaultValue={promotion?.perCustomerLimit} /></Field>
+      <Field name="usageLimit" label="How many times it can be used" hint="Leave empty for no limit"><input type="number" name="usageLimit" min={1} defaultValue={promotion?.usageLimit} /></Field>
+      <Field name="perCustomerLimit" label="Times each customer can use it" hint="Leave empty for no limit"><input type="number" name="perCustomerLimit" min={1} defaultValue={promotion?.perCustomerLimit} /></Field>
       <Field name="startsAt" label="Starts"><input type="date" name="startsAt" defaultValue={(promotion?.startsAt ?? new Date().toISOString()).slice(0, 10)} /></Field>
       <Field name="endsAt" label="Ends" hint="Optional"><input type="date" name="endsAt" defaultValue={promotion?.endsAt?.slice(0, 10)} /></Field>
       <div className="adm-field" style={{ alignSelf: "end" }}>
-        <label className="adm-check"><input type="checkbox" name="active" defaultChecked={promotion?.active ?? true} /> Active</label>
+        <label className="adm-check"><input type="checkbox" name="active" defaultChecked={promotion?.active ?? true} /> Turned on</label>
       </div>
       <fieldset className="wide">
-        <legend className="adm-field"><span>Eligible categories (none ticked = all books)</span></legend>
+        <legend className="adm-field"><span>Which categories it works on (tick none for all books)</span></legend>
         <div className="adm-checks">
           {categories.map((category) => (
             <label className="adm-check" key={category.id}><input type="checkbox" name="eligibleCategoryIds" value={category.id} defaultChecked={promotion?.eligibleCategoryIds.includes(category.id)} /> {category.name}</label>
@@ -57,15 +57,15 @@ export default async function PromotionsPage() {
 
   return (
     <>
-      <PageHeader eyebrow="Shelf" title="Promotions" lede="Define discount codes here. Checkout validates eligibility, limits and dates on the server; the admin never applies a discount to a paid order." />
+      <PageHeader eyebrow="Shop" title="Discount codes" lede="Create discount codes here. Checkout checks each code’s rules, limits and dates. Codes are never added to orders that are already paid." />
       <div style={{ marginBottom: 16 }}>
-        <Callout tone="info">Discounts apply to book subtotal only, never to delivery. Usage counts are maintained by checkout and are read-only here.</Callout>
+        <Callout tone="info">Discounts only come off the price of the books, not delivery. Checkout counts how many times each code is used. You can’t change that count here.</Callout>
       </div>
       <Card title="Codes">
         {promotions.length ? (
           <div className="adm-table-wrap">
             <table className="adm-table" data-stack>
-              <thead><tr><th>Code</th><th>Discount</th><th>Window</th><th>Usage</th><th>State</th></tr></thead>
+              <thead><tr><th>Code</th><th>Discount</th><th>Dates</th><th>Times used</th><th>Status</th></tr></thead>
               <tbody>
                 {promotions.map((promotion) => {
                   const state = promotionState(promotion);
@@ -73,9 +73,9 @@ export default async function PromotionsPage() {
                     <tr key={promotion.id}>
                       <td className="primary adm-mono" data-label="Code"><strong>{promotion.code}</strong></td>
                       <td data-label="Discount">{promotion.kind === "percent" ? `${promotion.value / 100}% off` : <><Money pesewas={promotion.value} /> off</>}{promotion.minOrderPesewas ? <span className="sub">min <Money pesewas={promotion.minOrderPesewas} /></span> : null}</td>
-                      <td data-label="Window">{formatDate(promotion.startsAt)} → {promotion.endsAt ? formatDate(promotion.endsAt) : "no end"}</td>
-                      <td data-label="Usage">{promotion.usedCount}{promotion.usageLimit ? ` / ${promotion.usageLimit}` : ""}</td>
-                      <td data-label="State"><Badge tone={STATE_TONE[state]}>{state}</Badge></td>
+                      <td data-label="Dates">{formatDate(promotion.startsAt)} → {promotion.endsAt ? formatDate(promotion.endsAt) : "no end"}</td>
+                      <td data-label="Times used">{promotion.usedCount}{promotion.usageLimit ? ` / ${promotion.usageLimit}` : ""}</td>
+                      <td data-label="Status"><Badge tone={STATE_TONE[state]}>{state}</Badge></td>
                     </tr>
                   );
                 })}
@@ -83,24 +83,24 @@ export default async function PromotionsPage() {
             </table>
           </div>
         ) : (
-          <EmptyState title="No promotions yet" art="%">Create a code for a reading season, a school partnership or a launch.</EmptyState>
+          <EmptyState title="No discount codes yet" icon="promotions">Create a code for a reading season, a school partnership or a launch.</EmptyState>
         )}
       </Card>
       {editable ? (
         <>
-          <Card title="New promotion">
-            <ActionForm action={savePromotionAction} idempotencyKey={randomUUID()} submitLabel="Create promotion" resetOnSuccess>
+          <Card title="New discount code">
+            <ActionForm action={savePromotionAction} idempotencyKey={randomUUID()} submitLabel="Create code" resetOnSuccess>
               <input type="hidden" name="promotionId" value="" />
               <PromotionFields categories={categories} />
             </ActionForm>
           </Card>
           {promotions.length ? (
-            <Card title="Edit promotions">
+            <Card title="Edit discount codes">
               {promotions.map((promotion) => (
                 <details key={promotion.id} style={{ marginBottom: 10 }}>
                   <summary className="adm-link" style={{ cursor: "pointer" }}>{promotion.code}</summary>
                   <div style={{ paddingTop: 12 }}>
-                    <ActionForm action={savePromotionAction} idempotencyKey={randomUUID()} submitLabel="Save promotion">
+                    <ActionForm action={savePromotionAction} idempotencyKey={randomUUID()} submitLabel="Save code">
                       <input type="hidden" name="promotionId" value={promotion.id} />
                       <PromotionFields promotion={promotion} categories={categories} />
                     </ActionForm>

@@ -64,8 +64,8 @@ export async function reviseRate(store: AdminDataStore, ctx: StaffContext, rateI
   const value = validateRate(input);
   return runIdempotent(store, ctx, "delivery.revise", idempotencyKey, async (tx) => {
     const current = await tx.get("deliveryRates", rateId);
-    if (!current) throw new AdminError("not_found", "Rate not found.");
-    if (!current.active || current.supersededBy) throw new AdminError("conflict", "This rate has already been replaced. Edit the latest version.");
+    if (!current) throw new AdminError("not_found", "We couldn’t find that delivery price.");
+    if (!current.active || current.supersededBy) throw new AdminError("conflict", "This price has already been changed. Edit the newest version.");
     const id = newId("rate");
     const at = nowIso();
     const next: DeliveryRate = stripUndefined({ id, familyId: current.familyId, version: current.version + 1, ...value, active: true, createdAt: at, createdBy: ctx.uid });
@@ -87,7 +87,7 @@ export async function deactivateRate(store: AdminDataStore, ctx: StaffContext, r
   assertPermission(ctx, "delivery.edit");
   return runIdempotent(store, ctx, "delivery.deactivate", idempotencyKey, async (tx) => {
     const current = await tx.get("deliveryRates", rateId);
-    if (!current) throw new AdminError("not_found", "Rate not found.");
+    if (!current) throw new AdminError("not_found", "We couldn’t find that delivery price.");
     if (!current.active) return { rateId };
     tx.update("deliveryRates", rateId, { active: false, activeTo: nowIso() });
     recordAudit(tx, ctx, { action: "delivery.rate.deactivate", entityType: "deliveryRate", entityId: current.familyId, summary: `Deactivated ${current.name} v${current.version}` });

@@ -10,18 +10,18 @@ const STEPS: { status: FulfilmentStatus; label: string; detail: string }[] = [
   { status: "new", label: "Order received", detail: "We have your order." },
   { status: "picking", label: "Being prepared", detail: "We’re picking your items." },
   { status: "packed", label: "Packed", detail: "Your parcel is ready to go." },
-  { status: "dispatched", label: "On its way", detail: "Handed to the courier." },
+  { status: "dispatched", label: "On its way", detail: "With the delivery person." },
   { status: "delivered", label: "Delivered", detail: "Enjoy!" },
 ];
 
 const SPECIAL: Partial<Record<FulfilmentStatus, { title: string; body: string }>> = {
-  cancelled: { title: "This order was cancelled", body: "If you paid, your refund is handled as described in our Returns & Refunds policy. Message us on WhatsApp with any questions." },
-  returned: { title: "This order was returned", body: "We have received this order back. Message us on WhatsApp if you have questions about your refund." },
-  exception: { title: "We need to check something", body: "There’s an issue with this order and our team is looking into it. We’ll contact you, or you can message us on WhatsApp." },
+  cancelled: { title: "This order was cancelled", body: "If you paid, you’ll get your money back as our Returns & Refunds page explains. Message us on WhatsApp if you have questions." },
+  returned: { title: "This order was returned", body: "This order came back to us. Message us on WhatsApp if you have questions about your refund." },
+  exception: { title: "We need to check something", body: "There’s a problem with this order and we’re looking into it. We’ll contact you, or you can message us on WhatsApp." },
 };
 
 const PAYMENT_LABELS: Record<TrackedOrder["paymentStatus"], string> = {
-  awaiting_payment: "Awaiting payment",
+  awaiting_payment: "Waiting for payment",
   paid: "Paid",
   payment_failed: "Payment not completed",
   refunded: "Refunded",
@@ -58,7 +58,7 @@ function OrderStatus({ order }: { order: TrackedOrder }) {
       <div><dt>Delivering to</dt><dd>{order.destination || "—"}</dd></div>
       <div><dt>Estimated delivery</dt><dd>{order.estimate || "—"}</dd></div>
       {order.courier ? <div><dt>Courier</dt><dd>{order.courier}</dd></div> : null}
-      {order.trackingReference ? <div><dt>Courier reference</dt><dd>{order.trackingReference}</dd></div> : null}
+      {order.trackingReference ? <div><dt>Delivery tracking number</dt><dd>{order.trackingReference}</dd></div> : null}
       <div><dt>Total</dt><dd>{formatGhs(order.totalPesewas)}</dd></div>
     </dl>
     <ul className="track-items">{order.items.map((item, index) => <li key={`${item.title}-${index}`}><span>{item.quantity} ×</span> {item.title} <small>{item.format}</small></li>)}</ul>

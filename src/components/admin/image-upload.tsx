@@ -24,9 +24,9 @@ export function ImageUpload({ target, ownerId, label, defaultAlt = "", replaceNo
     event.preventDefault();
     const form = new FormData(event.currentTarget);
     const file = form.get("file");
-    if (!(file instanceof File) || file.size === 0) return setStatus({ tone: "error", text: "Choose an image first." });
-    if (file.size > 8 * 1024 * 1024) return setStatus({ tone: "error", text: "Images must be 8 MB or smaller." });
-    if (!String(form.get("alt") ?? "").trim()) return setStatus({ tone: "error", text: "Describe the image in the alt text field." });
+    if (!(file instanceof File) || file.size === 0) return setStatus({ tone: "error", text: "Choose a photo first." });
+    if (file.size > 8 * 1024 * 1024) return setStatus({ tone: "error", text: "Photos must be 8 MB or smaller." });
+    if (!String(form.get("alt") ?? "").trim()) return setStatus({ tone: "error", text: "Write a short description of the photo." });
     form.set("target", target);
     form.set("ownerId", ownerId);
     form.set("idempotencyKey", key);
@@ -36,13 +36,13 @@ export function ImageUpload({ target, ownerId, label, defaultAlt = "", replaceNo
       const response = await fetch("/admin/api/upload", { method: "POST", body: form });
       const body = (await response.json().catch(() => ({}))) as { error?: string; message?: string };
       if (!response.ok) return setStatus({ tone: "error", text: body.error ?? "Upload failed." });
-      setStatus({ tone: "success", text: body.message ?? "Image saved." });
+      setStatus({ tone: "success", text: body.message ?? "Photo saved." });
       setKey(newKey());
       setPreview(null);
       formRef.current?.reset();
       router.refresh();
     } catch {
-      setStatus({ tone: "error", text: "Network problem during upload. Try again." });
+      setStatus({ tone: "error", text: "The internet connection dropped during the upload. Try again." });
     } finally {
       setPending(false);
     }
@@ -68,12 +68,12 @@ export function ImageUpload({ target, ownerId, label, defaultAlt = "", replaceNo
         <img src={preview} alt="Selected file preview" className="adm-cover" style={{ width: 120 }} />
       ) : null}
       <label className="adm-field">
-        <span>Alt text <span className="req">*</span></span>
+        <span>Photo description <span className="req">*</span></span>
         <input type="text" name="alt" defaultValue={defaultAlt} maxLength={250} placeholder="e.g. Cover of The Mango Season showing a sunlit tree" />
       </label>
       <div className="adm-form-foot">
         <button className="adm-btn" data-variant="primary" type="submit" disabled={pending}>
-          {pending ? "Uploading…" : "Upload image"}
+          {pending ? "Uploading…" : "Upload photo"}
         </button>
       </div>
       <div aria-live="polite">{status ? <p className="adm-form-message" data-status={status.tone}>{status.text}</p> : null}</div>

@@ -77,7 +77,7 @@ async function readOrderInventory(tx: AdminTransaction, order: Order): Promise<M
   for (const line of order.lines) {
     if (records.has(line.sku)) continue;
     const record = await tx.get("inventory", line.sku);
-    if (!record) throw new AdminError("not_found", `Inventory for ${line.sku} is missing.`);
+    if (!record) throw new AdminError("not_found", `There’s no stock record for ${line.sku}.`);
     records.set(line.sku, record);
   }
   return records;
@@ -111,9 +111,9 @@ export async function transitionFulfilment(store: AdminDataStore, ctx: StaffCont
   assertPermission(ctx, input.to === "cancelled" ? "orders.cancel" : "orders.fulfil");
   return runIdempotent(store, ctx, "orders.transition", input.idempotencyKey, async (tx) => {
     const order = await tx.get("orders", input.orderId);
-    if (!order) throw new AdminError("not_found", "Order not found.");
+    if (!order) throw new AdminError("not_found", "We couldn’t find that order.");
     if (order.fulfilmentStatus !== input.expectedFrom) {
-      throw new AdminError("conflict", `This order is now ${order.fulfilmentStatus} (someone else updated it). Reload to see the latest.`);
+      throw new AdminError("conflict", `Someone else just changed this order (it’s now ${order.fulfilmentStatus}). Reload the page to see it.`);
     }
     const check = canTransition(order, input.to);
     if (!check.ok) throw new AdminError("precondition", check.reason);
@@ -124,7 +124,7 @@ export async function transitionFulfilment(store: AdminDataStore, ctx: StaffCont
 
     if (input.to === "dispatched") {
       const courier = input.courier?.trim() || order.courier;
-      if (!courier) throw new AdminError("invalid", "Enter the courier before dispatching.", { courier: "Required" });
+      if (!courier) throw new AdminError("invalid", "Enter the delivery company or rider before you mark it as sent.", { courier: "Required" });
       patch.courier = courier;
       const tracking = input.trackingReference?.trim() || order.trackingReference;
       if (tracking) patch.trackingReference = tracking;
@@ -137,16 +137,16 @@ export async function transitionFulfilment(store: AdminDataStore, ctx: StaffCont
     if (input.to === "cancelled") {
       if (!input.note?.trim()) throw new AdminError("invalid", "Give a reason for cancelling.", { note: "Required" });
       if (order.paymentStatus === "paid" || order.paymentStatus === "partially_refunded") {
-        throw new AdminError("precondition", "This order has been paid. Start a refund first; then it can be cancelled.");
+        throw new AdminError("precondition", "This order is paid. Start a refund first, then you can cancel it.");
       }
       if (order.stockState === "reserved") stockAction = "release";
       else if (order.stockState === "sold") stockAction = "restock";
     }
     if (input.to === "returned") {
-      if (!input.note?.trim()) throw new AdminError("invalid", "Record why the order came back.", { note: "Required" });
+      if (!input.note?.trim()) throw new AdminError("invalid", "Say why the order came back.", { note: "Required" });
       if (input.restock && order.stockState === "sold") stockAction = "restock";
     }
-    if (input.to === "exception" && !input.note?.trim()) throw new AdminError("invalid", "Describe the exception.", { note: "Required" });
+    if (input.to === "exception" && !input.note?.trim()) throw new AdminError("invalid", "Say what the problem is.", { note: "Required" });
 
     const records = stockAction ? await readOrderInventory(tx, order) : null;
     const settings = await tx.get("siteSettings", "site");
@@ -182,12 +182,12 @@ export async function transitionFulfilment(store: AdminDataStore, ctx: StaffCont
 
 export async function addStaffNote(store: AdminDataStore, ctx: StaffContext, orderId: string, body: string, idempotencyKey: string) {
   assertPermission(ctx, "orders.view");
-  if (!can(ctx, "orders.fulfil") && !can(ctx, "customers.view")) throw new AdminError("forbidden", "Your role cannot add order notes.");
+  if (!can(ctx, "orders.fulfil") && !can(ctx, "customers.view")) throw new AdminError("forbidden", "Your role can’t add order notes.");
   const trimmed = body.trim();
-  if (!trimmed || trimmed.length > 1000) throw new AdminError("invalid", "Write a note (max 1,000 characters).", { body: "Required" });
+  if (!trimmed || trimmed.length > 1000) throw new AdminError("invalid", "Write a note (up to 1,000 characters).", { body: "Required" });
   return runIdempotent(store, ctx, "orders.note", idempotencyKey, async (tx) => {
     const order = await tx.get("orders", orderId);
-    if (!order) throw new AdminError("not_found", "Order not found.");
+    if (!order) throw new AdminError("not_found", "We couldn’t find that order.");
     const note = { id: newId("note"), body: trimmed, actorUid: ctx.uid, actorName: ctx.name, at: nowIso() };
     tx.update("orders", orderId, { staffNotes: [...order.staffNotes, note], updatedAt: note.at });
     recordAudit(tx, ctx, { action: "orders.note", entityType: "order", entityId: orderId, summary: `Note on ${order.ref}` });
@@ -199,8 +199,8 @@ export async function setCourierDetails(store: AdminDataStore, ctx: StaffContext
   assertPermission(ctx, "orders.fulfil");
   return runIdempotent(store, ctx, "orders.courier", idempotencyKey, async (tx) => {
     const order = await tx.get("orders", orderId);
-    if (!order) throw new AdminError("not_found", "Order not found.");
-    if (["delivered", "cancelled", "returned"].includes(order.fulfilmentStatus)) throw new AdminError("precondition", "Courier details are locked once an order is closed.");
+    if (!order) throw new AdminError("not_found", "We couldn’t find that order.");
+    if (["delivered", "cancelled", "returned"].includes(order.fulfilmentStatus)) throw new AdminError("precondition", "You can’t change delivery details after an order is finished.");
     const next = stripUndefined({ courier: courier.trim() || undefined, trackingReference: trackingReference.trim() || undefined });
     tx.update("orders", orderId, { ...next, updatedAt: nowIso() });
     recordAudit(tx, ctx, { action: "orders.courier", entityType: "order", entityId: orderId, summary: `Courier details for ${order.ref}`, before: pick(order, ["courier", "trackingReference"]), after: next });
@@ -256,9 +256,9 @@ export async function createManualSale(store: AdminDataStore, ctx: StaffContext,
     let weight = 0;
     for (const line of lines) {
       const variant = await tx.get("bookVariants", line.sku);
-      if (!variant || !variant.active) throw new AdminError("precondition", `${line.sku} is not an active variant.`);
+      if (!variant || !variant.active) throw new AdminError("precondition", `${line.sku} isn’t for sale.`);
       const book = await tx.get("books", variant.bookId);
-      if (!book || book.status === "archived") throw new AdminError("precondition", `${line.sku} belongs to an archived or missing book.`);
+      if (!book || book.status === "archived") throw new AdminError("precondition", `${line.sku} belongs to a product that is archived or gone.`);
       const record = await tx.get("inventory", line.sku);
       if (!record || record.onHand - record.reserved < line.quantity) {
         throw new AdminError("precondition", `Only ${record ? Math.max(0, record.onHand - record.reserved) : 0} × ${line.sku} available.`);
@@ -274,14 +274,14 @@ export async function createManualSale(store: AdminDataStore, ctx: StaffContext,
       delivery = { rateId: "pickup", rateVersion: 0, serviceLevel: "pickup", pricePesewas: 0, estimate: "Customer collects" };
     } else {
       const rate = await tx.get("deliveryRates", input.deliveryRateId);
-      if (!rate || !rate.active) throw new AdminError("precondition", "That delivery rate is no longer active. Choose another.");
-      if (rate.region !== input.address.region) throw new AdminError("invalid", "The chosen delivery rate does not cover this region.", { deliveryRateId: "Region mismatch" });
-      if (weight < rate.minWeightGrams || weight > rate.maxWeightGrams) throw new AdminError("invalid", `Parcel weight ${weight} g is outside this rate's band.`, { deliveryRateId: "Weight band" });
+      if (!rate || !rate.active) throw new AdminError("precondition", "That delivery price isn’t used anymore. Choose another.");
+      if (rate.region !== input.address.region) throw new AdminError("invalid", "That delivery price doesn’t cover this region.", { deliveryRateId: "Region mismatch" });
+      if (weight < rate.minWeightGrams || weight > rate.maxWeightGrams) throw new AdminError("invalid", `A ${weight} g parcel is outside this price’s weight range.`, { deliveryRateId: "Weight band" });
       delivery = { rateId: rate.id, rateVersion: rate.version, serviceLevel: rate.serviceLevel, pricePesewas: rate.pricePesewas, estimate: rate.estimate };
     }
     const total = subtotal + delivery.pricePesewas;
     if (input.payment.amountPesewas !== total) {
-      throw new AdminError("invalid", `Amount received must equal the order total (${total} pesewas). Adjust lines or record the correct amount.`, { amount: "Must equal total" });
+      throw new AdminError("invalid", `The amount received must be the same as the order total (${total} pesewas). Change the items or enter the right amount.`, { amount: "Must equal total" });
     }
     const settings = await tx.get("siteSettings", "site");
 
@@ -362,13 +362,13 @@ export async function approveManualPayment(store: AdminDataStore, ctx: StaffCont
   assertPermission(ctx, "payments.approve_manual");
   return runIdempotent(store, ctx, "payments.approveManual", idempotencyKey, async (tx) => {
     const order = await tx.get("orders", orderId);
-    if (!order || !order.paymentId) throw new AdminError("not_found", "Order not found.");
-    if (order.channel !== "manual") throw new AdminError("forbidden", "Website orders are marked paid only by Paystack verification.");
+    if (!order || !order.paymentId) throw new AdminError("not_found", "We couldn’t find that order.");
+    if (order.channel !== "manual") throw new AdminError("forbidden", "Only Paystack can mark a website order as paid.");
     if (order.paymentStatus !== "pending") throw new AdminError("precondition", `Payment is already ${order.paymentStatus}.`);
     if (order.fulfilmentStatus === "cancelled") throw new AdminError("precondition", "This order was cancelled.");
     const payment = await tx.get("payments", order.paymentId);
-    if (!payment || payment.provider !== "manual" || !payment.manualEvidence) throw new AdminError("precondition", "No manual payment evidence is recorded.");
-    if (payment.amountPesewas !== order.totalPesewas) throw new AdminError("precondition", "Recorded amount does not match the order total.");
+    if (!payment || payment.provider !== "manual" || !payment.manualEvidence) throw new AdminError("precondition", "There’s no proof of payment saved for this order.");
+    if (payment.amountPesewas !== order.totalPesewas) throw new AdminError("precondition", "The amount doesn’t match the order total.");
     const records = await readOrderInventory(tx, order);
     const settings = await tx.get("siteSettings", "site");
     const slot = await readNotificationSlot(tx, order.id, "order_paid");
@@ -427,17 +427,17 @@ export function refundedSoFar(payment: PaymentRecord): number {
 export async function requestRefund(store: AdminDataStore, ctx: StaffContext, input: RefundInput) {
   assertPermission(ctx, "payments.refund");
   if (!Number.isSafeInteger(input.amountPesewas) || input.amountPesewas <= 0) throw new AdminError("invalid", "Enter a refund amount.", { amount: "Required" });
-  if (input.reason.trim().length < 4) throw new AdminError("invalid", "Explain why this refund is being issued.", { reason: "Required" });
+  if (input.reason.trim().length < 4) throw new AdminError("invalid", "Say why you’re giving this refund.", { reason: "Required" });
 
   const outcome = await runIdempotent(store, ctx, "payments.refund", input.idempotencyKey, async (tx) => {
     const order = await tx.get("orders", input.orderId);
-    if (!order?.paymentId) throw new AdminError("not_found", "Order not found.");
-    if (order.paymentStatus !== "paid" && order.paymentStatus !== "partially_refunded") throw new AdminError("precondition", `Cannot refund an order whose payment is ${order.paymentStatus}.`);
+    if (!order?.paymentId) throw new AdminError("not_found", "We couldn’t find that order.");
+    if (order.paymentStatus !== "paid" && order.paymentStatus !== "partially_refunded") throw new AdminError("precondition", `You can’t refund an order when its payment is ${order.paymentStatus}.`);
     const payment = await tx.get("payments", order.paymentId);
-    if (!payment || !payment.verified) throw new AdminError("precondition", "There is no verified payment to refund.");
+    if (!payment || !payment.verified) throw new AdminError("precondition", "There’s no confirmed payment to refund.");
     const remaining = payment.amountPesewas - refundedSoFar(payment);
-    if (input.amountPesewas > remaining) throw new AdminError("invalid", `At most ${remaining} pesewas can still be refunded.`, { amount: "Too high" });
-    if (payment.provider === "manual" && (input.manualEvidence?.trim().length ?? 0) < 4) throw new AdminError("invalid", "Record the reference for the money returned to the customer.", { manualEvidence: "Required" });
+    if (input.amountPesewas > remaining) throw new AdminError("invalid", `You can refund up to ${remaining} pesewas more.`, { amount: "Too high" });
+    if (payment.provider === "manual" && (input.manualEvidence?.trim().length ?? 0) < 4) throw new AdminError("invalid", "Enter the transaction number for the money you sent back.", { manualEvidence: "Required" });
     const settings = await tx.get("siteSettings", "site");
     const slot = payment.provider === "manual" ? await readNotificationSlot(tx, order.id, "refund_processed") : null;
 

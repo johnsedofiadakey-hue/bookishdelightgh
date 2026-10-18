@@ -10,7 +10,7 @@ import { getAdminStore } from "@/lib/admin/store";
 import { STAFF_ROLES } from "@/lib/admin/types";
 import { changeRoleAction, endSessionsAction, provisionStaffAction, setStatusAction } from "./actions";
 
-export const metadata = { title: "Staff & roles" };
+export const metadata = { title: "Staff" };
 
 export default async function StaffPage() {
   const access = await pageAccess("staff.view");
@@ -21,7 +21,7 @@ export default async function StaffPage() {
 
   return (
     <>
-      <PageHeader eyebrow="Admin" title="Staff & roles" lede="Only provisioned staff can enter. Permissions are enforced on the server for every action. Owners manage access; nobody can change their own role." />
+      <PageHeader eyebrow="Admin" title="Staff" lede="Only people you add here can sign in. Each role decides what a person can do. Only the owner can change access, and nobody can change their own role." />
       <div className="adm-grid adm-grid-main">
         <div className="adm-stack">
           <Card title="Team">
@@ -42,7 +42,7 @@ export default async function StaffPage() {
             </div>
           </Card>
           {manage ? (
-            <Card title="Manage access" description="Role and status changes end the person’s sessions immediately and are audited with your reason.">
+            <Card title="Manage access" description="Changing someone’s role or access signs them out right away. Your reason is saved in the activity log.">
               {staff.filter((profile) => profile.uid !== ctx.uid).map((profile) => (
                 <details key={profile.uid} style={{ marginBottom: 10 }}>
                   <summary style={{ cursor: "pointer" }}><strong>{profile.displayName}</strong> <span className="adm-small adm-muted">{ROLE_LABELS[profile.role]} · {profile.status}</span></summary>
@@ -52,9 +52,9 @@ export default async function StaffPage() {
                       <Field name="role" label="Role"><select name="role" defaultValue={profile.role}>{STAFF_ROLES.map((role) => <option key={role} value={role}>{ROLE_LABELS[role]}</option>)}</select></Field>
                       <Field name="reason" label="Reason" required><input type="text" name="reason" required /></Field>
                     </ActionForm>
-                    <ActionForm action={setStatusAction} idempotencyKey={randomUUID()} submitLabel="Update access" size="sm" variant="danger" confirm={`Change ${profile.displayName}'s access? Their sessions end immediately.`}>
+                    <ActionForm action={setStatusAction} idempotencyKey={randomUUID()} submitLabel="Save access" size="sm" variant="danger" confirm={`Change ${profile.displayName}'s access? They will be signed out right away.`}>
                       <input type="hidden" name="uid" value={profile.uid} />
-                      <Field name="status" label="Access"><select name="status" defaultValue={profile.status}><option value="active">Active</option><option value="suspended">Suspended (temporary)</option><option value="revoked">Revoked (left the team)</option></select></Field>
+                      <Field name="status" label="Access"><select name="status" defaultValue={profile.status}><option value="active">Active</option><option value="suspended">Paused (for now)</option><option value="revoked">Removed (left the team)</option></select></Field>
                       <Field name="reason" label="Reason" required><input type="text" name="reason" required /></Field>
                     </ActionForm>
                     <ActionForm action={endSessionsAction} idempotencyKey={randomUUID()} submitLabel="Sign them out everywhere" size="sm" variant="default">
@@ -68,15 +68,15 @@ export default async function StaffPage() {
         </div>
         <div className="adm-stack">
           {manage ? (
-            <Card title="Grant staff access" description="The person must already have a Firebase Authentication account (create it in the Firebase console). There is no public sign-up.">
-              <ActionForm action={provisionStaffAction} idempotencyKey={randomUUID()} submitLabel="Grant access" variant="coral" resetOnSuccess>
+            <Card title="Add a staff member" description="First create their email sign-in in the Firebase console (Authentication). Then add them here. People can’t sign up by themselves.">
+              <ActionForm action={provisionStaffAction} idempotencyKey={randomUUID()} submitLabel="Add staff member" variant="coral" resetOnSuccess>
                 <Field name="email" label="Sign-in email" required><input type="email" name="email" required /></Field>
                 <Field name="displayName" label="Name" required><input type="text" name="displayName" required /></Field>
                 <Field name="role" label="Role" required><select name="role" defaultValue="viewer">{STAFF_ROLES.map((role) => <option key={role} value={role}>{ROLE_LABELS[role]}</option>)}</select></Field>
               </ActionForm>
             </Card>
           ) : (
-            <Callout tone="info">Only owners can grant or change access.</Callout>
+            <Callout tone="info">Only the owner can add staff or change access.</Callout>
           )}
           <Card title="What each role can do">
             <div className="adm-stack">

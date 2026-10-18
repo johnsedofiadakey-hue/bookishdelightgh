@@ -48,7 +48,7 @@ function validateHomepage(content: HomepageContent, publishedBookIds: Set<string
 
 export async function saveHomepageDraft(store: AdminDataStore, ctx: StaffContext, draft: HomepageContent, idempotencyKey: string) {
   assertPermission(ctx, "content.edit");
-  if (draft.featuredShelves.length > 6) throw new AdminError("invalid", "Up to 6 featured shelves.");
+  if (draft.featuredShelves.length > 6) throw new AdminError("invalid", "You can have up to 6 featured shelves.");
   return runIdempotent(store, ctx, "content.homepage.draft", idempotencyKey, async (tx) => {
     const current = await tx.get("siteContent", "homepage");
     const at = nowIso();

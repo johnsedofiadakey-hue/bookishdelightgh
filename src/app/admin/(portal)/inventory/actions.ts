@@ -8,7 +8,7 @@ import { adjustStock, receiveStock, setLowStockThreshold, type AdjustmentType } 
 export async function receiveStockAction(_state: ActionState, form: FormData): Promise<ActionState> {
   return runAction("inventory.receive", async ({ store, ctx }) => {
     const { result, replayed } = await receiveStock(store, ctx, { sku: text(form, "sku"), quantity: int(form, "quantity"), reference: text(form, "reference"), note: optionalText(form, "note"), idempotencyKey: idempotencyKey(form) });
-    return { message: replayed ? "Already recorded — this was a duplicate submission." : `Received. On hand is now ${result.onHand} (${result.available} available).` };
+    return { message: replayed ? "Already recorded — this was a duplicate submission." : `Stock added. You now have ${result.onHand} on the shelf (${result.available} available).` };
   });
 }
 
@@ -29,20 +29,20 @@ export async function adjustStockAction(_state: ActionState, form: FormData): Pr
 export async function thresholdAction(_state: ActionState, form: FormData): Promise<ActionState> {
   return runAction("inventory.adjust", async ({ store, ctx }) => {
     await setLowStockThreshold(store, ctx, text(form, "sku"), int(form, "threshold"), idempotencyKey(form));
-    return { message: "Threshold saved." };
+    return { message: "Low stock warning saved." };
   });
 }
 
 export async function assembleBundlesAction(_state: ActionState, form: FormData): Promise<ActionState> {
   return runAction("inventory.adjust", async ({ store, ctx }) => {
     const { result, replayed } = await assembleBundles(store, ctx, { bundleSku: text(form, "sku"), quantity: int(form, "quantity"), reference: text(form, "reference"), idempotencyKey: idempotencyKey(form) });
-    return { message: replayed ? "Already recorded — duplicate submission ignored." : `Made up. ${result.onHand} bundle(s) now in stock; the books inside were taken out of single stock.` };
+    return { message: replayed ? "Already saved. We ignored the second click." : `Done. You now have ${result.onHand} bundle(s) in stock. The books inside were taken out of single stock.` };
   });
 }
 
 export async function unpackBundlesAction(_state: ActionState, form: FormData): Promise<ActionState> {
   return runAction("inventory.adjust", async ({ store, ctx }) => {
     const { result, replayed } = await unpackBundles(store, ctx, { bundleSku: text(form, "sku"), quantity: int(form, "quantity"), reference: text(form, "reference"), idempotencyKey: idempotencyKey(form) });
-    return { message: replayed ? "Already recorded — duplicate submission ignored." : `Unpacked. ${result.onHand} bundle(s) left; the books are back in single stock.` };
+    return { message: replayed ? "Already saved. We ignored the second click." : `Done. ${result.onHand} bundle(s) left. The books are back in single stock.` };
   });
 }

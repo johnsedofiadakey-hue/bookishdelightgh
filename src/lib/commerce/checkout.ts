@@ -207,7 +207,7 @@ export async function createPendingOrder(store: AdminDataStore, input: CheckoutI
     const live = rate ? quoteDelivery([rate], { region: input.address.region, city: input.address.city, weightGrams: cart.weightGrams, orderPesewas: cart.subtotalPesewas }) : [];
     if (!rate || !live.length) throw new AdminError("conflict", "That delivery option is no longer available for your address. Please choose again.");
     const total = cart.subtotalPesewas + rate.pricePesewas;
-    if (total !== input.expectedTotalPesewas) throw new AdminError("conflict", "Prices or delivery changed while you were checking out. Please review the new total.");
+    if (total !== input.expectedTotalPesewas) throw new AdminError("conflict", "Prices or delivery changed while you were checking out. Please check the new total.");
 
     const at = nowIso();
     const orderId = newId("ord");
@@ -270,7 +270,7 @@ export async function createPendingOrder(store: AdminDataStore, input: CheckoutI
 function moveStock(tx: AdminTransaction, order: Order, records: Map<string, InventoryRecord>, type: Extract<MovementType, "ORDER_RESERVED" | "ORDER_RELEASED" | "ORDER_SOLD">, reason: string, round = "") {
   order.lines.forEach((line, index) => {
     const record = records.get(line.sku);
-    if (!record) throw new AdminError("not_found", `Inventory for ${line.sku} is missing.`);
+    if (!record) throw new AdminError("not_found", `There’s no stock record for ${line.sku}.`);
     const deltas = {
       ORDER_RESERVED: { onHandDelta: 0, reservedDelta: line.quantity },
       ORDER_RELEASED: { onHandDelta: 0, reservedDelta: -line.quantity },

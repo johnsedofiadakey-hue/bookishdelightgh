@@ -21,7 +21,7 @@ export default async function HomePage() {
       <div className="hero-copy">
         <p className="eyebrow"><span className="home-eyebrow-mark" aria-hidden="true"/>Children’s books & learning resources · Kumasi, Ghana</p>
         <h1 id="hero-heading">Where little minds <span>love to learn.</span></h1>
-        <p className="hero-intro">Brand new and preloved children’s books, educational resources and bundle deals, from first board books to teen novels. Looking for something? We’ll check what we have.</p>
+        <p className="hero-intro">New and preloved children’s books, learning materials and book bundles, from baby board books to teen novels. Can’t find what you want? Ask us and we’ll check.</p>
         <div className="hero-actions"><a className="button button-dark" href={bookishWhatsAppUrl} target="_blank" rel="noopener noreferrer">Ask us on WhatsApp <span aria-hidden="true">↗</span></a><Link className="text-link" href="#categories">Browse the shelves <span aria-hidden="true">↓</span></Link></div>
         <div className="hero-note"><span className="hero-note-rule" aria-hidden="true"/>{bookishBrand.tagline}</div>
       </div>
@@ -37,7 +37,7 @@ export default async function HomePage() {
       </div>
     </section>
 
-    <div className="benefit-strip"><div className="shell benefit-inner"><span>Based in Kumasi</span><span>Brand new &amp; preloved books</span><span>Nationwide delivery planned</span><span>Message us to check stock</span></div></div>
+    <div className="benefit-strip"><div className="shell benefit-inner"><span>Based in Kumasi</span><span>Brand new &amp; preloved books</span><span>Delivery across Ghana coming soon</span><span>Message us to ask what’s in stock</span></div></div>
 
     {showJourney ? <ReadingJourney shelves={bookTypes.map(({ slug }) => ({ slug }))}/> : null}
 
@@ -57,6 +57,6 @@ export default async function HomePage() {
 
     <section className="bottom-story shell section" id="about"><div><p className="eyebrow">About us</p><h2>Learning made delightful, from Kumasi.</h2></div><div className="bottom-story-copy"><p>We help parents, teachers and schools find brand new and preloved books children enjoy, from board books to teen novels, plus educational resources and Christian literature. Tell us a child’s age or what they’re learning and we’ll suggest what’s available.</p><Link className="text-link" href="/contact">Find us in Kumasi <span aria-hidden="true">↗</span></Link></div></section>
 
-    <section className="ask-banner shell"><div><p className="eyebrow">Need something particular?</p><h2>We can check our shelves.</h2><p>Send a title, a child’s age or a photo to our WhatsApp number and we’ll let you know.</p></div><a className="button button-dark" href={bookishWhatsAppUrl} target="_blank" rel="noopener noreferrer"><WhatsAppIcon/> WhatsApp {bookishBrand.whatsappDisplay}</a></section>
+    <section className="ask-banner shell"><div><p className="eyebrow">Can’t find what you need?</p><h2>Ask us and we’ll check.</h2><p>Send a book title, a child’s age or a photo to our WhatsApp and we’ll let you know.</p></div><a className="button button-dark" href={bookishWhatsAppUrl} target="_blank" rel="noopener noreferrer"><WhatsAppIcon/> WhatsApp {bookishBrand.whatsappDisplay}</a></section>
   </main>;
 }

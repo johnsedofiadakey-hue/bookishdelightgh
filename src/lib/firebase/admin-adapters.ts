@@ -155,7 +155,7 @@ export class FirebaseMediaStorage implements MediaStorage {
     if (!/^(covers|gallery|homepage|categories)\/[A-Za-z0-9_-]+\/[A-Za-z0-9_-]+\.webp$/.test(path)) {
       throw new AdminError("invalid", "Invalid image path.");
     }
-    if (contentType !== "image/webp") throw new AdminError("invalid", "Images must be WebP.");
+    if (contentType !== "image/webp") throw new AdminError("invalid", "Photos must be WebP.");
     const bucket = this.storage.bucket();
     const token = randomUUID();
     await bucket.file(path).save(Buffer.from(bytes), {

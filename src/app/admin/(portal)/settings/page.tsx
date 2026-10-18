@@ -21,52 +21,52 @@ export default async function SettingsPage() {
 
   return (
     <>
-      <PageHeader eyebrow="Admin" title="Settings" lede={`Operational settings. Last changed ${formatDateTime(settings.updatedAt)}.`} />
+      <PageHeader eyebrow="Admin" title="Settings" lede={`Settings for the whole shop. Last changed ${formatDateTime(settings.updatedAt)}.`} />
       <div className="adm-grid adm-grid-main">
         <ActionForm action={saveSettingsAction} idempotencyKey={randomUUID()} submitLabel="Save settings" className="adm-stack">
           <fieldset disabled={!editable} style={{ border: 0, padding: 0, margin: 0, display: "grid", gap: 16 }}>
-            <Card title="Support contacts" description="Shown on the storefront and in SMS footers.">
+            <Card title="Support contacts" description="Customers see these on the website and at the end of text messages.">
               <div className="adm-fields adm-fields-3">
                 <Field name="supportPhone" label="Phone"><input type="tel" name="supportPhone" defaultValue={settings.supportPhone} /></Field>
                 <Field name="supportWhatsApp" label="WhatsApp"><input type="tel" name="supportWhatsApp" defaultValue={settings.supportWhatsApp} /></Field>
                 <Field name="supportEmail" label="Email"><input type="email" name="supportEmail" defaultValue={settings.supportEmail} /></Field>
               </div>
             </Card>
-            <Card title="Fulfilment origin" description="Where parcels leave from. Used for delivery estimates and pickup.">
+            <Card title="Where orders are sent from" description="Where parcels leave from. Used for delivery times and pick-up.">
               <div className="adm-fields adm-fields-3">
                 <Field name="originRegion" label="Region" required><select name="originRegion" defaultValue={settings.fulfilmentOrigin.region}>{GHANA_REGIONS.map((region) => <option key={region}>{region}</option>)}</select></Field>
-                <Field name="originCity" label="City / town"><input type="text" name="originCity" defaultValue={settings.fulfilmentOrigin.city} /></Field>
-                <Field name="originAddress" label="Pickup address"><input type="text" name="originAddress" defaultValue={settings.fulfilmentOrigin.addressLine} /></Field>
+                <Field name="originCity" label="Town"><input type="text" name="originCity" defaultValue={settings.fulfilmentOrigin.city} /></Field>
+                <Field name="originAddress" label="Pick-up address"><input type="text" name="originAddress" defaultValue={settings.fulfilmentOrigin.addressLine} /></Field>
               </div>
             </Card>
             <Card title="Policies & stock">
               <div className="adm-fields">
                 <Field name="returnsPolicyUrl" label="Returns policy link"><input type="text" name="returnsPolicyUrl" defaultValue={settings.returnsPolicyUrl} /></Field>
-                <Field name="defaultLowStockThreshold" label="Default low-stock threshold" hint="Applied to new SKUs."><input type="number" name="defaultLowStockThreshold" min={0} max={100} defaultValue={settings.defaultLowStockThreshold} /></Field>
-                <Field name="maintenanceBanner" label="Storefront notice" wide hint="Optional banner, e.g. holiday dispatch delays."><input type="text" name="maintenanceBanner" defaultValue={settings.maintenanceBanner} maxLength={160} /></Field>
+                <Field name="defaultLowStockThreshold" label="Low stock warning at" hint="Used for new items."><input type="number" name="defaultLowStockThreshold" min={0} max={100} defaultValue={settings.defaultLowStockThreshold} /></Field>
+                <Field name="maintenanceBanner" label="Website notice" wide hint="Optional message at the top of the shop, e.g. delivery delays over the holidays."><input type="text" name="maintenanceBanner" defaultValue={settings.maintenanceBanner} maxLength={160} /></Field>
               </div>
             </Card>
-            <Card title="Operational switches" description="Changes are audited.">
+            <Card title="On/off switches" description="Changes are saved in the activity log.">
               <div className="adm-stack">
-                <label className="adm-check"><input type="checkbox" name="checkoutEnabled" defaultChecked={settings.checkoutEnabled} /> <span><strong>Checkout open</strong><br /><span className="adm-small adm-muted">When off, shoppers can browse but cannot pay. Shared commerce must honour this flag.</span></span></label>
-                <label className="adm-check"><input type="checkbox" name="smsEnabled" disabled /> <span><strong>Transactional SMS</strong><br /><span className="adm-small adm-muted">Unavailable until mNotify sending and delivery tracking are connected. Order status remains available on the website.</span></span></label>
+                <label className="adm-check"><input type="checkbox" name="checkoutEnabled" defaultChecked={settings.checkoutEnabled} /> <span><strong>Online payment on</strong><br /><span className="adm-small adm-muted">When off, customers can look around but can’t pay online.</span></span></label>
+                <label className="adm-check"><input type="checkbox" name="smsEnabled" disabled /> <span><strong>Order text messages</strong><br /><span className="adm-small adm-muted">Not available yet: text messages can’t be sent until mNotify is connected. Customers can still check their order on the website’s tracking page.</span></span></label>
               </div>
             </Card>
           </fieldset>
         </ActionForm>
         <div className="adm-stack">
-          <Callout tone="info" title="Provider secrets are not editable here">
-            Paystack and mNotify keys and the sender ID live in the deployment secret manager and are used only by server code. The browser never sees them.
+          <Callout tone="info" title="Payment and SMS keys can’t be changed here">
+            The Paystack and mNotify keys and the SMS sender name are stored safely on the server. They never reach the browser.
           </Callout>
-          <Card title="Environment">
+          <Card title="System">
             <dl className="adm-dl">
-              <dt>Data store</dt><dd>{configuredStoreKind() === "memory" ? "Development (in-memory)" : "Firestore"}</dd>
-              <dt>Staff sign-in</dt><dd>{firebaseSignInConfigured() ? "Firebase Auth" : "Not configured"}</dd>
-              <dt>Session length</dt><dd>{SESSION_TTL_HOURS} hours</dd>
+              <dt>Database</dt><dd>{configuredStoreKind() === "memory" ? "Test data (not saved)" : "Firestore"}</dd>
+              <dt>Staff sign-in</dt><dd>{firebaseSignInConfigured() ? "Firebase Auth" : "Not set up"}</dd>
+              <dt>Stay signed in for</dt><dd>{SESSION_TTL_HOURS} hours</dd>
             </dl>
           </Card>
-          <Card title="Your sessions">
-            <ActionForm action={signOutEverywhereAction} idempotencyKey={randomUUID()} submitLabel="Sign out on all devices" variant="danger" confirm="End every session you have open, including this one?" />
+          <Card title="Your devices">
+            <ActionForm action={signOutEverywhereAction} idempotencyKey={randomUUID()} submitLabel="Sign out on all devices" variant="danger" confirm="Sign out on every device, including this one?" />
           </Card>
         </div>
       </div>

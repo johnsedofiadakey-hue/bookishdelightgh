@@ -16,10 +16,10 @@ function CategoryFields({ category, nextOrder }: { category?: Category; nextOrde
   return (
     <div className="adm-fields adm-fields-3">
       <Field name="name" label="Name" required hint="Shown to customers, e.g. Chapter Books"><input type="text" name="name" defaultValue={category?.name} required maxLength={60} /></Field>
-      <Field name="slug" label="Web address (slug)" hint={category ? "Changing this breaks existing links to the category." : "Leave empty to make it from the name."}>
+      <Field name="slug" label="Web address (slug)" hint={category ? "If you change this, old links to this category will stop working." : "Leave empty to make it from the name."}>
         <input type="text" name="slug" defaultValue={category?.slug} placeholder="chapter-books" pattern="[a-z0-9]+(-[a-z0-9]+)*" />
       </Field>
-      <Field name="order" label="Display order" hint="Lower numbers show first"><input type="number" name="order" min={0} max={999} defaultValue={category?.order ?? nextOrder} /></Field>
+      <Field name="order" label="Position" hint="Smaller numbers show first"><input type="number" name="order" min={0} max={999} defaultValue={category?.order ?? nextOrder} /></Field>
       <Field name="caption" label="Short caption" wide hint="Optional line under the name, e.g. Bright pages for little ones"><input type="text" name="caption" defaultValue={category?.caption} maxLength={80} /></Field>
       <div className="adm-field" style={{ alignSelf: "end" }}>
         <label className="adm-check"><input type="checkbox" name="published" defaultChecked={category?.published ?? true} /> Visible on the website</label>
@@ -56,12 +56,12 @@ export default async function CategoriesPage() {
 
   return (
     <>
-      <PageHeader eyebrow="Shelf" title="Categories" lede="These seven book types appear under both Brand New and Preloved. Choose them on a book; choose the shop section on each stock option. Bundle Deals appears automatically for Bundle stock options." />
+      <PageHeader eyebrow="Shop" title="Categories" lede="These seven book types show under both Brand New and Preloved. Pick them on each book, and pick the shop section on each stock option. Bundle Deals shows up by itself for bundle stock options." />
 
       {editable && retiredVisible.length ? (
         <div style={{ marginBottom: 16 }}>
           <Callout tone="warn" title="Old shelves are still showing on the website">
-            <p style={{ margin: "4px 0 10px" }}>{retiredVisible.map((category) => category.name).join(", ")} came from the earlier site design and aren’t part of your range. Hiding keeps any products in them; you can move those products to the new shelves afterwards.</p>
+            <p style={{ margin: "4px 0 10px" }}>{retiredVisible.map((category) => category.name).join(", ")} came from the old website and you don’t sell these anymore. Hiding them keeps their products. You can move those products to the new shelves later.</p>
             <ActionForm action={hideRetiredCategoriesAction} idempotencyKey={randomUUID()} submitLabel="Hide the old shelves" size="sm" variant="default" />
           </Callout>
         </div>
@@ -70,7 +70,7 @@ export default async function CategoriesPage() {
       {editable && missingRecommended.length ? (
         <div style={{ marginBottom: 16 }}>
           <Callout tone="info" title={`${missingRecommended.length} of the ${RECOMMENDED_CATEGORIES.length} recommended shelves ${missingRecommended.length === 1 ? "is" : "are"} not set up yet`}>
-            <p style={{ margin: "4px 0 10px" }}>Missing: {missingRecommended.map((category) => category.name).join(", ")}. Add them in one step; you can rename, reorder or hide any of them afterwards. The homepage tiles and shop filters show whatever is visible here.</p>
+            <p style={{ margin: "4px 0 10px" }}>Missing: {missingRecommended.map((category) => category.name).join(", ")}. Add them all with one click. You can rename, move or hide any of them later. The homepage and the shop show whatever is visible here.</p>
             <ActionForm action={addRecommendedCategoriesAction} idempotencyKey={randomUUID()} submitLabel="Add the recommended shelves" size="sm" />
           </Callout>
         </div>
@@ -88,7 +88,7 @@ export default async function CategoriesPage() {
                     <tr key={category.id}>
                       <td data-label="Order">{category.order}</td>
                       <td className="primary" data-label="Name"><strong>{category.name}</strong>{category.caption ? <span className="sub">{category.caption}</span> : null}</td>
-                      <td data-label="Web address"><span className="adm-mono">/shop?category={category.slug}</span>{STOREFRONT_CATEGORY_SLUGS.has(category.slug) ? <span className="sub">Recommended shelf</span> : RETIRED_CATEGORY_SLUGS.has(category.slug) ? <span className="sub">Old shelf, not in your range</span> : null}</td>
+                      <td data-label="Web address"><span className="adm-mono">/shop?category={category.slug}</span>{STOREFRONT_CATEGORY_SLUGS.has(category.slug) ? <span className="sub">Recommended shelf</span> : RETIRED_CATEGORY_SLUGS.has(category.slug) ? <span className="sub">Old shelf, not sold anymore</span> : null}</td>
                       <td data-label="Products"><Link className="adm-link" href={`/admin/catalogue?category=${encodeURIComponent(category.id)}`}>{count.total} product{count.total === 1 ? "" : "s"}</Link><span className="sub">{count.published} live</span></td>
                       <td data-label="Website">{category.published ? <Badge tone="green">Visible</Badge> : <Badge>Hidden</Badge>}</td>
                     </tr>
@@ -98,7 +98,7 @@ export default async function CategoriesPage() {
             </table>
           </div>
         ) : (
-          <EmptyState title="No categories yet" art="▦">Add the recommended categories above, or create your own below.</EmptyState>
+          <EmptyState title="No categories yet" icon="categories">Add the recommended categories above, or create your own below.</EmptyState>
         )}
       </Card>
 
@@ -111,7 +111,7 @@ export default async function CategoriesPage() {
             </ActionForm>
           </Card>
           {categories.length ? (
-            <Card title="Edit categories" description="Open a category to rename it, change its order or hide it. Hiding keeps its products but removes the category from the website.">
+            <Card title="Edit categories" description="Open a category to rename it, move it or hide it. Hiding takes the category off the website but keeps its products.">
               {categories.map((category) => (
                 <details key={category.id} style={{ marginBottom: 10 }}>
                   <summary className="adm-link" style={{ cursor: "pointer" }}>{category.name}</summary>
@@ -127,7 +127,7 @@ export default async function CategoriesPage() {
           ) : null}
         </>
       ) : (
-        <Callout tone="info">Your role can view categories but not change them. Ask an owner or manager.</Callout>
+        <Callout tone="info">Your role can see categories but can’t change them. Ask the owner or a manager.</Callout>
       )}
     </>
   );

@@ -22,6 +22,6 @@ export function can(ctx: Pick<StaffContext, "role">, permission: Permission): bo
 
 export function assertPermission(ctx: StaffContext, permission: Permission): void {
   if (!roleHas(ctx.role, permission)) {
-    throw new AdminError("forbidden", `Your role does not allow this action (${permission}).`);
+    throw new AdminError("forbidden", `Your role isn’t allowed to do this (${permission}).`);
   }
 }

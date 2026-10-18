@@ -27,7 +27,7 @@ export function getAdminStore(): AdminDataStore {
     return holder.__bookishRegisteredAdminStore;
   }
   if (!devStoreAllowed()) {
-    throw new AdminError("unavailable", "The development store is disabled in production.");
+    throw new AdminError("unavailable", "Test data is turned off on the live site.");
   }
   const holder = globalThis as StoreGlobal;
   if (!holder.__bookishAdminStore) {

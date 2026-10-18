@@ -17,14 +17,14 @@ export const metadata = { title: "Order" };
 const FLOW: FulfilmentStatus[] = ["new", "picking", "packed", "dispatched", "delivered"];
 
 const ACTION_LABEL: Partial<Record<FulfilmentStatus, string>> = {
-  picking: "Start picking",
-  packed: "Mark packed",
-  dispatched: "Mark dispatched",
-  delivered: "Confirm delivered",
-  new: "Move back to new",
+  picking: "Start getting items",
+  packed: "Mark as packed",
+  dispatched: "Mark as sent out",
+  delivered: "Mark as delivered",
+  new: "Move back to New",
   cancelled: "Cancel order",
-  exception: "Flag exception",
-  returned: "Record return",
+  exception: "Report a problem",
+  returned: "Mark as returned",
 };
 
 function TransitionForm({ order, to }: { order: Order; to: FulfilmentStatus }) {
@@ -38,28 +38,28 @@ function TransitionForm({ order, to }: { order: Order; to: FulfilmentStatus }) {
       idempotencyKey={randomUUID()}
       submitLabel={label}
       variant={destructive ? "danger" : primary && !back ? "coral" : "default"}
-      confirm={destructive ? "Cancel this order? Reserved stock is released or restocked automatically. This cannot be undone." : to === "returned" ? "Record this order as returned?" : undefined}
+      confirm={destructive ? "Cancel this order? Its items will go back into stock by themselves. You can’t undo this." : to === "returned" ? "Mark this order as returned?" : undefined}
     >
       <input type="hidden" name="orderId" value={order.id} />
       <input type="hidden" name="expectedFrom" value={order.fulfilmentStatus} />
       <input type="hidden" name="to" value={to} />
       {to === "dispatched" ? (
         <div className="adm-fields">
-          <Field name="courier" label="Courier" required>
+          <Field name="courier" label="Delivery company or rider" required>
             <input type="text" name="courier" defaultValue={order.courier} required list="adm-couriers" />
           </Field>
-          <Field name="trackingReference" label="Tracking / waybill ref">
+          <Field name="trackingReference" label="Tracking number">
             <input type="text" name="trackingReference" defaultValue={order.trackingReference} />
           </Field>
         </div>
       ) : null}
       {to === "delivered" ? (
-        <Field name="deliveryProofNote" label="Proof of delivery (optional)">
+        <Field name="deliveryProofNote" label="How you know it arrived (optional)">
           <input type="text" name="deliveryProofNote" placeholder="e.g. Received by Ama at gate, photo on WhatsApp" maxLength={500} />
         </Field>
       ) : null}
       {to === "cancelled" || to === "exception" || to === "returned" ? (
-        <Field name="note" label={to === "exception" ? "What went wrong?" : "Reason"} required>
+        <Field name="note" label={to === "exception" ? "What went wrong?" : "Why?"} required>
           <input type="text" name="note" maxLength={500} required />
         </Field>
       ) : null}
@@ -93,9 +93,9 @@ export default async function OrderPage({ params }: { params: Promise<{ orderId:
     <>
       <PageHeader
         crumbs={[{ href: "/admin/orders", label: "Orders" }]}
-        eyebrow={`${order.channel === "manual" ? `Manual sale · ${order.manualChannel}` : "Website order"} · ${formatDateTime(order.createdAt)}`}
+        eyebrow={`${order.channel === "manual" ? `Sale not on website · ${order.manualChannel}` : "Website order"} · ${formatDateTime(order.createdAt)}`}
         title={<span style={{ fontFamily: "var(--mono)", fontSize: "0.85em" }}>{order.ref}</span>}
-        lede={<><PaymentBadge status={order.paymentStatus} /> <FulfilmentBadge status={order.fulfilmentStatus} /> {order.channel === "manual" ? <Badge tone="lavender">Manual / offsite</Badge> : <Badge tone="blue">Paystack</Badge>}</>}
+        lede={<><PaymentBadge status={order.paymentStatus} /> <FulfilmentBadge status={order.fulfilmentStatus} /> {order.channel === "manual" ? <Badge tone="lavender">Not on website</Badge> : <Badge tone="blue">Paystack</Badge>}</>}
         actions={<Link className="adm-btn" href={`/admin/orders/${order.id}/slip`}>{icons.print} Packing slip</Link>}
       />
       <datalist id="adm-couriers">
@@ -107,29 +107,29 @@ export default async function OrderPage({ params }: { params: Promise<{ orderId:
 
       <div className="adm-stack" style={{ marginBottom: 16 }}>
         {order.paymentStatus === "pending" && order.channel === "website" ? (
-          <Callout tone="warn" title="Awaiting Paystack verification">This order cannot be picked or dispatched until the Paystack webhook/verification marks it paid. Staff cannot mark website orders as paid.</Callout>
+          <Callout tone="warn" title="Waiting for Paystack">You can’t pack or send this order until Paystack confirms the payment. Staff can’t mark website orders as paid.</Callout>
         ) : null}
         {order.paymentStatus === "pending" && order.channel === "manual" ? (
-          <Callout tone="warn" title="Manual payment awaiting approval">
-            Evidence: <span className="adm-mono">{payment?.manualEvidence ?? "—"}</span> ({payment?.manualMethod}) for <Money pesewas={payment?.amountPesewas ?? 0} />.
+          <Callout tone="warn" title="Payment waiting for approval">
+            Proof of payment: <span className="adm-mono">{payment?.manualEvidence ?? "—"}</span> ({payment?.manualMethod}) for <Money pesewas={payment?.amountPesewas ?? 0} />.
             {can(ctx, "payments.approve_manual") ? (
               <div style={{ marginTop: 10 }}>
-                <ActionForm action={approvePaymentAction} idempotencyKey={randomUUID()} submitLabel="Approve payment & commit stock" variant="coral" confirm="Confirm you have verified this payment was received in full.">
+                <ActionForm action={approvePaymentAction} idempotencyKey={randomUUID()} submitLabel="Approve payment" variant="coral" confirm="Have you checked that the full amount was received?">
                   <input type="hidden" name="orderId" value={order.id} />
                 </ActionForm>
               </div>
             ) : (
-              <p style={{ margin: "6px 0 0" }}>A manager or owner must approve it.</p>
+              <p style={{ margin: "6px 0 0" }}>A manager or the owner needs to approve it.</p>
             )}
           </Callout>
         ) : null}
-        {order.paymentStatus === "refund_pending" ? <Callout tone="info" title="Refund in progress">Fulfilment is paused until the refund is confirmed by Paystack.</Callout> : null}
-        {order.exception && !order.exception.resolvedAt ? <Callout tone="danger" title="Exception">{order.exception.detail} <span className="adm-small">(raised {formatDateTime(order.exception.raisedAt)})</span></Callout> : null}
+        {order.paymentStatus === "refund_pending" ? <Callout tone="info" title="Refund in progress">This order is on hold until Paystack confirms the refund.</Callout> : null}
+        {order.exception && !order.exception.resolvedAt ? <Callout tone="danger" title="Problem">{order.exception.detail} <span className="adm-small">(reported {formatDateTime(order.exception.raisedAt)})</span></Callout> : null}
       </div>
 
       <div className="adm-grid adm-grid-main">
         <div className="adm-stack">
-          <Card title="Fulfilment" description="Every step records who and when.">
+          <Card title="Order status" description="Each step saves who did it and when.">
             <ol className="adm-steps">
               {FLOW.map((status) => {
                 const reached = order.fulfilmentHistory.some((event) => event.to === status);
@@ -138,7 +138,7 @@ export default async function OrderPage({ params }: { params: Promise<{ orderId:
             </ol>
             {forward.length ? <div className="adm-stack">{forward.map((to) => <TransitionForm key={to} order={order} to={to} />)}</div> : null}
             {blockedReason && !forward.length ? <p className="adm-small adm-muted">{blockedReason}</p> : null}
-            {!transitions.length ? <p className="adm-muted adm-small">{["delivered", "cancelled", "returned"].includes(order.fulfilmentStatus) && !FULFILMENT_TRANSITIONS[order.fulfilmentStatus].length ? "This order is closed." : "Your role cannot change fulfilment."}</p> : null}
+            {!transitions.length ? <p className="adm-muted adm-small">{["delivered", "cancelled", "returned"].includes(order.fulfilmentStatus) && !FULFILMENT_TRANSITIONS[order.fulfilmentStatus].length ? "This order is finished." : "Your role can’t change the order status."}</p> : null}
             {other.length ? (
               <details style={{ marginTop: 12 }}>
                 <summary className="adm-link" style={{ cursor: "pointer" }}>Other actions ({other.map((to) => FULFILMENT_LABELS[to].toLowerCase()).join(", ")})</summary>
@@ -147,13 +147,13 @@ export default async function OrderPage({ params }: { params: Promise<{ orderId:
             ) : null}
             {can(ctx, "orders.fulfil") && !["delivered", "cancelled", "returned"].includes(order.fulfilmentStatus) && order.fulfilmentStatus !== "packed" ? (
               <details style={{ marginTop: 12 }}>
-                <summary className="adm-link" style={{ cursor: "pointer" }}>Courier &amp; tracking</summary>
+                <summary className="adm-link" style={{ cursor: "pointer" }}>Delivery company &amp; tracking</summary>
                 <div style={{ paddingTop: 12 }}>
-                  <ActionForm action={courierAction} idempotencyKey={randomUUID()} submitLabel="Save courier details" variant="default">
+                  <ActionForm action={courierAction} idempotencyKey={randomUUID()} submitLabel="Save delivery details" variant="default">
                     <input type="hidden" name="orderId" value={order.id} />
                     <div className="adm-fields">
-                      <Field name="courier" label="Courier"><input type="text" name="courier" defaultValue={order.courier} list="adm-couriers" /></Field>
-                      <Field name="trackingReference" label="Tracking ref"><input type="text" name="trackingReference" defaultValue={order.trackingReference} /></Field>
+                      <Field name="courier" label="Delivery company or rider"><input type="text" name="courier" defaultValue={order.courier} list="adm-couriers" /></Field>
+                      <Field name="trackingReference" label="Tracking number"><input type="text" name="trackingReference" defaultValue={order.trackingReference} /></Field>
                     </div>
                   </ActionForm>
                 </div>
@@ -161,10 +161,10 @@ export default async function OrderPage({ params }: { params: Promise<{ orderId:
             ) : null}
           </Card>
 
-          <Card title="Items" description="Snapshot taken at checkout. Later catalogue edits do not change this order.">
+          <Card title="Items" description="Saved when the order was placed. Changing a product later won’t change this order.">
             <div className="adm-table-wrap">
               <table className="adm-table" data-stack>
-                <thead><tr><th>Item</th><th className="num">Unit</th><th className="num">Qty</th><th className="num">Line</th></tr></thead>
+                <thead><tr><th>Item</th><th className="num">Price each</th><th className="num">Qty</th><th className="num">Total</th></tr></thead>
                 <tbody>
                   {order.lines.map((line, index) => (
                     <tr key={`${line.sku}-${index}`}>
@@ -185,7 +185,7 @@ export default async function OrderPage({ params }: { params: Promise<{ orderId:
             </dl>
           </Card>
 
-          <Card title="History">
+          <Card title="What happened">
             <ol className="adm-timeline">
               {order.fulfilmentHistory.map((event, index) => (
                 <li key={index}>
@@ -193,13 +193,13 @@ export default async function OrderPage({ params }: { params: Promise<{ orderId:
                   <span>{event.actorName} · {formatDateTime(event.at)}{event.note ? ` · “${event.note}”` : ""}</span>
                 </li>
               ))}
-              {order.paidAt ? <li><strong>Payment verified</strong><span>{formatDateTime(order.paidAt)}</span></li> : null}
+              {order.paidAt ? <li><strong>Payment confirmed</strong><span>{formatDateTime(order.paidAt)}</span></li> : null}
               {order.dispatchedAt ? <li><strong>Dispatched with {order.courier}</strong><span>{formatDateTime(order.dispatchedAt)}{order.trackingReference ? ` · ${order.trackingReference}` : ""}</span></li> : null}
               {order.deliveredAt ? <li><strong>Delivered</strong><span>{formatDateTime(order.deliveredAt)}{order.deliveryProofNote ? ` · ${order.deliveryProofNote}` : ""}</span></li> : null}
             </ol>
           </Card>
 
-          <Card title="Staff notes" description="Internal only; never shown to the customer.">
+          <Card title="Staff notes" description="Only staff see these. Customers never do.">
             {order.staffNotes.length ? (
               <ol className="adm-timeline" style={{ marginBottom: 12 }}>
                 {order.staffNotes.map((note) => <li key={note.id}><strong>{note.body}</strong><span>{note.actorName} · {formatDateTime(note.at)}</span></li>)}
@@ -221,28 +221,28 @@ export default async function OrderPage({ params }: { params: Promise<{ orderId:
               <dt>Phone</dt><dd>{contactVisible ? <a className="adm-link" href={`tel:${order.customer.phone}`}>{order.customer.phone}</a> : order.customer.phone}</dd>
               <dt>Email</dt><dd>{order.customer.email ?? "—"}</dd>
               <dt>Region</dt><dd>{order.address.region}</dd>
-              <dt>City/town</dt><dd>{order.address.city}</dd>
+              <dt>Town</dt><dd>{order.address.city}</dd>
               <dt>Address</dt><dd>{order.address.addressLine}</dd>
               {order.address.landmark ? <><dt>Landmark</dt><dd>{order.address.landmark}</dd></> : null}
               {order.address.ghanaPostGps ? <><dt>GhanaPost GPS</dt><dd className="adm-mono">{order.address.ghanaPostGps}</dd></> : null}
               {order.address.notes ? <><dt>Notes</dt><dd>{order.address.notes}</dd></> : null}
-              <dt>Service</dt><dd>{order.delivery.serviceLevel} · {order.delivery.estimate}</dd>
-              <dt>Courier</dt><dd>{order.courier ?? "—"}{order.trackingReference ? <span className="adm-mono"> · {order.trackingReference}</span> : null}</dd>
+              <dt>Delivery type</dt><dd>{order.delivery.serviceLevel} · {order.delivery.estimate}</dd>
+              <dt>Delivered by</dt><dd>{order.courier ?? "—"}{order.trackingReference ? <span className="adm-mono"> · {order.trackingReference}</span> : null}</dd>
             </dl>
-            {!contactVisible ? <p className="adm-small adm-muted">Contact details are masked for your role.</p> : null}
+            {!contactVisible ? <p className="adm-small adm-muted">Your role can’t see contact details.</p> : null}
           </Card>
 
-          <Card title="Payment" description="Separate from fulfilment.">
+          <Card title="Payment" description="Kept apart from the order status.">
             {payment ? (
               <dl className="adm-dl">
-                <dt>Provider</dt><dd>{payment.provider === "paystack" ? "Paystack" : `Manual (${payment.manualMethod ?? "—"})`}</dd>
-                <dt>Reference</dt><dd className="adm-mono">{payment.reference}</dd>
+                <dt>Paid with</dt><dd>{payment.provider === "paystack" ? "Paystack" : `Outside the website (${payment.manualMethod ?? "—"})`}</dd>
+                <dt>Payment number</dt><dd className="adm-mono">{payment.reference}</dd>
                 <dt>Amount</dt><dd><Money pesewas={payment.amountPesewas} /> {payment.currency}</dd>
-                <dt>Provider status</dt><dd>{payment.providerStatus} {payment.verified ? <Badge tone="green">Verified</Badge> : <Badge tone="amber">Not verified</Badge>}</dd>
+                <dt>Status</dt><dd>{payment.providerStatus} {payment.verified ? <Badge tone="green">Confirmed</Badge> : <Badge tone="amber">Not confirmed</Badge>}</dd>
                 {payment.approvedAt ? <><dt>Approved</dt><dd>{formatDateTime(payment.approvedAt)}</dd></> : null}
                 {payment.verificationHistory.length ? <><dt>Checks</dt><dd>{payment.verificationHistory.map((entry, index) => <span key={index} className="sub">{entry.source}: {entry.status} · {formatDateTime(entry.at)}</span>)}</dd></> : null}
               </dl>
-            ) : <p className="adm-muted">No payment record.</p>}
+            ) : <p className="adm-muted">No payment yet.</p>}
             {payment?.refunds.length ? (
               <>
                 <h3 style={{ marginTop: 14 }}>Refunds</h3>
@@ -260,11 +260,11 @@ export default async function OrderPage({ params }: { params: Promise<{ orderId:
               <details style={{ marginTop: 12 }}>
                 <summary className="adm-link" style={{ cursor: "pointer" }}>Start a refund</summary>
                 <div style={{ paddingTop: 12 }}>
-                  <ActionForm action={refundAction} idempotencyKey={randomUUID()} submitLabel={payment.provider === "paystack" ? "Request Paystack refund" : "Record manual refund"} variant="danger" confirm={`Refund this order? Up to ${pesewasToDecimal(refundable)} GHS can be refunded. Stock is not moved by a refund; cancel or record a return for that.`}>
+                  <ActionForm action={refundAction} idempotencyKey={randomUUID()} submitLabel={payment.provider === "paystack" ? "Refund through Paystack" : "Save refund"} variant="danger" confirm={`Refund this order? You can refund up to ${pesewasToDecimal(refundable)} GHS. A refund doesn’t change stock. To put items back, cancel the order or mark it as returned.`}>
                     <input type="hidden" name="orderId" value={order.id} />
                     <div className="adm-fields">
                       <Field name="amount" label="Amount (GH₵)" required><input type="text" name="amount" inputMode="decimal" defaultValue={pesewasToDecimal(refundable)} required /></Field>
-                      {payment.provider === "manual" ? <Field name="manualEvidence" label="Money returned ref" required><input type="text" name="manualEvidence" required /></Field> : null}
+                      {payment.provider === "manual" ? <Field name="manualEvidence" label="Refund transaction number" required><input type="text" name="manualEvidence" required /></Field> : null}
                       <Field name="reason" label="Reason" required wide><input type="text" name="reason" required maxLength={300} /></Field>
                     </div>
                   </ActionForm>
@@ -273,24 +273,24 @@ export default async function OrderPage({ params }: { params: Promise<{ orderId:
             ) : null}
           </Card>
 
-          <Card title="Stock movements">
+          <Card title="Stock changes">
             {movements.length ? (
               <ul className="adm-timeline">
-                {movements.map((movement) => <li key={movement.id}><strong className="adm-mono">{movement.type} {movement.sku}</strong><span>on hand {movement.onHandDelta >= 0 ? "+" : ""}{movement.onHandDelta}, reserved {movement.reservedDelta >= 0 ? "+" : ""}{movement.reservedDelta} · {formatDateTime(movement.createdAt)}</span></li>)}
+                {movements.map((movement) => <li key={movement.id}><strong className="adm-mono">{movement.type} {movement.sku}</strong><span>on shelf {movement.onHandDelta >= 0 ? "+" : ""}{movement.onHandDelta}, held {movement.reservedDelta >= 0 ? "+" : ""}{movement.reservedDelta} · {formatDateTime(movement.createdAt)}</span></li>)}
               </ul>
-            ) : <p className="adm-muted adm-small">No ledger entries recorded for this order yet{order.channel === "website" ? " (website reservations are written by shared commerce)" : ""}.</p>}
+            ) : <p className="adm-muted adm-small">No stock changes for this order yet{order.channel === "website" ? " (website orders hold stock on their own)" : ""}.</p>}
           </Card>
 
-          <Card title="SMS" actions={<Link className="adm-link adm-small" href={`/admin/notifications?orderId=${order.id}`}>Log →</Link>}>
+          <Card title="Text messages" actions={<Link className="adm-link adm-small" href={`/admin/notifications?orderId=${order.id}`}>See all {icons.arrowRight}</Link>}>
             {notifications.length ? (
               <ul className="adm-timeline">
-                {notifications.map((record) => <li key={record.id}><strong>{record.event.replace(/_/g, " ")} · {record.status}</strong><span>{record.recipient} · attempts {record.attempts}{record.mnotifyCampaignId ? ` · campaign ${record.mnotifyCampaignId}` : ""}{record.lastError ? ` · ${record.lastError}` : ""}</span></li>)}
+                {notifications.map((record) => <li key={record.id}><strong>{record.event.replace(/_/g, " ")} · {record.status}</strong><span>{record.recipient} · tries {record.attempts}{record.mnotifyCampaignId ? ` · campaign ${record.mnotifyCampaignId}` : ""}{record.lastError ? ` · ${record.lastError}` : ""}</span></li>)}
               </ul>
-            ) : <p className="adm-muted adm-small">No messages queued.</p>}
+            ) : <p className="adm-muted adm-small">No messages yet.</p>}
           </Card>
 
           {can(ctx, "audit.view") ? (
-            <Card title="Audit">
+            <Card title="Staff activity">
               {audit.length ? (
                 <ul className="adm-timeline">
                   {audit.map((event) => <li key={event.id}><strong>{event.summary}</strong><span>{event.actorName} · {formatDateTime(event.at)}{event.reason ? ` · ${event.reason}` : ""}</span></li>)}

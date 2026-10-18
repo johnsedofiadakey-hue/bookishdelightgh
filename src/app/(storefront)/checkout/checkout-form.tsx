@@ -6,6 +6,7 @@ import { useCart } from "@/components/storefront/cart-context";
 import type { CheckoutQuote } from "@/lib/commerce/checkout";
 import { formatGhs } from "@/lib/contracts/catalog";
 import { quoteAction, startCheckoutAction } from "./actions";
+import { ArrowLeftIcon, ArrowUpRightIcon } from "@/components/storefront/icons";
 
 type Field = "name" | "phone" | "email" | "region" | "city" | "addressLine" | "ghanaPostGps" | "landmark" | "notes";
 
@@ -73,7 +74,7 @@ export function CheckoutForm({ regions }: { regions: string[] }) {
   }
 
   if (loaded && !lines.length) {
-    return <div className="empty-state"><h2>Your bag is empty.</h2><p>Add something from the shop to check out.</p><Link className="button button-dark" href="/shop">Browse the shop ↗</Link></div>;
+    return <div className="empty-state"><h2>Your bag is empty.</h2><p>Add something from the shop to check out.</p><Link className="button button-dark" href="/shop">Browse the shop <ArrowUpRightIcon/></Link></div>;
   }
 
   return <form className="checkout-layout" onSubmit={onSubmit} noValidate>
@@ -117,7 +118,7 @@ export function CheckoutForm({ regions }: { regions: string[] }) {
       {message ? <p className="checkout-error" role="alert">{message}</p> : null}
       <button className="button button-dark summary-button" type="submit" disabled={blocked || !option || submitting || quoting}>{submitting ? "Connecting to Paystack…" : total !== null ? `Pay ${formatGhs(total)}` : "Pay"}</button>
       <p className="summary-small">You’ll be taken to Paystack to pay with Mobile Money or card. By paying you agree to our <Link href="/terms">Terms</Link> and <Link href="/returns">Returns policy</Link>.</p>
-      <Link className="checkout-back" href="/cart">← Back to your bag</Link>
+      <Link className="checkout-back" href="/cart"><ArrowLeftIcon/> Back to your bag</Link>
     </aside>
   </form>;
 }

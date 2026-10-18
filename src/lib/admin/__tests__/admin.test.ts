@@ -132,7 +132,7 @@ describe("catalogue → storefront contract", () => {
     await assert.rejects(createVariant(store, editor, bookId, { sku: "TEST-PB-01", format: "Hardcover", condition: "new", pricePesewas: 1, weightGrams: 1, active: true }, key()), rejectsWith("conflict"));
     await assert.rejects(createVariant(store, editor, bookId, { sku: "TEST-PB-02", format: "Paperback", condition: "new", isbn: "9780306406157", pricePesewas: 1, weightGrams: 1, active: true }, key()), rejectsWith("conflict"));
     await createVariant(store, editor, bookId, { sku: "TEST-HC-01", format: "Hardcover", condition: "new", isbn: "9780306406157", pricePesewas: 15000, weightGrams: 600, active: true }, key());
-    assert.equal(publishBlockers((await store.get("books", bookId))!, await store.query("bookVariants")).includes("Upload a cover image."), true);
+    assert.equal(publishBlockers((await store.get("books", bookId))!, await store.query("bookVariants")).includes("Upload a cover photo."), true);
   });
 });
 

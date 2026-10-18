@@ -107,14 +107,14 @@ export function VariantOptionFields({
               {PRELOVED_GRADES.map((item) => <option key={item} value={item}>{GRADE_LABELS[item]}</option>)}
             </select>
           </Field>
-          <Field name="conditionNote" label="Condition note" hint="Shown to customers. Mention anything notable, e.g. a name inside the cover.">
+          <Field name="conditionNote" label="Condition note" hint="Customers see this. Mention anything they should know, e.g. a name written inside the cover.">
             <input type="text" name="conditionNote" defaultValue={note} maxLength={160} />
           </Field>
         </>
       ) : null}
       {isBundle ? (
         <>
-          <Field name="compareAtPesewas" label="Worth if bought separately (GH₵)" hint="Optional. Shown as “You save …” when higher than the price.">
+          <Field name="compareAtPesewas" label="Price if bought one by one (GH₵)" hint="Optional. If it’s more than the bundle price, customers see “You save …”.">
             <input type="text" name="compareAt" inputMode="decimal" defaultValue={ghs(compareAtPesewas)} placeholder="e.g. 250.00" />
           </Field>
           <fieldset className="wide adm-bundle-items">
@@ -125,9 +125,9 @@ export function VariantOptionFields({
             {rows.map((row) => (
               <div className="adm-bundle-row" key={row.id}>
                 <label className="adm-field">
-                  <span>Stocked item</span>
+                  <span>Item we sell</span>
                   <select name="bundleSku" value={row.sku} onChange={(event) => update(row.id, { sku: event.target.value })}>
-                    <option value="">Not listed separately</option>
+                    <option value="">Not sold on its own</option>
                     {skuOptions.map((option) => <option key={option.sku} value={option.sku}>{option.label} ({option.sku})</option>)}
                   </select>
                 </label>

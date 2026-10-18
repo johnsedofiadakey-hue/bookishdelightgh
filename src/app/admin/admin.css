@@ -224,6 +224,7 @@ a.adm-stat:hover { border-color: var(--coral); transform: translateY(-1px); }
 .adm-empty h2 { font-family: var(--serif); font-size: 21px; margin: 0 0 6px; letter-spacing: -0.02em; }
 .adm-empty p { margin: 0 auto 14px; color: var(--muted); max-width: 52ch; }
 .adm-empty-art { width: 52px; height: 52px; margin: 0 auto 12px; border-radius: 16px; background: var(--coral-soft); display: grid; place-items: center; color: var(--coral); font-size: 22px; transform: rotate(-6deg); }
+.adm-empty-art svg { width: 24px; height: 24px; }
 .adm-callout { border-radius: 12px; padding: 12px 14px; font-size: 13px; border: 1px solid var(--line); background: var(--cream); }
 .adm-callout[data-tone="warn"] { background: var(--amber-soft); border-color: #efd8a8; color: #6d4a0d; }
 .adm-callout[data-tone="danger"] { background: var(--red-soft); border-color: #efc2bc; color: #7d2219; }
@@ -329,3 +330,7 @@ a.adm-stat:hover { border-color: var(--coral); transform: translateY(-1px); }
 .adm-bundle-items { display: grid; gap: 10px; }
 .adm-bundle-row { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) 80px auto; gap: 10px; align-items: end; }
 @media (max-width: 700px) { .adm-bundle-row { grid-template-columns: minmax(0, 1fr) 80px; } .adm-bundle-row > .adm-field:first-child { grid-column: 1 / -1; } }
+
+/* Small icons placed inside text links */
+.adm-link svg { width: 14px; height: 14px; vertical-align: -2px; margin-left: 2px; }
+.slip-check svg { width: 14px; height: 14px; display: block; margin: 0 auto; }

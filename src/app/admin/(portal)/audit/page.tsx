@@ -7,7 +7,7 @@ import { listAudit } from "@/lib/admin/ops/reports";
 import { ROLE_LABELS } from "@/lib/admin/permissions";
 import { getAdminStore } from "@/lib/admin/store";
 
-export const metadata = { title: "Audit trail" };
+export const metadata = { title: "Activity log" };
 
 const ENTITY_TYPES = ["order", "inventory", "book", "bookVariant", "deliveryRate", "promotion", "siteContent", "siteSettings", "adminProfile", "notification", "catalogue", "category", "export"];
 
@@ -26,14 +26,14 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
 
   return (
     <>
-      <PageHeader eyebrow="Records" title="Audit trail" lede="Every privileged change: who, what, when and why. Append-only — entries cannot be edited or deleted from the admin." actions={<a className="adm-btn" href="/admin/api/export/audit">{icons.download} Export CSV</a>} />
+      <PageHeader eyebrow="Records" title="Activity log" lede="Every important change: who did it, what changed, when and why. Entries can’t be edited or deleted." actions={<a className="adm-btn" href="/admin/api/export/audit">{icons.download} Download spreadsheet</a>} />
       <div style={{ marginBottom: 14 }}>
-        <Callout tone="info">Firestore rules must deny client writes to <span className="adm-mono">auditEvents</span>; only server code appends (see ADMIN_INTEGRATION_NOTES.md).</Callout>
+        <Callout tone="info">Technical note: Firestore rules must block browser writes to <span className="adm-mono">auditEvents</span>. Only the server adds entries (see ADMIN_INTEGRATION_NOTES.md).</Callout>
       </div>
       <form className="adm-filters" role="search" action="/admin/audit">
-        <label className="adm-field grow"><span>Search</span><input type="search" name="q" defaultValue={q} placeholder="Action, summary, entity ID, person, reason" /></label>
+        <label className="adm-field grow"><span>Search</span><input type="search" name="q" defaultValue={q} placeholder="Action, what changed, record ID, person, reason" /></label>
         <label className="adm-field">
-          <span>Entity</span>
+          <span>Record type</span>
           <select name="entity" defaultValue={entity}>
             <option value="">All</option>
             {ENTITY_TYPES.map((type) => <option key={type} value={type}>{type}</option>)}
@@ -44,7 +44,7 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
       {events.length ? (
         <div className="adm-table-wrap">
           <table className="adm-table" data-stack>
-            <thead><tr><th>When</th><th>Who</th><th>Action</th><th>Entity</th><th>Reason</th></tr></thead>
+            <thead><tr><th>When</th><th>Who</th><th>Action</th><th>Record</th><th>Reason</th></tr></thead>
             <tbody>
               {events.map((event) => {
                 const href = entityHref(event.entityType, event.entityId);
@@ -53,7 +53,7 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
                     <td className="nowrap" data-label="When">{formatDateTime(event.at)}</td>
                     <td data-label="Who">{event.actorName}<span className="sub">{event.actorRole === "system" ? "System" : ROLE_LABELS[event.actorRole]}</span></td>
                     <td className="primary" data-label="Action"><strong>{event.summary}</strong><span className="sub adm-mono">{event.action}</span></td>
-                    <td data-label="Entity"><Badge>{event.entityType}</Badge>{href ? <Link className="sub adm-link adm-mono" href={href}>{event.entityId}</Link> : <span className="sub adm-mono">{event.entityId}</span>}</td>
+                    <td data-label="Record"><Badge>{event.entityType}</Badge>{href ? <Link className="sub adm-link adm-mono" href={href}>{event.entityId}</Link> : <span className="sub adm-mono">{event.entityId}</span>}</td>
                     <td data-label="Reason">{event.reason ?? "—"}</td>
                   </tr>
                 );
@@ -62,7 +62,7 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
           </table>
         </div>
       ) : (
-        <EmptyState title="No audit events match" art="§" />
+        <EmptyState title="Nothing matches" icon="audit" />
       )}
     </>
   );

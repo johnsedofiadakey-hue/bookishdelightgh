@@ -69,9 +69,9 @@ export async function retryNotification(store: AdminDataStore, ctx: StaffContext
   assertPermission(ctx, "notifications.retry");
   return runIdempotent(store, ctx, "notifications.retry", idempotencyKey, async (tx) => {
     const record = await tx.get("notifications", notificationId);
-    if (!record) throw new AdminError("not_found", "Notification not found.");
-    if (record.status !== "failed") throw new AdminError("precondition", `Only failed messages can be retried (this one is ${record.status}).`);
-    if (record.attempts >= MAX_SMS_ATTEMPTS) throw new AdminError("precondition", `This message has already been attempted ${record.attempts} times. Contact the customer directly.`);
+    if (!record) throw new AdminError("not_found", "We couldn’t find that message.");
+    if (record.status !== "failed") throw new AdminError("precondition", `You can only try again on failed messages (this one is ${record.status}).`);
+    if (record.attempts >= MAX_SMS_ATTEMPTS) throw new AdminError("precondition", `We’ve already tried to send this message ${record.attempts} times. Contact the customer yourself.`);
     tx.update("notifications", notificationId, { status: "queued", updatedAt: nowIso() });
     recordAudit(tx, ctx, { action: "notifications.retry", entityType: "notification", entityId: notificationId, summary: `Re-queued ${record.event} SMS for order ${record.orderId} (attempt ${record.attempts + 1})` });
     return { notificationId };

@@ -9,7 +9,7 @@ import { getAdminStore } from "@/lib/admin/store";
 import { manualSaleAction } from "../actions";
 import { ManualSaleForm } from "./manual-sale-form";
 
-export const metadata = { title: "Manual sale" };
+export const metadata = { title: "Add a sale" };
 
 export default async function ManualSalePage() {
   const access = await pageAccess("orders.manual_sale");
@@ -26,8 +26,8 @@ export default async function ManualSalePage() {
       <PageHeader
         crumbs={[{ href: "/admin/orders", label: "Orders" }]}
         eyebrow="Instagram · WhatsApp · phone · walk-in"
-        title="Record a manual sale"
-        lede="Uses the same stock ledger and order record as the website, clearly marked as manual. It counts as paid only once the payment evidence is approved."
+        title="Add a sale made outside the website"
+        lede="It uses the same stock and order list as the website, marked “Not on website”. It only counts as paid once someone approves the proof of payment."
       />
       {sellable.length ? (
         <ManualSaleForm
@@ -38,8 +38,8 @@ export default async function ManualSalePage() {
           rates={rates.filter((rate) => rateIsLive(rate, now) && rate.serviceLevel !== "pickup").map((rate) => ({ id: rate.id, name: rate.name, region: rate.region, cities: rate.cities, pricePesewas: rate.pricePesewas, minWeightGrams: rate.minWeightGrams, maxWeightGrams: rate.maxWeightGrams, minOrderPesewas: rate.minOrderPesewas, estimate: rate.estimate }))}
         />
       ) : (
-        <EmptyState title="Nothing is available to sell" art="📦" action={<Link className="adm-btn" href="/admin/inventory">Go to inventory</Link>}>
-          A manual sale needs at least one active variant with available stock.
+        <EmptyState title="Nothing is available to sell" icon="inventory" action={<Link className="adm-btn" href="/admin/inventory">Go to stock</Link>}>
+          To add a sale, at least one product option needs stock you can sell.
         </EmptyState>
       )}
     </>

@@ -16,12 +16,12 @@ export default async function NewBookPage() {
 
   return (
     <>
-      <PageHeader crumbs={[{ href: "/admin/catalogue", label: "Catalogue" }]} eyebrow="New book" title="Add a book" lede="First choose a book type, such as Early Readers. Next choose whether this stock is Brand New, Preloved or a Bundle Deal, then add its price, stock and real cover photo." />
-      <ol className="adm-steps" aria-label="Publishing steps">
+      <PageHeader crumbs={[{ href: "/admin/catalogue", label: "Products" }]} eyebrow="New product" title="Add a book" lede="First choose a book type, such as Early Readers. Next choose whether this stock is Brand New, Preloved or a Bundle Deal, then add its price, stock and a real cover photo." />
+      <ol className="adm-steps" aria-label="Steps to publish">
         <li data-state="current">1 · Details</li>
-        <li>2 · Shop section, SKU &amp; price</li>
-        <li>3 · Opening stock</li>
-        <li>4 · Cover</li>
+        <li>2 · Shop section, item code &amp; price</li>
+        <li>3 · Stock</li>
+        <li>4 · Cover photo</li>
         <li>5 · Preview &amp; publish</li>
       </ol>
       <Card>

@@ -30,6 +30,14 @@ export const icons = {
   plus: <Icon><path d="M12 5v14M5 12h14" /></Icon>,
   download: <Icon><path d="M12 4v11" /><path d="m7 10 5 5 5-5" /><path d="M5 20h14" /></Icon>,
   print: <Icon><path d="M7 9V3h10v6" /><rect x="3" y="9" width="18" height="8" rx="2" /><path d="M7 14h10v7H7z" /></Icon>,
+  mail: <Icon><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 7 9 6 9-6" /></Icon>,
+  book: <Icon><path d="M2 5.5C4.5 4 8 4 12 6c4-2 7.5-2 10-.5V19c-2.5-1.5-6-1.5-10 .5-4-2-7.5-2-10-.5Z" /><path d="M12 6v13.5" /></Icon>,
+  sparkle: <Icon><path d="M12 3c.6 4.2 2.3 6.4 6.5 7-4.2.6-5.9 2.8-6.5 7-.6-4.2-2.3-6.4-6.5-7 4.2-.6 5.9-2.8 6.5-7Z" /><path d="M19 15.5c.3 1.6.9 2.2 2.5 2.5-1.6.3-2.2.9-2.5 2.5-.3-1.6-.9-2.2-2.5-2.5 1.6-.3 2.2-.9 2.5-2.5Z" /></Icon>,
+  check: <Icon><path d="m5 12.5 4.5 4.5L19 7.5" /></Icon>,
+  arrowRight: <Icon><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></Icon>,
+  close: <Icon><path d="M6 6l12 12" /><path d="M18 6 6 18" /></Icon>,
+  search: <Icon><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></Icon>,
+  lock: <Icon><rect x="4" y="10" width="16" height="11" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></Icon>,
   eye: <Icon><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" /><circle cx="12" cy="12" r="3" /></Icon>,
 } as const;
 

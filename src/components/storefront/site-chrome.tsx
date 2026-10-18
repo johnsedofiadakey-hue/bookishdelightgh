@@ -14,8 +14,8 @@ export function SiteHeader({ showBundles }: { showBundles: boolean }) {
   const { count } = useCart();
 
   return <>
-    <div className="preview-ribbon">Store preview <span>·</span> We’re adding our products online <span>·</span> Online orders unavailable</div>
-    <div className="announcement"><span>Brand new &amp; preloved children’s books.</span><span>Based in Kumasi · Nationwide delivery planned</span></div>
+    <div className="preview-ribbon">Store preview <span>·</span> We’re still putting our books online <span>·</span> You can’t order online yet</div>
+    <div className="announcement"><span>Brand new &amp; preloved children’s books.</span><span>Based in Kumasi · Delivery across Ghana coming soon</span></div>
     <header className="site-header">
       <div className="header-inner shell">
         <Link className="brand" href="/" aria-label="Bookish Delight Ghana home"><BrandLockup/></Link>
@@ -60,7 +60,7 @@ export function FloatingWhatsApp() {
 
 export function SiteFooter({ showBundles }: { showBundles: boolean }) {
   return <footer className="footer"><div className="shell footer-inner">
-    <div className="footer-identity"><Link className="brand footer-lockup" href="/" aria-label="Bookish Delight Ghana home"><BrandLockup footer/></Link><p>{bookishBrand.tagline}.</p><span className="footer-preview">Store preview · Online orders unavailable</span></div>
+    <div className="footer-identity"><Link className="brand footer-lockup" href="/" aria-label="Bookish Delight Ghana home"><BrandLockup footer/></Link><p>{bookishBrand.tagline}.</p><span className="footer-preview">Store preview · You can’t order online yet</span></div>
     <div className="footer-links"><h2>Explore</h2><Link href="/shop">Shop all</Link><Link href="/shop?condition=new">Brand new</Link><Link href="/shop?condition=preloved">Preloved</Link>{showBundles ? <Link href="/shop?category=bundles">Bundle deals</Link> : null}<Link href="/#categories">All shelves</Link><Link href="/contact">Contact us</Link></div>
     <div className="footer-links"><h2>Help</h2><Link href="/track">Track your order</Link><Link href="/delivery">Delivery</Link><Link href="/returns">Returns &amp; refunds</Link><Link href="/terms">Terms</Link><Link href="/privacy">Privacy</Link><Link href="/safety">Product safety</Link></div>
     <div className="footer-contact"><h2>Find us</h2><div className="footer-address"><p>{bookishBrand.streetAddress}</p><LocationLink/></div><p>GPS: {bookishBrand.gpsAddress}<br/>{bookishBrand.postalAddress}</p><div className="footer-icon-row"><ContactIconLinks/><SocialLinks className="footer-socials"/></div></div>

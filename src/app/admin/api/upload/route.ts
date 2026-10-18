@@ -17,7 +17,7 @@ import { getAdminStore } from "@/lib/admin/store";
 export async function POST(request: NextRequest) {
   if (!isSameOriginRequest(request.headers)) return NextResponse.json({ error: "Cross-origin request refused." }, { status: 403 });
 
-  if (Number(request.headers.get("content-length") ?? 0) > 9 * 1024 * 1024) return NextResponse.json({ error: "Images must be 8 MB or smaller." }, { status: 413 });
+  if (Number(request.headers.get("content-length") ?? 0) > 9 * 1024 * 1024) return NextResponse.json({ error: "Photos must be 8 MB or smaller." }, { status: 413 });
 
   let storedPath: string | null = null;
   try {
@@ -35,13 +35,13 @@ export async function POST(request: NextRequest) {
     const alt = String(form.get("alt") ?? "");
     const idempotencyKey = String(form.get("idempotencyKey") ?? "");
     const file = form.get("file");
-    if (!(file instanceof File)) throw new AdminError("invalid", "Choose an image file.");
+    if (!(file instanceof File)) throw new AdminError("invalid", "Choose a photo.");
     const store = getAdminStore();
 
     if (target === "cover" || target === "gallery") {
       const ctx = await requireStaff("catalogue.edit");
       const book = await store.get("books", ownerId);
-      if (!book) throw new AdminError("not_found", "Book not found.");
+      if (!book) throw new AdminError("not_found", "We couldn’t find that product.");
       const image = await processAndStoreImage(file, target === "cover" ? "covers" : "gallery", ownerId, alt);
       storedPath = image.path;
       if (target === "cover") {
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
       const { replayed } = await addGalleryImage(store, ctx, ownerId, image, idempotencyKey);
       if (replayed) await deleteImageQuietly(storedPath);
       storedPath = null;
-      return NextResponse.json({ ok: true, message: "Gallery image added." });
+      return NextResponse.json({ ok: true, message: "Photo added." });
     }
 
     if (target === "hero") {
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
       if (replayed) await deleteImageQuietly(storedPath);
       else await deleteImageQuietly(result.previousPath);
       storedPath = null;
-      return NextResponse.json({ ok: true, message: "Hero image saved to the draft." });
+      return NextResponse.json({ ok: true, message: "Banner photo saved to the draft." });
     }
 
     throw new AdminError("invalid", "Unknown upload target.");

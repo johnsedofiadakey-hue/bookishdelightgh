@@ -42,16 +42,16 @@ interface BundleStockInput {
 
 async function load(tx: AdminTransaction, bundleSku: string) {
   const bundle = await tx.get("bookVariants", bundleSku);
-  if (!bundle) throw new AdminError("not_found", "Bundle not found.");
-  if (bundle.format !== "Bundle") throw new AdminError("precondition", `${bundleSku} is not a bundle.`);
+  if (!bundle) throw new AdminError("not_found", "We couldn’t find that bundle.");
+  if (bundle.format !== "Bundle") throw new AdminError("precondition", `${bundleSku} isn’t a bundle.`);
   const items = linkedItems(bundle);
-  if (!items.length) throw new AdminError("precondition", "Nothing in this bundle is linked to a stocked SKU, so there is nothing to move. Receive the bundle’s stock directly instead.");
+  if (!items.length) throw new AdminError("precondition", "None of the books in this bundle are linked to items you stock, so there’s nothing to move. Add the bundle’s stock directly instead.");
   const bundleInventory = await tx.get("inventory", bundleSku);
-  if (!bundleInventory) throw new AdminError("not_found", `No inventory record for ${bundleSku}.`);
+  if (!bundleInventory) throw new AdminError("not_found", `There’s no stock record for ${bundleSku}.`);
   const components = new Map<string, InventoryRecord>();
   for (const item of items) {
     const record = await tx.get("inventory", item.sku);
-    if (!record) throw new AdminError("not_found", `No inventory record for ${item.sku}.`);
+    if (!record) throw new AdminError("not_found", `There’s no stock record for ${item.sku}.`);
     components.set(item.sku, record);
   }
   return { bundle, items, bundleInventory, components };
@@ -94,7 +94,7 @@ export async function unpackBundles(store: AdminDataStore, ctx: StaffContext, in
   return runIdempotent(store, ctx, "bundles.unpack", input.idempotencyKey, async (tx) => {
     const { bundle, items, bundleInventory, components } = await load(tx, input.bundleSku);
     if (availableOf(bundleInventory) < input.quantity) {
-      throw new AdminError("precondition", `Only ${Math.max(0, availableOf(bundleInventory))} made-up bundle(s) are available to unpack (others may be reserved for orders).`, { quantity: `Max ${Math.max(0, availableOf(bundleInventory))}` });
+      throw new AdminError("precondition", `Only ${Math.max(0, availableOf(bundleInventory))} bundle(s) can be taken apart (others may be held for orders).`, { quantity: `Max ${Math.max(0, availableOf(bundleInventory))}` });
     }
     const next = applyMovement(tx, ctx, bundleInventory, { sku: bundle.sku, type: "BUNDLE_UNPACKED", onHandDelta: -input.quantity, reservedDelta: 0, reason: "Bundle unpacked back to single items", reference }, derivedId("mov", "unbundle", ctx.uid, input.idempotencyKey, bundle.sku));
     for (const item of items) {

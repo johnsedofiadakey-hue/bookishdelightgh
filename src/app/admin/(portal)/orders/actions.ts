@@ -35,14 +35,14 @@ export async function noteAction(_state: ActionState, form: FormData): Promise<A
 export async function courierAction(_state: ActionState, form: FormData): Promise<ActionState> {
   return runAction("orders.fulfil", async ({ store, ctx }) => {
     await setCourierDetails(store, ctx, text(form, "orderId"), text(form, "courier"), text(form, "trackingReference"), idempotencyKey(form));
-    return { message: "Courier details saved." };
+    return { message: "Delivery details saved." };
   });
 }
 
 export async function approvePaymentAction(_state: ActionState, form: FormData): Promise<ActionState> {
   return runAction("payments.approve_manual", async ({ store, ctx }) => {
     await approveManualPayment(store, ctx, text(form, "orderId"), idempotencyKey(form));
-    return { message: "Payment approved. The order is paid and stock is committed." };
+    return { message: "Payment approved. The order is now paid." };
   });
 }
 
@@ -51,8 +51,8 @@ export async function refundAction(_state: ActionState, form: FormData): Promise
     const amount = parseGhsToPesewas(text(form, "amount"));
     if (amount === null) throw new AdminError("invalid", "Enter the refund amount in GHS.", { amount: "e.g. 95.00" });
     const outcome = await requestRefund(store, ctx, { orderId: text(form, "orderId"), amountPesewas: amount, reason: text(form, "reason"), manualEvidence: optionalText(form, "manualEvidence"), idempotencyKey: idempotencyKey(form) });
-    if (outcome.replayed) return { message: "Already recorded — duplicate submission ignored." };
-    if (outcome.result.provider === "manual") return { message: "Manual refund recorded." };
+    if (outcome.replayed) return { message: "Already saved. We ignored the second click." };
+    if (outcome.result.provider === "manual") return { message: "Refund saved." };
     return {
       message:
         outcome.gateway === "not_connected"
@@ -78,6 +78,6 @@ export async function manualSaleAction(_state: ActionState, form: FormData): Pro
       idempotencyKey: idempotencyKey(form),
     };
     const { result } = await createManualSale(store, ctx, input);
-    return { message: result.approved ? `Manual sale ${result.ref} recorded and paid.` : `Manual sale ${result.ref} recorded; awaiting payment approval by a manager.`, redirectTo: `/admin/orders/${result.orderId}` };
+    return { message: result.approved ? `Sale ${result.ref} saved as paid.` : `Sale ${result.ref} saved. It’s waiting for a manager to approve the payment.`, redirectTo: `/admin/orders/${result.orderId}` };
   });
 }

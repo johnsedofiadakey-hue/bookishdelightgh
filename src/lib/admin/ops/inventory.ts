@@ -47,10 +47,10 @@ export function applyMovement(tx: AdminTransaction, ctx: StaffContext, inventory
   if (!Number.isInteger(input.onHandDelta) || !Number.isInteger(input.reservedDelta)) throw new AdminError("invalid", "Stock quantities must be whole numbers.");
   const onHandAfter = inventory.onHand + input.onHandDelta;
   const reservedAfter = inventory.reserved + input.reservedDelta;
-  if (onHandAfter < 0) throw new AdminError("precondition", `${input.sku}: this would make on-hand stock negative (${onHandAfter}).`);
-  if (reservedAfter < 0) throw new AdminError("precondition", `${input.sku}: this would make reserved stock negative.`);
+  if (onHandAfter < 0) throw new AdminError("precondition", `${input.sku}: this would make the shelf count go below 0 (${onHandAfter}).`);
+  if (reservedAfter < 0) throw new AdminError("precondition", `${input.sku}: this would make the held count go below 0.`);
   if (onHandAfter < reservedAfter) {
-    throw new AdminError("precondition", `${input.sku}: ${inventory.reserved} copies are reserved for unpaid or unshipped orders; on-hand cannot drop below that.`);
+    throw new AdminError("precondition", `${input.sku}: ${inventory.reserved} copies are held for orders not paid or sent yet. The shelf count can’t go below that.`);
   }
   const at = nowIso();
   const movement: StockMovement = {
@@ -76,13 +76,13 @@ export function applyMovement(tx: AdminTransaction, ctx: StaffContext, inventory
 
 async function readInventory(tx: AdminTransaction, sku: string): Promise<InventoryRecord> {
   const record = await tx.get("inventory", sku);
-  if (!record) throw new AdminError("not_found", `No inventory record for ${sku}. Create the variant first.`);
+  if (!record) throw new AdminError("not_found", `There’s no stock record for ${sku}. Add the option first.`);
   return record;
 }
 
 function requireReference(reference: string): string {
   const trimmed = reference.trim();
-  if (trimmed.length < 2 || trimmed.length > 120) throw new AdminError("invalid", "Add a reference (supplier invoice, delivery note, count sheet…).", { reference: "Required" });
+  if (trimmed.length < 2 || trimmed.length > 120) throw new AdminError("invalid", "Add a reference, like a supplier invoice, delivery note or count sheet.", { reference: "Required" });
   return trimmed;
 }
 
@@ -103,12 +103,12 @@ export interface ReceiveStockInput {
 export async function receiveStock(store: AdminDataStore, ctx: StaffContext, input: ReceiveStockInput) {
   assertPermission(ctx, "inventory.receive");
   if (!Number.isInteger(input.quantity) || input.quantity < 1 || input.quantity > 10_000) {
-    throw new AdminError("invalid", "Received quantity must be a whole number between 1 and 10,000.", { quantity: "1–10,000" });
+    throw new AdminError("invalid", "Enter a whole number from 1 to 10,000.", { quantity: "1–10,000" });
   }
   const reference = requireReference(input.reference);
   return runIdempotent(store, ctx, "inventory.receive", input.idempotencyKey, async (tx) => {
     const variant = await tx.get("bookVariants", input.sku);
-    if (!variant) throw new AdminError("not_found", `Variant ${input.sku} does not exist.`);
+    if (!variant) throw new AdminError("not_found", `Option ${input.sku} doesn’t exist.`);
     const inventory = await readInventory(tx, input.sku);
     const movementId = derivedId("mov", "receive", ctx.uid, input.idempotencyKey);
     const next = applyMovement(tx, ctx, inventory, { sku: input.sku, type: "STOCK_RECEIVED", onHandDelta: input.quantity, reservedDelta: 0, reason: input.note?.trim() || "Stock received", reference }, movementId);
@@ -159,11 +159,11 @@ export function adjustmentDelta(type: AdjustmentType, quantity: number): number 
 
 export async function adjustStock(store: AdminDataStore, ctx: StaffContext, input: AdjustStockInput) {
   assertPermission(ctx, "inventory.adjust");
-  if (!(ADJUSTMENT_TYPES as readonly string[]).includes(input.type)) throw new AdminError("invalid", "Choose an adjustment type.");
+  if (!(ADJUSTMENT_TYPES as readonly string[]).includes(input.type)) throw new AdminError("invalid", "Choose what kind of change this is.");
   if (!Number.isInteger(input.quantity) || input.quantity === 0 || Math.abs(input.quantity) > 10_000) {
-    throw new AdminError("invalid", "Quantity must be a non-zero whole number up to 10,000.", { quantity: "Non-zero whole number" });
+    throw new AdminError("invalid", "Enter a whole number from 1 to 10,000 (or a minus number to take away).", { quantity: "Non-zero whole number" });
   }
-  if (input.type !== "ADJUST_CORRECTION" && input.quantity < 0) throw new AdminError("invalid", "Enter a positive quantity; the adjustment type sets the direction.", { quantity: "Positive number" });
+  if (input.type !== "ADJUST_CORRECTION" && input.quantity < 0) throw new AdminError("invalid", "Enter a number above 0. The type of change decides if stock goes up or down.", { quantity: "Positive number" });
   const reason = requireReason(input.reason);
   const reference = requireReference(input.reference);
   const delta = adjustmentDelta(input.type, input.quantity);
@@ -186,7 +186,7 @@ export async function adjustStock(store: AdminDataStore, ctx: StaffContext, inpu
 
 export async function setLowStockThreshold(store: AdminDataStore, ctx: StaffContext, sku: string, threshold: number, idempotencyKey: string) {
   assertPermission(ctx, "inventory.adjust");
-  if (!Number.isInteger(threshold) || threshold < 0 || threshold > 1000) throw new AdminError("invalid", "Threshold must be 0–1000.", { threshold: "0–1000" });
+  if (!Number.isInteger(threshold) || threshold < 0 || threshold > 1000) throw new AdminError("invalid", "Enter a number from 0 to 1,000.", { threshold: "0–1000" });
   return runIdempotent(store, ctx, "inventory.threshold", idempotencyKey, async (tx) => {
     const inventory = await readInventory(tx, sku);
     tx.update("inventory", sku, { lowStockThreshold: threshold, version: inventory.version + 1, updatedAt: nowIso() });

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { icons, type IconName } from "@/components/admin/icons";
 import { FULFILMENT_LABELS, PAYMENT_LABELS, formatGhs } from "@/lib/admin/format";
 import type { Permission } from "@/lib/admin/permissions";
 import { ROLE_LABELS } from "@/lib/admin/permissions";
@@ -105,10 +106,10 @@ export function Money({ pesewas }: { pesewas: number }) {
   return <span className="adm-money">{formatGhs(pesewas)}</span>;
 }
 
-export function EmptyState({ title, children, action, art = "✦" }: { title: string; children?: ReactNode; action?: ReactNode; art?: string }) {
+export function EmptyState({ title, children, action, icon = "sparkle" }: { title: string; children?: ReactNode; action?: ReactNode; icon?: IconName }) {
   return (
     <div className="adm-empty">
-      <div className="adm-empty-art" aria-hidden="true">{art}</div>
+      <div className="adm-empty-art" aria-hidden="true">{icons[icon]}</div>
       <h2>{title}</h2>
       {children ? <p>{children}</p> : null}
       {action}
@@ -128,8 +129,8 @@ export function Callout({ tone = "info", title, children }: { tone?: "info" | "w
 export function PermissionDenied({ permission }: { permission: Permission }) {
   return (
     <div className="adm-content">
-      <EmptyState title="This area isn’t part of your role" art="⊘" action={<Link className="adm-btn" href="/admin">Back to dashboard</Link>}>
-        Ask an owner if you need access. (Required permission: <code className="adm-mono">{permission}</code>.)
+      <EmptyState title="This area isn’t part of your role" icon="lock" action={<Link className="adm-btn" href="/admin">Back to dashboard</Link>}>
+        Ask the owner if you need to use it. (Permission needed: <code className="adm-mono">{permission}</code>.)
       </EmptyState>
     </div>
   );

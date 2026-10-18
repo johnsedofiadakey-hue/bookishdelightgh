@@ -29,7 +29,7 @@ let certCache: { keys: Map<string, KeyObject>; expiresAt: number } | undefined;
 async function loadCerts(): Promise<Map<string, KeyObject>> {
   if (certCache && certCache.expiresAt > Date.now()) return certCache.keys;
   const response = await fetch(CERT_URL, { cache: "no-store" });
-  if (!response.ok) throw new AdminError("unavailable", "Could not reach Firebase to verify sign-in. Try again shortly.");
+  if (!response.ok) throw new AdminError("unavailable", "We couldn’t reach Firebase to check your sign-in. Try again in a minute.");
   const body = (await response.json()) as Record<string, string>;
   const maxAge = Number(/max-age=(\d+)/.exec(response.headers.get("cache-control") ?? "")?.[1] ?? 3600);
   const keys = new Map(Object.entries(body).map(([kid, pem]) => [kid, createPublicKey(pem)]));
@@ -50,7 +50,7 @@ function emulatorActive(): boolean {
 }
 
 export async function verifyFirebaseIdToken(idToken: string, projectId: string): Promise<VerifiedFirebaseToken> {
-  if (!projectId) throw new AdminError("unavailable", "Firebase project is not configured.");
+  if (!projectId) throw new AdminError("unavailable", "Firebase is not set up.");
   const parts = idToken.split(".");
   if (parts.length !== 3) throw new AdminError("unauthenticated", "Malformed sign-in token.");
   const [headerSegment, payloadSegment, signatureSegment] = parts;

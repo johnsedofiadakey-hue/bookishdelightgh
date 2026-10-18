@@ -45,9 +45,9 @@ export function ManualSaleForm({ action, idempotencyKey, variants, rates, canApp
   const total = subtotal + deliveryPrice;
 
   return (
-    <ActionForm action={action} idempotencyKey={idempotencyKey} submitLabel={canApprove ? "Record paid sale" : "Record sale for approval"} variant="coral" pendingLabel="Recording…">
+    <ActionForm action={action} idempotencyKey={idempotencyKey} submitLabel={canApprove ? "Save paid sale" : "Save and send for approval"} variant="coral" pendingLabel="Saving…">
       <section className="adm-card">
-        <div className="adm-card-head"><div><h2>Books</h2><p>Prices come from the catalogue; only available stock can be sold.</p></div></div>
+        <div className="adm-card-head"><div><h2>Books</h2><p>Prices come from your product list. You can only sell what’s in stock.</p></div></div>
         <div className="adm-stack">
           {lines.map((line, index) => {
             const variant = bySku.get(line.sku);
@@ -57,7 +57,7 @@ export function ManualSaleForm({ action, idempotencyKey, variants, rates, canApp
                 <label className="adm-field" style={{ gridColumn: "span 2" }}>
                   <span>Book {index + 1}</span>
                   <select name="lineSku" value={line.sku} onChange={(event) => setLines((all) => all.map((item) => (item.id === line.id ? { ...item, sku: event.target.value, quantity: 1 } : item)))} required>
-                    <option value="">Choose a SKU…</option>
+                    <option value="">Choose an item…</option>
                     {variants.map((option) => (
                       <option key={option.sku} value={option.sku} disabled={usedElsewhere.has(option.sku)}>
                         {option.label} — {format(option.pricePesewas)} ({option.available} available)
@@ -78,7 +78,7 @@ export function ManualSaleForm({ action, idempotencyKey, variants, rates, canApp
             );
           })}
           <div>
-            <button className="adm-btn" data-size="sm" type="button" onClick={() => setLines((all) => [...all, { id: Math.max(...all.map((item) => item.id)) + 1, sku: "", quantity: 1 }])}>+ Add another book</button>
+            <button className="adm-btn" data-size="sm" type="button" onClick={() => setLines((all) => [...all, { id: Math.max(...all.map((item) => item.id)) + 1, sku: "", quantity: 1 }])}>+ Add another item</button>
           </div>
           <FieldErrorFor name="lines" />
         </div>
@@ -87,23 +87,23 @@ export function ManualSaleForm({ action, idempotencyKey, variants, rates, canApp
       <section className="adm-card">
         <div className="adm-card-head"><div><h2>Customer</h2></div></div>
         <div className="adm-fields adm-fields-3">
-          <Field name="manualChannel" label="Sold via" required>
+          <Field name="manualChannel" label="Where was it sold?" required>
             <select name="manualChannel" defaultValue="instagram">
               <option value="instagram">Instagram</option>
               <option value="whatsapp">WhatsApp</option>
               <option value="phone">Phone</option>
-              <option value="walk_in">Walk-in / event</option>
+              <option value="walk_in">In person / event</option>
               <option value="other">Other</option>
             </select>
           </Field>
           <Field name="name" label="Customer name" required><input type="text" name="name" required autoComplete="off" /></Field>
-          <Field name="phone" label="Phone (for SMS)" required><input type="tel" name="phone" required placeholder="024 000 0000" /></Field>
+          <Field name="phone" label="Phone (for text updates)" required><input type="tel" name="phone" required placeholder="024 000 0000" /></Field>
           <Field name="email" label="Email"><input type="email" name="email" /></Field>
         </div>
       </section>
 
       <section className="adm-card">
-        <div className="adm-card-head"><div><h2>Delivery</h2><p>Uses the live rate table. Pickup has no delivery charge.</p></div></div>
+        <div className="adm-card-head"><div><h2>Delivery</h2><p>Uses your delivery prices. Pick-up is free.</p></div></div>
         <div className="adm-fields adm-fields-3">
           <Field name="region" label="Region" required>
             <select name="region" value={region} onChange={(event) => setRegion(event.target.value)}>
@@ -117,26 +117,26 @@ export function ManualSaleForm({ action, idempotencyKey, variants, rates, canApp
               {matchingRates.map((rate) => <option key={rate.id} value={rate.id}>{rate.name} — {format(rate.pricePesewas)} ({rate.estimate})</option>)}
             </select>
           </Field>
-          <Field name="addressLine" label="Address" wide hint="Required for delivery"><input type="text" name="addressLine" /></Field>
+          <Field name="addressLine" label="Address" wide hint="Needed for delivery"><input type="text" name="addressLine" /></Field>
           <Field name="landmark" label="Landmark"><input type="text" name="landmark" /></Field>
           <Field name="ghanaPostGps" label="GhanaPost GPS"><input type="text" name="ghanaPostGps" placeholder="GA-000-0000" /></Field>
           <Field name="notes" label="Delivery notes"><input type="text" name="notes" /></Field>
         </div>
-        {!matchingRates.length && region ? <p className="adm-small adm-muted" style={{ marginBottom: 0 }}>No live delivery rate covers {city || "this destination"} in {region} for {weight} g. Use pickup, or add a rate in Delivery.</p> : null}
+        {!matchingRates.length && region ? <p className="adm-small adm-muted" style={{ marginBottom: 0 }}>There’s no delivery price for {city || "this place"} in {region} at {weight} g. Choose pick-up, or add a price on the Delivery page.</p> : null}
       </section>
 
       <section className="adm-card">
-        <div className="adm-card-head"><div><h2>Payment received</h2><p>{canApprove ? "You can approve payments: the order is recorded as paid and stock is committed." : "A manager or owner must approve this evidence before the order counts as paid."}</p></div></div>
+        <div className="adm-card-head"><div><h2>Payment received</h2><p>{canApprove ? "You can approve payments, so this order will be saved as paid." : "A manager or the owner needs to approve this proof before the order counts as paid."}</p></div></div>
         <div className="adm-fields adm-fields-3">
-          <Field name="method" label="Method" required>
+          <Field name="method" label="How they paid" required>
             <select name="method" defaultValue="momo">
-              <option value="momo">Mobile money</option>
+              <option value="momo">Mobile Money</option>
               <option value="bank_transfer">Bank transfer</option>
               <option value="cash">Cash</option>
-              <option value="pos_card">Card (POS)</option>
+              <option value="pos_card">Card machine</option>
             </select>
           </Field>
-          <Field name="evidence" label="Evidence reference" required hint="MoMo transaction ID, bank ref or receipt no."><input type="text" name="evidence" required /></Field>
+          <Field name="evidence" label="Proof of payment" required hint="MoMo transaction ID, bank reference or receipt number"><input type="text" name="evidence" required /></Field>
           <Field name="amount" label="Amount received (GH₵)" required hint={`Order total: ${format(total)}`}>
             <input type="text" name="amount" inputMode="decimal" key={total} defaultValue={total ? decimal(total) : ""} required />
           </Field>
@@ -146,7 +146,7 @@ export function ManualSaleForm({ action, idempotencyKey, variants, rates, canApp
           <dt>Delivery</dt><dd>{format(deliveryPrice)}</dd>
           <dt><strong>Total</strong></dt><dd><strong>{format(total)}</strong></dd>
         </dl>
-        <p className="adm-small adm-muted">The server recalculates prices and delivery and rejects the sale if the amount doesn’t match.</p>
+        <p className="adm-small adm-muted">We work out the prices and delivery again when you save. If the amount doesn’t match, the sale won’t save.</p>
       </section>
     </ActionForm>
   );

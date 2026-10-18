@@ -74,20 +74,20 @@ export type MediaFolder = "covers" | "gallery" | "homepage" | "categories";
 
 /** Validate, compress and store an image. Returns the ImageRef to save. */
 export async function processAndStoreImage(file: File, folder: MediaFolder, ownerId: string, alt: string): Promise<ImageRef> {
-  if (file.size === 0) throw new AdminError("invalid", "Choose an image file.", { file: "Required" });
-  if (file.size > MAX_UPLOAD_BYTES) throw new AdminError("invalid", "Images must be 8 MB or smaller.", { file: "Too large" });
+  if (file.size === 0) throw new AdminError("invalid", "Choose a photo.", { file: "Required" });
+  if (file.size > MAX_UPLOAD_BYTES) throw new AdminError("invalid", "Photos must be 8 MB or smaller.", { file: "Too large" });
   const trimmedAlt = alt.trim();
-  if (!trimmedAlt || trimmedAlt.length > 250) throw new AdminError("invalid", "Describe the image in alt text (max 250 characters).", { alt: "Required" });
+  if (!trimmedAlt || trimmedAlt.length > 250) throw new AdminError("invalid", "Write a short description of the photo (up to 250 characters).", { alt: "Required" });
   if (!/^[A-Za-z0-9_-]{1,64}$/.test(ownerId)) throw new AdminError("invalid", "Invalid image owner.");
   const input = new Uint8Array(await file.arrayBuffer());
   const sniffed = sniffImageType(input);
-  if (!sniffed) throw new AdminError("invalid", "Upload a JPEG, PNG or WebP image.", { file: "Unsupported type" });
+  if (!sniffed) throw new AdminError("invalid", "Upload a JPEG, PNG or WebP photo.", { file: "Unsupported type" });
 
   let sharp: typeof import("sharp").default;
   try {
     sharp = (await import("sharp")).default;
   } catch {
-    throw new AdminError("unavailable", "Image processing is unavailable on this server (sharp not installed; shared request R7).");
+    throw new AdminError("unavailable", "Photos can’t be processed on this server right now (sharp is not installed; see request R7).");
   }
   let output: { data: Buffer; info: { width: number; height: number; size: number } };
   try {
@@ -97,7 +97,7 @@ export async function processAndStoreImage(file: File, folder: MediaFolder, owne
       .webp({ quality: 82 })
       .toBuffer({ resolveWithObject: true });
   } catch {
-    throw new AdminError("invalid", "This image could not be read. Try exporting it again as JPEG or PNG.", { file: "Unreadable" });
+    throw new AdminError("invalid", "We couldn’t open this photo. Try saving it again as JPEG or PNG.", { file: "Unreadable" });
   }
   const path = `${folder}/${ownerId}/${newId("img")}.webp`;
   const { url } = await getMediaStorage().put(path, new Uint8Array(output.data), "image/webp");
