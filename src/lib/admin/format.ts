@@ -49,24 +49,24 @@ export function maskEmail(email?: string): string {
 }
 
 export const PAYMENT_LABELS: Record<PaymentStatus, string> = {
-  pending: "Awaiting payment",
+  pending: "Not paid yet",
   paid: "Paid",
   failed: "Payment failed",
-  abandoned: "Abandoned",
-  refund_pending: "Refund pending",
+  abandoned: "Payment not finished",
+  refund_pending: "Refund started",
   partially_refunded: "Partly refunded",
   refunded: "Refunded",
 };
 
 export const FULFILMENT_LABELS: Record<FulfilmentStatus, string> = {
   new: "New",
-  picking: "Picking",
+  picking: "Getting items",
   packed: "Packed",
-  dispatched: "Dispatched",
+  dispatched: "Sent out",
   delivered: "Delivered",
   cancelled: "Cancelled",
   returned: "Returned",
-  exception: "Exception",
+  exception: "Problem",
 };
 
 export function plural(count: number, singular: string, pluralForm = `${singular}s`): string {

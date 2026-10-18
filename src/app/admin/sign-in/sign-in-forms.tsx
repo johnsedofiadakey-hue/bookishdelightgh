@@ -30,19 +30,19 @@ export function FirebaseSignInForm({ apiKey, emulatorHost }: { apiKey: string; e
       const body = (await auth.json()) as { idToken?: string; error?: { message?: string } };
       if (!auth.ok || !body.idToken) {
         const code = body.error?.message ?? "";
-        setError(/INVALID|EMAIL_NOT_FOUND|INVALID_PASSWORD|INVALID_LOGIN_CREDENTIALS/.test(code) ? "Email or password is incorrect." : /TOO_MANY/.test(code) ? "Too many attempts. Wait a few minutes and try again." : /USER_DISABLED/.test(code) ? "This account has been disabled." : "Sign-in failed. Try again.");
+        setError(/INVALID|EMAIL_NOT_FOUND|INVALID_PASSWORD|INVALID_LOGIN_CREDENTIALS/.test(code) ? "Email or password is incorrect." : /TOO_MANY/.test(code) ? "Too many attempts. Wait a few minutes and try again." : /USER_DISABLED/.test(code) ? "This account has been disabled." : "Sign-in didn’t work. Try again.");
         return;
       }
       const session = await fetch("/admin/api/session", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ idToken: body.idToken }) });
       if (!session.ok) {
         const payload = (await session.json().catch(() => ({}))) as { error?: string };
-        setError(payload.error ?? "Your account could not be verified for staff access.");
+        setError(payload.error ?? "We couldn’t confirm that this account has staff access.");
         return;
       }
       router.replace("/admin");
       router.refresh();
     } catch {
-      setError("Network problem. Check your connection and try again.");
+      setError("Connection problem. Check your internet and try again.");
     } finally {
       setPending(false);
     }
@@ -72,8 +72,8 @@ export function DevSignIn({ accounts }: { accounts: { uid: string; label: string
   const [state, action, pending] = useActionState(devSignInAction, idleState);
   return (
     <div className="adm-callout" data-tone="warn">
-      <strong>Development sign-in (local fixtures only)</strong>
-      <p style={{ margin: "4px 0 10px" }}>Uses the in-memory dev store. Unavailable when the Firestore adapter is active or in production.</p>
+      <strong>Test sign-in (for development only)</strong>
+      <p style={{ margin: "4px 0 10px" }}>Uses test data that isn’t saved. Not available on the live site or when Firestore is connected.</p>
       <form action={action} className="adm-dev-accounts">
         {accounts.map((account) => (
           <button key={account.uid} className="adm-btn" type="submit" name="uid" value={account.uid} disabled={pending} aria-describedby={`dev-${account.uid}`}>

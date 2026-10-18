@@ -37,16 +37,17 @@ export default async function PortalLayout({ children }: { children: ReactNode }
       entries: [
         { href: "/admin", label: "Dashboard", icon: "dashboard", permission: "dashboard.view" },
         { href: "/admin/orders", label: "Orders", icon: "orders", permission: "orders.view", count: awaiting },
-        { href: "/admin/orders/new", label: "Manual sale", icon: "manual", permission: "orders.manual_sale" },
+        { href: "/admin/orders/new", label: "Add a sale", icon: "manual", permission: "orders.manual_sale" },
       ],
     },
     {
-      label: "Shelf",
+      label: "Shop",
       entries: [
-        { href: "/admin/catalogue", label: "Catalogue", icon: "catalogue", permission: "catalogue.view" },
-        { href: "/admin/inventory", label: "Inventory", icon: "inventory", permission: "inventory.view" },
+        { href: "/admin/catalogue", label: "Products", icon: "catalogue", permission: "catalogue.view" },
+        { href: "/admin/categories", label: "Categories", icon: "categories", permission: "catalogue.view" },
+        { href: "/admin/inventory", label: "Stock", icon: "inventory", permission: "inventory.view" },
         { href: "/admin/content", label: "Homepage", icon: "content", permission: "content.view" },
-        { href: "/admin/promotions", label: "Promotions", icon: "promotions", permission: "promotions.view" },
+        { href: "/admin/promotions", label: "Discount codes", icon: "promotions", permission: "promotions.view" },
         { href: "/admin/delivery", label: "Delivery rates", icon: "delivery", permission: "delivery.view" },
       ],
     },
@@ -54,15 +55,15 @@ export default async function PortalLayout({ children }: { children: ReactNode }
       label: "People & records",
       entries: [
         { href: "/admin/customers", label: "Customers", icon: "customers", permission: "customers.view" },
-        { href: "/admin/notifications", label: "SMS log", icon: "notifications", permission: "notifications.view", count: notifications.length },
+        { href: "/admin/notifications", label: "Text messages", icon: "notifications", permission: "notifications.view", count: notifications.length },
         { href: "/admin/reports", label: "Reports", icon: "reports", permission: "reports.view" },
-        { href: "/admin/audit", label: "Audit trail", icon: "audit", permission: "audit.view" },
+        { href: "/admin/audit", label: "Activity log", icon: "audit", permission: "audit.view" },
       ],
     },
     {
       label: "Admin",
       entries: [
-        { href: "/admin/staff", label: "Staff & roles", icon: "staff", permission: "staff.view" },
+        { href: "/admin/staff", label: "Staff", icon: "staff", permission: "staff.view" },
         { href: "/admin/settings", label: "Settings", icon: "settings", permission: "settings.view" },
       ],
     },

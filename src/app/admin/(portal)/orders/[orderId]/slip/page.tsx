@@ -6,6 +6,7 @@ import { formatDateTime } from "@/lib/admin/format";
 import { getOrderDetail } from "@/lib/admin/ops/orders";
 import { getAdminStore } from "@/lib/admin/store";
 import { PrintButton } from "./print-button";
+import { icons } from "@/components/admin/icons";
 
 export const metadata = { title: "Packing slip" };
 
@@ -21,16 +22,16 @@ export default async function SlipPage({ params }: { params: Promise<{ orderId: 
   return (
     <>
       <div className="adm-no-print adm-form-foot" style={{ marginBottom: 16 }}>
-        <Link className="adm-btn" href={`/admin/orders/${order.id}`}>← Back to order</Link>
+        <Link className="adm-btn" href={`/admin/orders/${order.id}`}>{icons.back} Back to order</Link>
         <PrintButton />
-        {!detail.contactVisible ? <span className="adm-small adm-muted">Address is masked for your role; ask fulfilment to print.</span> : null}
+        {!detail.contactVisible ? <span className="adm-small adm-muted">Your role can’t see the address. Ask someone in packing to print this.</span> : null}
       </div>
       <article className="adm-slip">
         <header style={{ display: "flex", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
           <div>
             <p className="adm-eyebrow">Bookish Delight · Packing slip</p>
             <h1 className="adm-mono" style={{ fontFamily: "var(--mono)" }}>{order.ref}</h1>
-            <p className="adm-small adm-muted" style={{ margin: 0 }}>Ordered {formatDateTime(order.createdAt)} · {order.channel === "manual" ? `Manual (${order.manualChannel})` : "Website"}</p>
+            <p className="adm-small adm-muted" style={{ margin: 0 }}>Ordered {formatDateTime(order.createdAt)} · {order.channel === "manual" ? `Not on website (${order.manualChannel})` : "Website"}</p>
           </div>
           <div style={{ textAlign: "right" }}>
             <strong>{order.delivery.serviceLevel === "pickup" ? "PICKUP" : order.delivery.serviceLevel.toUpperCase()}</strong>
@@ -52,7 +53,7 @@ export default async function SlipPage({ params }: { params: Promise<{ orderId: 
           </p>
         </section>
         <table>
-          <thead><tr><th style={{ width: 30 }}>✓</th><th>Title</th><th>Format</th><th>SKU</th><th>Qty</th></tr></thead>
+          <thead><tr><th style={{ width: 30 }} aria-label="Packed"><span className="slip-check">{icons.check}</span></th><th>Title</th><th>Type</th><th>Item code</th><th>Qty</th></tr></thead>
           <tbody>
             {order.lines.map((line, index) => (
               <tr key={`${line.sku}-${index}`}>
@@ -65,8 +66,8 @@ export default async function SlipPage({ params }: { params: Promise<{ orderId: 
             ))}
           </tbody>
         </table>
-        <p><strong>{units}</strong> unit(s) in total. Packed by: ____________________ Date: ____________</p>
-        <p className="adm-small adm-muted">Thank you for reading with Bookish Delight. Questions? Reply to our SMS or contact support.</p>
+        <p><strong>{units}</strong> item(s) in total. Packed by: ____________________ Date: ____________</p>
+        <p className="adm-small adm-muted">Thank you for reading with Bookish Delight. Questions? Reply to our text message or send us a WhatsApp.</p>
       </article>
     </>
   );

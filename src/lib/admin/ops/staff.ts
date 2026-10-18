@@ -34,11 +34,11 @@ export async function provisionStaff(store: AdminDataStore, ctx: StaffContext, i
   if (!displayName) throw new AdminError("invalid", "Enter their name.", { displayName: "Required" });
   const identity = getIdentityAdmin();
   const user = await identity.findUserByEmail(email);
-  if (!user) throw new AdminError("not_found", "No Firebase Auth user has this email. Create the user in Firebase Authentication first, then provision them here.", { email: "Not found in Firebase Auth" });
+  if (!user) throw new AdminError("not_found", "No Firebase sign-in uses this email. Create it in Firebase Authentication first, then add them here.", { email: "Not found in Firebase Auth" });
   const role = input.role;
   const result = await runIdempotent(store, ctx, "staff.provision", idempotencyKey, async (tx) => {
     const existing = await tx.get("adminProfiles", user.uid);
-    if (existing && existing.status !== "revoked") throw new AdminError("conflict", "This person already has a staff profile.");
+    if (existing && existing.status !== "revoked") throw new AdminError("conflict", "This person is already on the staff list.");
     const at = nowIso();
     const profile: AdminProfile = {
       uid: user.uid,
@@ -63,13 +63,13 @@ export async function provisionStaff(store: AdminDataStore, ctx: StaffContext, i
 export async function changeStaffRole(store: AdminDataStore, ctx: StaffContext, uid: string, role: string, reason: string, idempotencyKey: string) {
   assertPermission(ctx, "staff.manage");
   assertRole(role);
-  if (uid === ctx.uid) throw new AdminError("forbidden", "You cannot change your own role. Ask another owner.");
-  if (reason.trim().length < 4) throw new AdminError("invalid", "Record why the role is changing.", { reason: "Required" });
+  if (uid === ctx.uid) throw new AdminError("forbidden", "You can’t change your own role. Ask another Owner.");
+  if (reason.trim().length < 4) throw new AdminError("invalid", "Say why the role is changing.", { reason: "Required" });
   return runIdempotent(store, ctx, "staff.role", idempotencyKey, async (tx) => {
     const profile = await tx.get("adminProfiles", uid);
-    if (!profile) throw new AdminError("not_found", "Staff member not found.");
+    if (!profile) throw new AdminError("not_found", "We couldn’t find that staff member.");
     if (profile.role === role) return { uid };
-    if (profile.role === "owner" && profile.status === "active" && (await activeOwnerCount(tx)) <= 1) throw new AdminError("precondition", "There must always be at least one active owner.");
+    if (profile.role === "owner" && profile.status === "active" && (await activeOwnerCount(tx)) <= 1) throw new AdminError("precondition", "There must always be at least one active Owner.");
     const at = nowIso();
     // Role changes end existing sessions so the new permissions apply immediately.
     tx.update("adminProfiles", uid, { role, updatedAt: at, sessionsValidAfter: at });
@@ -80,13 +80,13 @@ export async function changeStaffRole(store: AdminDataStore, ctx: StaffContext, 
 
 export async function setStaffStatus(store: AdminDataStore, ctx: StaffContext, uid: string, status: StaffStatus, reason: string, idempotencyKey: string) {
   assertPermission(ctx, "staff.manage");
-  if (uid === ctx.uid) throw new AdminError("forbidden", "You cannot suspend or revoke your own access.");
-  if (reason.trim().length < 4) throw new AdminError("invalid", "Record a reason.", { reason: "Required" });
+  if (uid === ctx.uid) throw new AdminError("forbidden", "You can’t pause or remove your own access.");
+  if (reason.trim().length < 4) throw new AdminError("invalid", "Give a reason.", { reason: "Required" });
   const result = await runIdempotent(store, ctx, `staff.status.${status}`, idempotencyKey, async (tx) => {
     const profile = await tx.get("adminProfiles", uid);
-    if (!profile) throw new AdminError("not_found", "Staff member not found.");
+    if (!profile) throw new AdminError("not_found", "We couldn’t find that staff member.");
     if (profile.status === status) return { uid, changed: false };
-    if (profile.role === "owner" && status !== "active" && (await activeOwnerCount(tx)) <= 1) throw new AdminError("precondition", "There must always be at least one active owner.");
+    if (profile.role === "owner" && status !== "active" && (await activeOwnerCount(tx)) <= 1) throw new AdminError("precondition", "There must always be at least one active Owner.");
     const at = nowIso();
     tx.update("adminProfiles", uid, { status, updatedAt: at, sessionsValidAfter: at });
     recordAudit(tx, ctx, { action: `staff.${status}`, entityType: "adminProfile", entityId: uid, summary: `${profile.displayName}: ${profile.status} → ${status}`, reason: reason.trim() });
@@ -100,7 +100,7 @@ export async function signOutEverywhere(store: AdminDataStore, ctx: StaffContext
   if (uid !== ctx.uid) assertPermission(ctx, "staff.manage");
   return runIdempotent(store, ctx, "staff.signOutEverywhere", idempotencyKey, async (tx) => {
     const profile = await tx.get("adminProfiles", uid);
-    if (!profile) throw new AdminError("not_found", "Staff member not found.");
+    if (!profile) throw new AdminError("not_found", "We couldn’t find that staff member.");
     tx.update("adminProfiles", uid, { sessionsValidAfter: nowIso() });
     recordAudit(tx, ctx, { action: "staff.signOutEverywhere", entityType: "adminProfile", entityId: uid, summary: `Ended all sessions for ${profile.displayName}` });
     return { uid };

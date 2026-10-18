@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { formatLegalDate, legalFacts, legalPages } from "@/lib/legal";
+import { ArrowUpRightIcon } from "@/components/storefront/icons";
 
 /** Visible marker for a fact the owner has not confirmed yet. */
 export function ToConfirm({ children }: { children: ReactNode }) {
@@ -23,7 +24,7 @@ export function LegalPage({ current, title, intro, children }: { current: string
       <aside className="legal-nav" aria-label="Policies">
         <p className="eyebrow">Policies</p>
         <ul>{legalPages.map((page) => <li key={page.href}><Link href={page.href} aria-current={page.href === current ? "page" : undefined}>{page.title}</Link></li>)}</ul>
-        <Link className="legal-nav-track" href="/track">Track an order ↗</Link>
+        <Link className="legal-nav-track" href="/track">Track an order <ArrowUpRightIcon/></Link>
       </aside>
       <article className="legal-body">
         <p className="eyebrow">Bookish Delight GH</p>

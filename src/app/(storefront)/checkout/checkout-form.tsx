@@ -6,6 +6,7 @@ import { useCart } from "@/components/storefront/cart-context";
 import type { CheckoutQuote } from "@/lib/commerce/checkout";
 import { formatGhs } from "@/lib/contracts/catalog";
 import { quoteAction, startCheckoutAction } from "./actions";
+import { ArrowLeftIcon, ArrowUpRightIcon } from "@/components/storefront/icons";
 
 type Field = "name" | "phone" | "email" | "region" | "city" | "addressLine" | "ghanaPostGps" | "landmark" | "notes";
 
@@ -73,14 +74,14 @@ export function CheckoutForm({ regions }: { regions: string[] }) {
   }
 
   if (loaded && !lines.length) {
-    return <div className="empty-state"><h2>Your bag is empty.</h2><p>Add something from the shop to check out.</p><Link className="button button-dark" href="/shop">Browse the shop ↗</Link></div>;
+    return <div className="empty-state"><h2>Your bag is empty.</h2><p>Add something from the shop to check out.</p><Link className="button button-dark" href="/shop">Browse the shop <ArrowUpRightIcon/></Link></div>;
   }
 
   return <form className="checkout-layout" onSubmit={onSubmit} noValidate>
     <div className="checkout-form">
       <section><h2>1. Your details</h2><div className="form-grid">
         <label>Full name<input name="name" autoComplete="name" required value={values.name} onChange={set("name")} aria-invalid={Boolean(fieldErrors.name)}/>{error("name")}</label>
-        <label>Phone number<input name="phone" type="tel" inputMode="tel" autoComplete="tel" placeholder="024 000 0000" required value={values.phone} onChange={set("phone")} aria-invalid={Boolean(fieldErrors.phone)}/>{error("phone")}<small className="field-hint">For delivery and order SMS updates.</small></label>
+        <label>Phone number<input name="phone" type="tel" inputMode="tel" autoComplete="tel" placeholder="024 000 0000" required value={values.phone} onChange={set("phone")} aria-invalid={Boolean(fieldErrors.phone)}/>{error("phone")}<small className="field-hint">For delivery and order updates by text message.</small></label>
         <label className="wide">Email (optional)<input name="email" type="email" autoComplete="email" placeholder="For your Paystack receipt" value={values.email} onChange={set("email")} aria-invalid={Boolean(fieldErrors.email)}/>{error("email")}</label>
       </div></section>
 
@@ -117,7 +118,7 @@ export function CheckoutForm({ regions }: { regions: string[] }) {
       {message ? <p className="checkout-error" role="alert">{message}</p> : null}
       <button className="button button-dark summary-button" type="submit" disabled={blocked || !option || submitting || quoting}>{submitting ? "Connecting to Paystack…" : total !== null ? `Pay ${formatGhs(total)}` : "Pay"}</button>
       <p className="summary-small">You’ll be taken to Paystack to pay with Mobile Money or card. By paying you agree to our <Link href="/terms">Terms</Link> and <Link href="/returns">Returns policy</Link>.</p>
-      <Link className="checkout-back" href="/cart">← Back to your bag</Link>
+      <Link className="checkout-back" href="/cart"><ArrowLeftIcon/> Back to your bag</Link>
     </aside>
   </form>;
 }

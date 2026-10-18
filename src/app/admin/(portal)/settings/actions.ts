@@ -10,7 +10,7 @@ import { AdminError } from "@/lib/admin/errors";
 export async function saveSettingsAction(_state: ActionState, form: FormData): Promise<ActionState> {
   return runAction("settings.edit", async ({ store, ctx }) => {
     const region = text(form, "originRegion");
-    if (!isGhanaRegion(region)) throw new AdminError("invalid", "Choose the fulfilment region.", { originRegion: "Required" });
+    if (!isGhanaRegion(region)) throw new AdminError("invalid", "Choose the region orders are sent from.", { originRegion: "Required" });
     await updateSettings(
       store,
       ctx,
@@ -34,6 +34,6 @@ export async function saveSettingsAction(_state: ActionState, form: FormData): P
 export async function signOutEverywhereAction(_state: ActionState, form: FormData): Promise<ActionState> {
   return runAction("dashboard.view", async ({ store, ctx }) => {
     await signOutEverywhere(store, ctx, ctx.uid, idempotencyKey(form));
-    return { message: "All your sessions have ended.", redirectTo: "/admin/sign-in?reason=revoked" };
+    return { message: "You’ve been signed out on every device.", redirectTo: "/admin/sign-in?reason=revoked" };
   });
 }

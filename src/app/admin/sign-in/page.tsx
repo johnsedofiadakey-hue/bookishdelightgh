@@ -13,12 +13,12 @@ import { DevSignIn, FirebaseSignInForm } from "./sign-in-forms";
 export const metadata: Metadata = { title: "Staff sign-in" };
 
 const reasons: Record<string, { tone: "info" | "warn"; text: string }> = {
-  expired: { tone: "warn", text: "Your session expired. Please sign in again." },
-  revoked: { tone: "warn", text: "Your session was ended by an owner or by a role change. Please sign in again." },
-  inactive: { tone: "warn", text: "This staff account is not active. Contact an owner." },
-  invalid: { tone: "warn", text: "Your session could not be verified. Please sign in again." },
+  expired: { tone: "warn", text: "You were signed out because it’s been a while. Please sign in again." },
+  revoked: { tone: "warn", text: "You were signed out because the owner changed your access. Please sign in again." },
+  inactive: { tone: "warn", text: "This staff account is turned off. Ask the owner." },
+  invalid: { tone: "warn", text: "We couldn’t check your sign-in. Please sign in again." },
   signed_out: { tone: "info", text: "You have signed out." },
-  unavailable: { tone: "warn", text: "The admin could not reach its data store. Details below." },
+  unavailable: { tone: "warn", text: "The admin couldn’t reach the database. See below." },
 };
 
 export default async function SignInPage({ searchParams }: { searchParams: Promise<{ reason?: string }> }) {
@@ -47,7 +47,7 @@ export default async function SignInPage({ searchParams }: { searchParams: Promi
             <br />
             every order, <em>in order.</em>
           </h1>
-          <p>Catalogue, stock, fulfilment and delivery for Bookish Delight staff.</p>
+          <p>Products, stock, orders and delivery for Bookish Delight staff.</p>
         </div>
       </section>
       <section className="adm-auth-panel">
@@ -59,15 +59,15 @@ export default async function SignInPage({ searchParams }: { searchParams: Promi
           <div>
             <p className="adm-eyebrow">STAFF ONLY</p>
             <h2>Sign in</h2>
-            <p className="adm-muted">Access is provisioned by an owner. There is no public sign-up.</p>
+            <p className="adm-muted">The owner gives staff access. You can’t sign up here.</p>
           </div>
           {notice ? <Callout tone={notice.tone}>{notice.text}</Callout> : null}
-          {storeProblem ? <Callout tone="danger" title="Admin data is unavailable">{storeProblem}</Callout> : null}
+          {storeProblem ? <Callout tone="danger" title="Can’t load admin data">{storeProblem}</Callout> : null}
           {firebaseSignInConfigured() ? (
             <FirebaseSignInForm apiKey={config.apiKey} emulatorHost={config.authEmulatorHost} />
           ) : (
-            <Callout tone="info" title="Firebase sign-in is not configured">
-              Set <code className="adm-mono">NEXT_PUBLIC_FIREBASE_API_KEY</code> and <code className="adm-mono">NEXT_PUBLIC_FIREBASE_PROJECT_ID</code> to enable email/password staff sign-in.
+            <Callout tone="info" title="Firebase sign-in is not set up">
+              Set <code className="adm-mono">NEXT_PUBLIC_FIREBASE_API_KEY</code> and <code className="adm-mono">NEXT_PUBLIC_FIREBASE_PROJECT_ID</code> to turn on staff sign-in with email and password.
             </Callout>
           )}
           {devSignInEnabled() && !storeProblem ? (

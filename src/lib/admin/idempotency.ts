@@ -23,7 +23,7 @@ export async function runIdempotent<T>(
   key: string,
   work: (tx: AdminTransaction) => Promise<T>,
 ): Promise<IdempotentResult<T>> {
-  if (!isValidIdempotencyKey(key)) throw new AdminError("invalid", "This form has expired. Reload the page and try again.");
+  if (!isValidIdempotencyKey(key)) throw new AdminError("invalid", "This page is out of date. Reload it and try again.");
   const id = derivedId("idem", scope, ctx.uid, key);
   try {
     return await store.runTransaction(async (tx) => {

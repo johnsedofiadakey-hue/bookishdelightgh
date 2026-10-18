@@ -40,8 +40,8 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
         lede={`${windowLabel} · Africa/Accra`}
         actions={
           <>
-            <a className="adm-btn" href={`/admin/api/export/sales?${query}`}>{icons.download} Sales CSV</a>
-            <a className="adm-btn" href={`/admin/api/export/movements?${query}`}>{icons.download} Stock movements CSV</a>
+            <a className="adm-btn" href={`/admin/api/export/sales?${query}`}>{icons.download} Sales spreadsheet</a>
+            <a className="adm-btn" href={`/admin/api/export/movements?${query}`}>{icons.download} Stock changes spreadsheet</a>
           </>
         }
       />
@@ -53,20 +53,20 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
       </form>
       <div style={{ marginBottom: 16 }}>
         <Callout tone="info" title="How these numbers are calculated">
-          Revenue includes only orders with verified payment, dated by when payment was verified. Unpaid, failed and abandoned orders are excluded ({sales.excluded.count} in this window). Gross includes delivery charges; net subtracts refunds Paystack or staff have confirmed as processed. All sums are in integer pesewas.
+          Sales only count orders with a confirmed payment, on the day the payment was confirmed. Unpaid, failed and unfinished orders are left out ({sales.excluded.count} in these dates). Total sales include delivery. Sales after refunds take away refunds that Paystack or staff have confirmed.
         </Callout>
       </div>
 
       <div className="adm-stats">
         <Stat label="Paid orders" value={sales.totals.orders} />
-        <Stat label="Gross sales" value={<Money pesewas={sales.totals.grossPesewas} />} note={`incl. ${new Intl.NumberFormat("en-GH", { style: "currency", currency: "GHS" }).format(sales.totals.deliveryPesewas / 100)} delivery`} />
-        <Stat label="Refunds processed" value={<Money pesewas={sales.totals.refundsPesewas} />} />
-        <Stat label="Net sales" value={<Money pesewas={sales.totals.netPesewas} />} tone="calm" />
-        <Stat label="Median paid → dispatched" value={hours(sales.fulfilment.medianHoursToDispatch)} note={`${sales.fulfilment.dispatched} dispatched`} />
-        <Stat label="Median paid → delivered" value={hours(sales.fulfilment.medianHoursToDelivery)} note={`${sales.fulfilment.delivered} delivered`} />
+        <Stat label="Total sales" value={<Money pesewas={sales.totals.grossPesewas} />} note={`incl. ${new Intl.NumberFormat("en-GH", { style: "currency", currency: "GHS" }).format(sales.totals.deliveryPesewas / 100)} delivery`} />
+        <Stat label="Refunds paid" value={<Money pesewas={sales.totals.refundsPesewas} />} />
+        <Stat label="Sales after refunds" value={<Money pesewas={sales.totals.netPesewas} />} tone="calm" />
+        <Stat label="Usual time from paid to sent" value={hours(sales.fulfilment.medianHoursToDispatch)} note={`${sales.fulfilment.dispatched} dispatched`} />
+        <Stat label="Usual time from paid to delivered" value={hours(sales.fulfilment.medianHoursToDelivery)} note={`${sales.fulfilment.delivered} delivered`} />
       </div>
 
-      <Card title="Daily paid sales" description="Gross per day by payment date.">
+      <Card title="Daily paid sales" description="Total sales each day, by payment date.">
         {sales.totals.orders ? (
           <>
             <div className="adm-bar-chart" role="img" aria-label={`Bar chart of daily paid sales, ${windowLabel}`}>
@@ -75,26 +75,26 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
             <div className="adm-small adm-muted" style={{ display: "flex", justifyContent: "space-between" }}><span>{formatDate(`${window.from}T00:00:00Z`)}</span><span>{formatDate(`${window.to}T00:00:00Z`)}</span></div>
           </>
         ) : (
-          <EmptyState title="No paid orders in this window" art="∅" />
+          <EmptyState title="No paid orders in these dates" icon="reports" />
         )}
       </Card>
 
       <div className="adm-grid adm-grid-2" style={{ marginTop: 16 }}>
-        <Card title="By title & variant">
+        <Card title="By product">
           {sales.byVariant.length ? (
             <div className="adm-table-wrap">
               <table className="adm-table">
-                <thead><tr><th>Variant</th><th className="num">Units</th><th className="num">Gross</th></tr></thead>
+                <thead><tr><th>Option</th><th className="num">Copies</th><th className="num">Total</th></tr></thead>
                 <tbody>{sales.byVariant.slice(0, 15).map((row) => <tr key={row.sku}><td>{row.title}<span className="sub adm-mono">{row.sku} · {row.format}</span></td><td className="num">{row.units}</td><td className="num"><Money pesewas={row.grossPesewas} /></td></tr>)}</tbody>
               </table>
             </div>
           ) : <p className="adm-muted adm-small">No sales.</p>}
         </Card>
-        <Card title="By category" description="A book in two categories counts in both.">
+        <Card title="By category" description="A book in two categories is counted in both.">
           {sales.byCategory.length ? (
             <div className="adm-table-wrap">
               <table className="adm-table">
-                <thead><tr><th>Category</th><th className="num">Units</th><th className="num">Gross (books)</th></tr></thead>
+                <thead><tr><th>Category</th><th className="num">Copies</th><th className="num">Total (books only)</th></tr></thead>
                 <tbody>{sales.byCategory.map((row) => <tr key={row.name}><td>{row.name}</td><td className="num">{row.units}</td><td className="num"><Money pesewas={row.grossPesewas} /></td></tr>)}</tbody>
               </table>
             </div>
@@ -104,15 +104,15 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
           {sales.byRegion.length ? (
             <div className="adm-table-wrap">
               <table className="adm-table">
-                <thead><tr><th>Region</th><th className="num">Orders</th><th className="num">Delivery</th><th className="num">Gross</th></tr></thead>
+                <thead><tr><th>Region</th><th className="num">Orders</th><th className="num">Delivery</th><th className="num">Total</th></tr></thead>
                 <tbody>{sales.byRegion.map((row) => <tr key={row.region}><td>{row.region}</td><td className="num">{row.orders}</td><td className="num"><Money pesewas={row.deliveryPesewas} /></td><td className="num"><Money pesewas={row.grossPesewas} /></td></tr>)}</tbody>
               </table>
             </div>
           ) : <p className="adm-muted adm-small">No sales.</p>}
         </Card>
-        <Card title="By channel">
+        <Card title="Where it was sold">
           {sales.byChannel.length ? (
-            <dl className="adm-dl">{sales.byChannel.map((row) => <Fragment key={row.channel}><dt>{row.channel === "manual" ? "Manual / offsite" : "Website (Paystack)"}</dt><dd>{row.orders} order(s) · <Money pesewas={row.grossPesewas} /></dd></Fragment>)}</dl>
+            <dl className="adm-dl">{sales.byChannel.map((row) => <Fragment key={row.channel}><dt>{row.channel === "manual" ? "Not on website" : "Website"}</dt><dd>{row.orders} order(s) · <Money pesewas={row.grossPesewas} /></dd></Fragment>)}</dl>
           ) : <p className="adm-muted adm-small">No sales.</p>}
         </Card>
         <Card title="Payments & refunds">
@@ -125,29 +125,29 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
                 </tbody>
               </table>
             </div>
-          ) : <p className="adm-muted adm-small">No payment records in this window.</p>}
+          ) : <p className="adm-muted adm-small">No payments in these dates.</p>}
         </Card>
-        <Card title="Stock movements" actions={<a className="adm-link adm-small" href={`/admin/api/export/movements?${query}`}>CSV →</a>}>
+        <Card title="Stock changes" actions={<a className="adm-link adm-small" href={`/admin/api/export/movements?${query}`}>Spreadsheet {icons.download}</a>}>
           {movements.byType.length ? (
             <div className="adm-table-wrap">
               <table className="adm-table">
-                <thead><tr><th>Type</th><th className="num">Entries</th><th className="num">Net on hand</th></tr></thead>
+                <thead><tr><th>Type</th><th className="num">Count</th><th className="num">Change on shelf</th></tr></thead>
                 <tbody>{movements.byType.map((row) => <tr key={row.type}><td className="adm-mono">{row.type}</td><td className="num">{row.count}</td><td className="num">{row.onHandDelta > 0 ? "+" : ""}{row.onHandDelta}</td></tr>)}</tbody>
               </table>
             </div>
-          ) : <p className="adm-muted adm-small">No movements in this window.</p>}
+          ) : <p className="adm-muted adm-small">No stock changes in these dates.</p>}
         </Card>
       </div>
 
-      <Card title="Low & out of stock" description="Current, not windowed." actions={<a className="adm-link adm-small" href="/admin/api/export/low-stock">CSV →</a>}>
+      <Card title="Low & out of stock" description="Right now, not limited to these dates." actions={<a className="adm-link adm-small" href="/admin/api/export/low-stock">Spreadsheet {icons.download}</a>}>
         {lowStock.length ? (
           <div className="adm-table-wrap">
             <table className="adm-table" data-stack>
-              <thead><tr><th>SKU</th><th className="num">Available</th><th className="num">Threshold</th><th>Published</th></tr></thead>
-              <tbody>{lowStock.map((row) => <tr key={row.sku}><td className="primary" data-label="SKU"><Link className="adm-link adm-mono" href={`/admin/inventory/${encodeURIComponent(row.sku)}`}>{row.sku}</Link><span className="sub">{row.title}</span></td><td className="num" data-label="Available">{row.available}</td><td className="num" data-label="Threshold">{row.threshold}</td><td data-label="Published">{row.published ? "Yes" : "No"}</td></tr>)}</tbody>
+              <thead><tr><th>Item code</th><th className="num">Available</th><th className="num">Low at</th><th>Published</th></tr></thead>
+              <tbody>{lowStock.map((row) => <tr key={row.sku}><td className="primary" data-label="Item code"><Link className="adm-link adm-mono" href={`/admin/inventory/${encodeURIComponent(row.sku)}`}>{row.sku}</Link><span className="sub">{row.title}</span></td><td className="num" data-label="Available">{row.available}</td><td className="num" data-label="Low at">{row.threshold}</td><td data-label="Published">{row.published ? "Yes" : "No"}</td></tr>)}</tbody>
             </table>
           </div>
-        ) : <p className="adm-muted adm-small">Everything active is above its threshold.</p>}
+        ) : <p className="adm-muted adm-small">Nothing is running low.</p>}
       </Card>
     </>
   );

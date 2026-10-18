@@ -8,6 +8,7 @@ import { enqueueOrderSms, readNotificationSlot } from "@/lib/admin/ops/notificat
 import type { AdminDataStore, AdminTransaction } from "@/lib/admin/store/types";
 import { SCHEMA_VERSION, type AuditEvent, type DeliveryRate, type InventoryRecord, type MovementType, type Order, type OrderLineSnapshot, type PaymentRecord } from "@/lib/admin/types";
 import { isGhanaRegion, isValidEmail, normalizeGhanaPhone } from "@/lib/admin/validation";
+import { optionLabel } from "@/lib/contracts/catalog";
 
 /**
  * Website checkout: pricing, delivery quotes, stock reservation and payment
@@ -90,15 +91,18 @@ export async function priceCart(reader: Reader, lines: CartLineInput[]): Promise
     }
     const available = record ? Math.max(0, availableOf(record)) : 0;
     if (record) inventory.set(line.sku, record);
+    const option = optionLabel(variant.format, variant.condition, variant.conditionGrade);
     if (available < line.quantity) {
-      problems.push(available ? `Only ${available} × ${book.title} (${variant.format}) left.` : `${book.title} (${variant.format}) is out of stock.`);
+      problems.push(available ? `Only ${available} × ${book.title} (${option}) left.` : `${book.title} (${option}) is out of stock.`);
     }
     weight += variant.weightGrams * line.quantity;
     priced.push(stripUndefined({
       sku: variant.sku,
       bookId: book.id,
       title: book.title,
-      format: variant.format,
+      format: option,
+      condition: variant.condition ?? "new",
+      conditionGrade: variant.condition === "preloved" ? variant.conditionGrade : undefined,
       isbn: variant.isbn,
       unitPricePesewas: variant.pricePesewas,
       quantity: line.quantity,
@@ -193,7 +197,7 @@ export async function createPendingOrder(store: AdminDataStore, input: CheckoutI
     const live = rate ? quoteDelivery([rate], { region: input.address.region, city: input.address.city, weightGrams: cart.weightGrams, orderPesewas: cart.subtotalPesewas }) : [];
     if (!rate || !live.length) throw new AdminError("conflict", "That delivery option is no longer available for your address. Please choose again.");
     const total = cart.subtotalPesewas + rate.pricePesewas;
-    if (total !== input.expectedTotalPesewas) throw new AdminError("conflict", "Prices or delivery changed while you were checking out. Please review the new total.");
+    if (total !== input.expectedTotalPesewas) throw new AdminError("conflict", "Prices or delivery changed while you were checking out. Please check the new total.");
 
     const at = nowIso();
     const orderId = newId("ord");
@@ -256,7 +260,7 @@ export async function createPendingOrder(store: AdminDataStore, input: CheckoutI
 function moveStock(tx: AdminTransaction, order: Order, records: Map<string, InventoryRecord>, type: Extract<MovementType, "ORDER_RESERVED" | "ORDER_RELEASED" | "ORDER_SOLD">, reason: string, round = "") {
   order.lines.forEach((line, index) => {
     const record = records.get(line.sku);
-    if (!record) throw new AdminError("not_found", `Inventory for ${line.sku} is missing.`);
+    if (!record) throw new AdminError("not_found", `There’s no stock record for ${line.sku}.`);
     const deltas = {
       ORDER_RESERVED: { onHandDelta: 0, reservedDelta: line.quantity },
       ORDER_RELEASED: { onHandDelta: 0, reservedDelta: -line.quantity },

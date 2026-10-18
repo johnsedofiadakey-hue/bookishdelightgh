@@ -80,3 +80,9 @@
   .storefront .track-details { grid-template-columns: minmax(0, 1fr); }
   .storefront .track-result-head { flex-direction: column; }
 }
+
+/* Line icons used in place of text symbols. They follow the text size. */
+.storefront .ui-icon { width: 1em; height: 1em; display: inline-block; vertical-align: -0.125em; flex: none; }
+.storefront .mobile-bar a span { display: grid; place-items: center; }
+.storefront .mobile-bar a span svg { width: 22px; height: 22px; }
+.storefront :is(.button, .text-link, .section-link, .shop-search button, .checkout-back) .ui-icon { width: 16px; height: 16px; }

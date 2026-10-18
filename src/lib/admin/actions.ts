@@ -27,7 +27,7 @@ export async function runAction(
     unstable_rethrow(error);
     if (isAdminError(error)) return { status: "error", message: error.message, fieldErrors: error.fieldErrors, at: Date.now() };
     console.error("[admin action]", error);
-    return { status: "error", message: "Something went wrong on the server. Nothing was saved. Try again or contact the owner.", at: Date.now() };
+    return { status: "error", message: "Something went wrong. Nothing was saved. Try again, or tell the owner.", at: Date.now() };
   }
 }
 

@@ -37,7 +37,7 @@ async function issueSession(store: AdminDataStore, profile: AdminProfile, userAg
   const session: AdminSession = { id: sessionId, secretHash: sha256Hex(secret), uid: profile.uid, createdAt, expiresAt, userAgent: userAgent?.slice(0, 200) };
   await store.runTransaction(async (tx) => {
     const fresh = await tx.get("adminProfiles", profile.uid);
-    if (!fresh || fresh.status !== "active") throw new AdminError("forbidden", "This staff account is not active.");
+    if (!fresh || fresh.status !== "active") throw new AdminError("forbidden", "This staff account is turned off.");
     tx.create("adminSessions", sessionId, session);
     tx.update("adminProfiles", profile.uid, { lastActiveAt: createdAt });
     recordAudit(tx, systemContext(fresh, sessionId), {
@@ -56,31 +56,31 @@ export async function signInWithIdToken(store: AdminDataStore, idToken: string, 
   const token = await verifyFirebaseIdToken(idToken, projectId);
   const nowSeconds = Math.floor(Date.now() / 1000);
   if (nowSeconds - token.authTime > MAX_AUTH_AGE_SECONDS) {
-    throw new AdminError("unauthenticated", "Please sign in again — staff sessions need a recent sign-in.");
+    throw new AdminError("unauthenticated", "Please sign in again. For safety, staff need to have signed in recently.");
   }
   if (token.claims[STAFF_CLAIM] !== true) {
-    throw new AdminError("forbidden", "This account has not been provisioned for staff access.");
+    throw new AdminError("forbidden", "This account hasn’t been given staff access.");
   }
   const identity = getIdentityAdmin();
   if (await identity.isRevokedOrDisabled(token.uid, token.authTime)) {
-    throw new AdminError("forbidden", "This account has been disabled or signed out by an owner.");
+    throw new AdminError("forbidden", "This account was turned off or signed out by the owner.");
   }
   const profile = await store.get("adminProfiles", token.uid);
   if (!profile || profile.status !== "active") {
-    throw new AdminError("forbidden", "This account has no active staff profile.");
+    throw new AdminError("forbidden", "This account doesn’t have staff access.");
   }
   return issueSession(store, profile, userAgent, "firebase");
 }
 
 /** DEVELOPMENT-ONLY: sign in as a fixture staff account. */
 export async function signInDevelopment(store: AdminDataStore, uid: string, userAgent?: string): Promise<IssuedSession> {
-  if (!devSignInEnabled() || !store.isDevelopmentData) throw new AdminError("forbidden", "Development sign-in is disabled.");
+  if (!devSignInEnabled() || !store.isDevelopmentData) throw new AdminError("forbidden", "Test sign-in is turned off.");
   const identity = getDevelopmentIdentity();
   if (!identity.hasStaffClaim(uid) || (await identity.isRevokedOrDisabled(uid))) {
-    throw new AdminError("forbidden", "This account has not been provisioned for staff access.");
+    throw new AdminError("forbidden", "This account hasn’t been given staff access.");
   }
   const profile = await store.get("adminProfiles", uid);
-  if (!profile || profile.status !== "active") throw new AdminError("forbidden", "This account has no active staff profile.");
+  if (!profile || profile.status !== "active") throw new AdminError("forbidden", "This account doesn’t have staff access.");
   return issueSession(store, profile, userAgent, "development");
 }
 

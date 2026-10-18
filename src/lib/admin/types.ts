@@ -13,6 +13,10 @@
  * - `available = onHand - reserved` is derived, never stored as truth.
  */
 
+import type { ItemCondition, PrelovedGrade } from "@/lib/contracts/catalog";
+
+export type { ItemCondition, PrelovedGrade };
+
 export const SCHEMA_VERSION = 1;
 
 export type IsoTime = string;
@@ -52,7 +56,7 @@ export interface AdminSession {
 
 /* -------------------------------------------------------------- Catalogue */
 
-export const BOOK_FORMATS = ["Paperback", "Hardcover", "Board book", "Box set", "Spiral bound", "Activity book", "Workbook", "Flashcards", "Puzzle", "Game", "Learning toy"] as const;
+export const BOOK_FORMATS = ["Paperback", "Hardcover", "Board book", "Box set", "Spiral bound", "Activity book", "Workbook", "Flashcards", "Bundle"] as const;
 export type AdminBookFormat = (typeof BOOK_FORMATS)[number];
 
 export const AGE_BANDS = ["0-3", "4-7", "8-12", "13-17", "adult", "all-ages"] as const;
@@ -101,9 +105,18 @@ export interface BookVariant {
   sku: string;
   bookId: string;
   format: AdminBookFormat;
+  /** Missing on records created before conditions existed: treat as "new". */
+  condition?: ItemCondition;
+  /** Required when `condition` is "preloved". */
+  conditionGrade?: PrelovedGrade;
+  conditionNote?: string;
   edition?: string;
   isbn?: string;
   pricePesewas: number;
+  /** Optional "worth if bought separately" price, shown as a saving. Must be above the price. */
+  compareAtPesewas?: number;
+  /** Bundles (format "Bundle") only: what's inside. Items with a SKU can be made up from stock. */
+  bundleItems?: BundleItem[];
   /** Optional cost price; only visible with `finance.view`. */
   costPesewas?: number;
   weightGrams: number;
@@ -112,6 +125,14 @@ export interface BookVariant {
   updatedAt: IsoTime;
   updatedBy: string;
   schemaVersion: number;
+}
+
+export interface BundleItem {
+  /** A SKU you also stock individually. Making up a bundle moves these copies into it. */
+  sku?: string;
+  /** What the customer sees, e.g. "The Gruffalo". Filled from the SKU's book when linked. */
+  title: string;
+  quantity: number;
 }
 
 export interface Category {
@@ -147,6 +168,8 @@ export const MOVEMENT_TYPES = [
   "ORDER_RELEASED",
   "ORDER_SOLD",
   "ORDER_CANCELLED_RESTOCK",
+  "BUNDLE_ASSEMBLED",
+  "BUNDLE_UNPACKED",
 ] as const;
 export type MovementType = (typeof MOVEMENT_TYPES)[number];
 
@@ -183,7 +206,10 @@ export interface OrderLineSnapshot {
   sku: string;
   bookId: string;
   title: string;
+  /** Display name of the option bought, e.g. "Paperback · Preloved · Very good". */
   format: string;
+  condition?: ItemCondition;
+  conditionGrade?: PrelovedGrade;
   isbn?: string;
   unitPricePesewas: number;
   quantity: number;

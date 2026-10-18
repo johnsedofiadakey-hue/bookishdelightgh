@@ -13,12 +13,14 @@ import {
   type AgeBand,
   type Book,
   type BookVariant,
+  type BundleItem,
   type Category,
   type ImageRef,
   type InventoryRecord,
   type PublishStatus,
 } from "@/lib/admin/types";
 import { isValidIsbn, isValidSku, isValidSlug, normalizeIsbn, normalizeSku, slugify } from "@/lib/admin/validation";
+import { BUNDLE_CONDITIONS, ITEM_CONDITIONS, optionLabel, PRELOVED_GRADES, type ItemCondition, type PrelovedGrade } from "@/lib/contracts/catalog";
 
 /* ------------------------------------------------------------- Validation */
 
@@ -41,16 +43,16 @@ export interface BookInput {
 export function validateBookInput(input: BookInput): { value: BookInput; errors: Record<string, string> } {
   const errors: Record<string, string> = {};
   const title = input.title.trim();
-  if (title.length < 1 || title.length > 200) errors.title = "Title is required (max 200 characters).";
+  if (title.length < 1 || title.length > 200) errors.title = "Enter a title (up to 200 characters).";
   const slug = (input.slug?.trim() || slugify(title)).toLowerCase();
   if (!isValidSlug(slug)) errors.slug = "Use lowercase letters, numbers and hyphens.";
   const authors = input.authors.map((author) => author.trim()).filter(Boolean).slice(0, 10);
   const description = input.description.trim();
   if (description.length > 5000) errors.description = "Keep the description under 5,000 characters.";
-  if (!(AGE_BANDS as readonly string[]).includes(input.ageBand)) errors.ageBand = "Choose an age band.";
+  if (!(AGE_BANDS as readonly string[]).includes(input.ageBand)) errors.ageBand = "Choose an age range.";
   const language = input.language.trim() || "English";
-  if (input.seoTitle && input.seoTitle.length > 70) errors.seoTitle = "SEO titles should be 70 characters or fewer.";
-  if (input.seoDescription && input.seoDescription.length > 170) errors.seoDescription = "SEO descriptions should be 170 characters or fewer.";
+  if (input.seoTitle && input.seoTitle.length > 70) errors.seoTitle = "The Google title can be up to 70 characters.";
+  if (input.seoDescription && input.seoDescription.length > 170) errors.seoDescription = "The Google description can be up to 170 characters.";
   const tags = input.tags.map((tag) => tag.trim().toLowerCase()).filter(Boolean).slice(0, 20);
   return {
     value: {
@@ -75,27 +77,62 @@ export function validateBookInput(input: BookInput): { value: BookInput; errors:
 export interface VariantInput {
   sku: string;
   format: AdminBookFormat;
+  condition: ItemCondition;
+  conditionGrade?: PrelovedGrade;
+  conditionNote?: string;
   edition?: string;
   isbn?: string;
   pricePesewas: number;
   costPesewas?: number;
   weightGrams: number;
   active: boolean;
+  compareAtPesewas?: number;
+  /** Bundles only. */
+  bundleItems?: BundleItem[];
   /** Staff confirmed this ISBN+format is a deliberate separate listing. */
   confirmDuplicateIsbn?: boolean;
+}
+
+export const MAX_BUNDLE_ITEMS = 30;
+
+function normalizeBundleItems(items: BundleItem[] | undefined, errors: Record<string, string>): BundleItem[] {
+  const cleaned = (items ?? [])
+    .map((item) => ({ ...(item.sku?.trim() ? { sku: normalizeSku(item.sku) } : {}), title: item.title.trim().slice(0, 120), quantity: item.quantity }))
+    .filter((item) => item.sku || item.title);
+  if (!cleaned.length) errors.bundleItems = "List what’s inside the bundle.";
+  if (cleaned.length > MAX_BUNDLE_ITEMS) errors.bundleItems = `A bundle can list up to ${MAX_BUNDLE_ITEMS} items.`;
+  if (cleaned.some((item) => !Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > 20)) errors.bundleItems = "Each item’s quantity must be 1–20.";
+  const skus = cleaned.flatMap((item) => (item.sku ? [item.sku] : []));
+  if (new Set(skus).size !== skus.length) errors.bundleItems = "List each item only once. Use the quantity for more than one copy.";
+  return cleaned;
 }
 
 export function validateVariantInput(input: VariantInput): { value: VariantInput; errors: Record<string, string> } {
   const errors: Record<string, string> = {};
   const sku = normalizeSku(input.sku);
   if (!isValidSku(sku)) errors.sku = "3–40 characters: A–Z, 0–9 and hyphens.";
-  if (!(BOOK_FORMATS as readonly string[]).includes(input.format)) errors.format = "Choose a format.";
+  if (!(BOOK_FORMATS as readonly string[]).includes(input.format)) errors.format = "Choose a type.";
   const isbn = input.isbn ? normalizeIsbn(input.isbn) : undefined;
-  if (isbn && !isValidIsbn(isbn)) errors.isbn = "This ISBN's check digit is invalid.";
+  if (isbn && !isValidIsbn(isbn)) errors.isbn = "This ISBN isn’t valid. Check the numbers.";
   if (!Number.isSafeInteger(input.pricePesewas) || input.pricePesewas < 0 || input.pricePesewas > 10_000_000) errors.pricePesewas = "Enter a price between GH₵0 and GH₵100,000.";
-  if (input.costPesewas !== undefined && (!Number.isSafeInteger(input.costPesewas) || input.costPesewas < 0)) errors.costPesewas = "Cost must be a positive amount.";
+  if (input.costPesewas !== undefined && (!Number.isSafeInteger(input.costPesewas) || input.costPesewas < 0)) errors.costPesewas = "What you paid must be more than 0.";
   if (!Number.isInteger(input.weightGrams) || input.weightGrams < 0 || input.weightGrams > 30_000) errors.weightGrams = "Weight must be 0–30,000 g.";
-  return { value: { ...input, sku, isbn, edition: input.edition?.trim() || undefined }, errors };
+  const isBundle = input.format === "Bundle";
+  const allowed = isBundle ? BUNDLE_CONDITIONS : ITEM_CONDITIONS;
+  const condition: ItemCondition = allowed.includes(input.condition) ? input.condition : "new";
+  if (!allowed.includes(input.condition)) errors.condition = isBundle ? "Choose New, Preloved or Mixed." : "Choose New or Preloved. Mixed is only for bundles.";
+  const preloved = condition === "preloved";
+  if (input.compareAtPesewas !== undefined && (!Number.isSafeInteger(input.compareAtPesewas) || input.compareAtPesewas <= input.pricePesewas)) {
+    errors.compareAtPesewas = "The one-by-one price must be higher than the selling price, or left empty.";
+  }
+  const bundleItems = isBundle ? normalizeBundleItems(input.bundleItems, errors) : undefined;
+  if (preloved && !(PRELOVED_GRADES as readonly string[]).includes(input.conditionGrade ?? "")) errors.conditionGrade = "Choose the grade of the preloved copy.";
+  const conditionNote = preloved ? input.conditionNote?.trim() || undefined : undefined;
+  if (conditionNote && conditionNote.length > 160) errors.conditionNote = "Keep the condition note under 160 characters.";
+  return {
+    value: { ...input, sku, isbn, edition: input.edition?.trim() || undefined, condition, conditionGrade: preloved ? input.conditionGrade : undefined, conditionNote, bundleItems },
+    errors,
+  };
 }
 
 function throwIfErrors(errors: Record<string, string>) {
@@ -105,12 +142,12 @@ function throwIfErrors(errors: Record<string, string>) {
 /** Why a book cannot be published yet. Empty array means ready. */
 export function publishBlockers(book: Book, variants: BookVariant[]): string[] {
   const blockers: string[] = [];
-  if (!book.cover) blockers.push("Upload a cover image.");
-  else if (!book.cover.alt.trim()) blockers.push("Add alt text to the cover image.");
+  if (!book.cover) blockers.push("Upload a cover photo.");
+  else if (!book.cover.alt.trim()) blockers.push("Write a short description of the cover photo.");
   if (book.description.trim().length < 20) blockers.push("Write a description (at least 20 characters).");
   if (!book.categoryIds.length) blockers.push("Choose at least one category.");
-  const sellable = variants.filter((variant) => variant.active && variant.pricePesewas > 0 && variant.weightGrams > 0);
-  if (!sellable.length) blockers.push("Add at least one active variant with a price and shipping weight.");
+  const sellable = variants.filter((variant) => variant.active && variant.pricePesewas > 0 && variant.weightGrams > 0 && (variant.format !== "Bundle" || (variant.bundleItems?.length ?? 0) > 0));
+  if (!sellable.length) blockers.push("Add at least one option for sale, with a price and weight.");
   return blockers;
 }
 
@@ -118,7 +155,7 @@ export function publishBlockers(book: Book, variants: BookVariant[]): string[] {
 
 async function assertSlugFree(tx: AdminTransaction, slug: string, exceptBookId?: string) {
   const existing = await tx.query("books", { where: [["slug", "==", slug]], limit: 2 });
-  if (existing.some((book) => book.id !== exceptBookId)) throw new AdminError("conflict", "Another book already uses this URL slug.", { slug: "Already in use" });
+  if (existing.some((book) => book.id !== exceptBookId)) throw new AdminError("conflict", "Another product already uses this web address.", { slug: "Already in use" });
 }
 
 export async function createBook(store: AdminDataStore, ctx: StaffContext, input: BookInput, idempotencyKey: string) {
@@ -162,9 +199,9 @@ export async function updateBook(store: AdminDataStore, ctx: StaffContext, bookI
   throwIfErrors(errors);
   return runIdempotent(store, ctx, "catalogue.updateBook", idempotencyKey, async (tx) => {
     const book = await tx.get("books", bookId);
-    if (!book) throw new AdminError("not_found", "Book not found.");
+    if (!book) throw new AdminError("not_found", "We couldn’t find that product.");
     await assertSlugFree(tx, value.slug!, bookId);
-    if (value.relatedBookIds.includes(bookId)) throw new AdminError("invalid", "A book cannot be related to itself.", { relatedBookIds: "Remove this book" });
+    if (value.relatedBookIds.includes(bookId)) throw new AdminError("invalid", "A book can’t be linked to itself.", { relatedBookIds: "Remove this book" });
     const next: Book = stripUndefined({
       ...book,
       title: value.title,
@@ -186,7 +223,7 @@ export async function updateBook(store: AdminDataStore, ctx: StaffContext, bookI
     if (book.status === "published") {
       const variants = await tx.query("bookVariants", { where: [["bookId", "==", bookId]] });
       const blockers = publishBlockers(next, variants);
-      if (blockers.length) throw new AdminError("precondition", `This book is live; the edit would make it unpublishable: ${blockers.join(" ")}`);
+      if (blockers.length) throw new AdminError("precondition", `This product is live, and this change would stop it from being publishable: ${blockers.join(" ")}`);
     }
     tx.set("books", bookId, next);
     recordAudit(tx, ctx, {
@@ -205,7 +242,7 @@ export async function setBookStatus(store: AdminDataStore, ctx: StaffContext, bo
   assertPermission(ctx, "catalogue.publish");
   return runIdempotent(store, ctx, `catalogue.status.${status}`, idempotencyKey, async (tx) => {
     const book = await tx.get("books", bookId);
-    if (!book) throw new AdminError("not_found", "Book not found.");
+    if (!book) throw new AdminError("not_found", "We couldn’t find that product.");
     const variants = await tx.query("bookVariants", { where: [["bookId", "==", bookId]] });
     if (status === "published") {
       const blockers = publishBlockers(book, variants);
@@ -222,10 +259,10 @@ export async function setBookStatus(store: AdminDataStore, ctx: StaffContext, bo
 /** Attach a processed, already-uploaded cover. Returns the previous path for orphan cleanup. */
 export async function setBookCover(store: AdminDataStore, ctx: StaffContext, bookId: string, image: ImageRef, idempotencyKey: string) {
   assertPermission(ctx, "catalogue.edit");
-  if (!image.alt.trim() || image.alt.length > 250) throw new AdminError("invalid", "Describe the cover in alt text (max 250 characters).", { alt: "Required" });
+  if (!image.alt.trim() || image.alt.length > 250) throw new AdminError("invalid", "Write a short description of the cover photo (up to 250 characters).", { alt: "Required" });
   return runIdempotent(store, ctx, "catalogue.cover", idempotencyKey, async (tx) => {
     const book = await tx.get("books", bookId);
-    if (!book) throw new AdminError("not_found", "Book not found.");
+    if (!book) throw new AdminError("not_found", "We couldn’t find that product.");
     tx.update("books", bookId, { cover: image, updatedAt: nowIso(), updatedBy: ctx.uid });
     recordAudit(tx, ctx, { action: "catalogue.book.cover", entityType: "book", entityId: bookId, summary: `${book.cover ? "Replaced" : "Added"} cover for “${book.title}”`, after: { path: image.path, bytes: image.bytes } });
     return { bookId, previousPath: book.cover?.path ?? null };
@@ -235,10 +272,10 @@ export async function setBookCover(store: AdminDataStore, ctx: StaffContext, boo
 export async function updateCoverAlt(store: AdminDataStore, ctx: StaffContext, bookId: string, alt: string, idempotencyKey: string) {
   assertPermission(ctx, "catalogue.edit");
   const trimmed = alt.trim();
-  if (!trimmed || trimmed.length > 250) throw new AdminError("invalid", "Alt text is required (max 250 characters).", { alt: "Required" });
+  if (!trimmed || trimmed.length > 250) throw new AdminError("invalid", "Write a short photo description (up to 250 characters).", { alt: "Required" });
   return runIdempotent(store, ctx, "catalogue.coverAlt", idempotencyKey, async (tx) => {
     const book = await tx.get("books", bookId);
-    if (!book?.cover) throw new AdminError("not_found", "This book has no cover yet.");
+    if (!book?.cover) throw new AdminError("not_found", "This product has no cover photo yet.");
     tx.update("books", bookId, { cover: { ...book.cover, alt: trimmed }, updatedAt: nowIso(), updatedBy: ctx.uid });
     recordAudit(tx, ctx, { action: "catalogue.book.coverAlt", entityType: "book", entityId: bookId, summary: "Updated cover alt text" });
     return { bookId };
@@ -247,11 +284,11 @@ export async function updateCoverAlt(store: AdminDataStore, ctx: StaffContext, b
 
 export async function addGalleryImage(store: AdminDataStore, ctx: StaffContext, bookId: string, image: ImageRef, idempotencyKey: string) {
   assertPermission(ctx, "catalogue.edit");
-  if (!image.alt.trim()) throw new AdminError("invalid", "Alt text is required.", { alt: "Required" });
+  if (!image.alt.trim()) throw new AdminError("invalid", "Write a short photo description.", { alt: "Required" });
   return runIdempotent(store, ctx, "catalogue.gallery.add", idempotencyKey, async (tx) => {
     const book = await tx.get("books", bookId);
-    if (!book) throw new AdminError("not_found", "Book not found.");
-    if (book.gallery.length >= 8) throw new AdminError("precondition", "A book can have up to 8 gallery images.");
+    if (!book) throw new AdminError("not_found", "We couldn’t find that product.");
+    if (book.gallery.length >= 8) throw new AdminError("precondition", "A product can have up to 8 extra photos.");
     tx.update("books", bookId, { gallery: [...book.gallery, image], updatedAt: nowIso(), updatedBy: ctx.uid });
     recordAudit(tx, ctx, { action: "catalogue.book.gallery.add", entityType: "book", entityId: bookId, summary: "Added gallery image", after: { path: image.path } });
     return { bookId };
@@ -262,7 +299,7 @@ export async function removeGalleryImage(store: AdminDataStore, ctx: StaffContex
   assertPermission(ctx, "catalogue.edit");
   return runIdempotent(store, ctx, "catalogue.gallery.remove", idempotencyKey, async (tx) => {
     const book = await tx.get("books", bookId);
-    if (!book) throw new AdminError("not_found", "Book not found.");
+    if (!book) throw new AdminError("not_found", "We couldn’t find that product.");
     tx.update("books", bookId, { gallery: book.gallery.filter((image) => image.path !== path), updatedAt: nowIso(), updatedBy: ctx.uid });
     recordAudit(tx, ctx, { action: "catalogue.book.gallery.remove", entityType: "book", entityId: bookId, summary: "Removed gallery image", before: { path } });
     return { bookId, removedPath: path };
@@ -273,14 +310,43 @@ export async function removeGalleryImage(store: AdminDataStore, ctx: StaffContex
 
 async function assertIsbnFormatFree(tx: AdminTransaction, value: VariantInput, exceptSku?: string) {
   if (!value.isbn) return;
-  const sameIsbn = (await tx.query("bookVariants", { where: [["isbn", "==", value.isbn]] })).filter((variant) => variant.sku !== exceptSku);
-  const clash = sameIsbn.find((variant) => variant.format === value.format && (variant.edition ?? "") === (value.edition ?? ""));
-  if (clash) throw new AdminError("conflict", `ISBN ${value.isbn} is already listed as ${clash.format} under SKU ${clash.sku}.`, { isbn: `Used by ${clash.sku}` });
-  const sameFormat = sameIsbn.find((variant) => variant.format === value.format);
+  // The same ISBN may be sold brand new and preloved (and preloved in different grades):
+  // those are separate options with their own price and stock, not duplicates.
+  const sameOption = (variant: BookVariant) =>
+    variant.format === value.format && (variant.condition ?? "new") === value.condition && (variant.conditionGrade ?? "") === (value.conditionGrade ?? "");
+  const sameIsbn = (await tx.query("bookVariants", { where: [["isbn", "==", value.isbn]] })).filter((variant) => variant.sku !== exceptSku && sameOption(variant));
+  const clash = sameIsbn.find((variant) => (variant.edition ?? "") === (value.edition ?? ""));
+  if (clash) throw new AdminError("conflict", `ISBN ${value.isbn} is already listed as ${optionLabel(clash.format, clash.condition, clash.conditionGrade)} with item code ${clash.sku}. Add more stock to that item instead.`, { isbn: `Used by ${clash.sku}` });
+  const sameFormat = sameIsbn[0];
   if (sameFormat && !value.confirmDuplicateIsbn) {
-    throw new AdminError("conflict", `ISBN ${value.isbn} already exists as ${sameFormat.format} (${sameFormat.sku}). Tick “separate listing” if this is deliberate.`, { isbn: `Also on ${sameFormat.sku}` });
+    throw new AdminError("conflict", `ISBN ${value.isbn} is already used for ${sameFormat.format} (${sameFormat.sku}). If you meant to do this, tick “List separately”.`, { isbn: `Also on ${sameFormat.sku}` });
   }
 }
+
+/**
+ * Check linked bundle SKUs inside the transaction and fill missing titles
+ * from their books. A bundle cannot contain itself or another bundle.
+ */
+async function resolveBundleItems(tx: AdminTransaction, bundleSku: string, items: BundleItem[] | undefined): Promise<BundleItem[] | undefined> {
+  if (!items) return undefined;
+  const resolved: BundleItem[] = [];
+  for (const item of items) {
+    if (!item.sku) {
+      resolved.push(item);
+      continue;
+    }
+    if (item.sku === bundleSku) throw new AdminError("invalid", "A bundle can’t contain itself.", { bundleItems: "Remove this bundle’s own SKU" });
+    const component = await tx.get("bookVariants", item.sku);
+    if (!component) throw new AdminError("invalid", `Item code ${item.sku} doesn’t exist.`, { bundleItems: `Unknown SKU ${item.sku}` });
+    if (component.format === "Bundle") throw new AdminError("invalid", `${item.sku} is a bundle. A bundle can’t contain another bundle.`, { bundleItems: "No bundles inside bundles" });
+    const title = item.title || (await tx.get("books", component.bookId))?.title || item.sku;
+    resolved.push({ sku: item.sku, title, quantity: item.quantity });
+  }
+  return resolved;
+}
+
+const linkedKey = (items: BundleItem[] | undefined) =>
+  JSON.stringify((items ?? []).filter((item) => item.sku).map((item) => [item.sku, item.quantity]).sort());
 
 export async function createVariant(store: AdminDataStore, ctx: StaffContext, bookId: string, input: VariantInput, idempotencyKey: string) {
   assertPermission(ctx, "catalogue.edit");
@@ -289,19 +355,25 @@ export async function createVariant(store: AdminDataStore, ctx: StaffContext, bo
   throwIfErrors(errors);
   return runIdempotent(store, ctx, "catalogue.createVariant", idempotencyKey, async (tx) => {
     const book = await tx.get("books", bookId);
-    if (!book) throw new AdminError("not_found", "Book not found.");
+    if (!book) throw new AdminError("not_found", "We couldn’t find that product.");
     const existing = await tx.get("bookVariants", value.sku);
-    if (existing) throw new AdminError("conflict", `SKU ${value.sku} is already used.`, { sku: "Already in use" });
+    if (existing) throw new AdminError("conflict", `Item code ${value.sku} is already used.`, { sku: "Already in use" });
     await assertIsbnFormatFree(tx, value);
+    const bundleItems = await resolveBundleItems(tx, value.sku, value.bundleItems);
     const settings = await tx.get("siteSettings", "site");
     const at = nowIso();
     const variant: BookVariant = stripUndefined({
       sku: value.sku,
       bookId,
       format: value.format,
+      condition: value.condition,
+      conditionGrade: value.conditionGrade,
+      conditionNote: value.conditionNote,
       edition: value.edition,
       isbn: value.isbn,
       pricePesewas: value.pricePesewas,
+      compareAtPesewas: value.compareAtPesewas,
+      bundleItems,
       costPesewas: value.costPesewas,
       weightGrams: value.weightGrams,
       active: value.active,
@@ -315,7 +387,7 @@ export async function createVariant(store: AdminDataStore, ctx: StaffContext, bo
     tx.create("bookVariants", variant.sku, variant);
     tx.create("inventory", variant.sku, inventory);
     tx.update("books", bookId, { updatedAt: at, updatedBy: ctx.uid });
-    recordAudit(tx, ctx, { action: "catalogue.variant.create", entityType: "bookVariant", entityId: variant.sku, summary: `Added ${variant.format} ${variant.sku} to “${book.title}” at ${variant.pricePesewas} pesewas` });
+    recordAudit(tx, ctx, { action: "catalogue.variant.create", entityType: "bookVariant", entityId: variant.sku, summary: `Added ${optionLabel(variant.format, variant.condition, variant.conditionGrade)} ${variant.sku} to “${book.title}” at ${variant.pricePesewas} pesewas` });
     return { sku: variant.sku };
   });
 }
@@ -326,16 +398,26 @@ export async function updateVariant(store: AdminDataStore, ctx: StaffContext, sk
   throwIfErrors(errors);
   return runIdempotent(store, ctx, "catalogue.updateVariant", idempotencyKey, async (tx) => {
     const variant = await tx.get("bookVariants", sku);
-    if (!variant) throw new AdminError("not_found", "Variant not found.");
+    if (!variant) throw new AdminError("not_found", "We couldn’t find that option.");
     await assertIsbnFormatFree(tx, value, sku);
+    const bundleItems = await resolveBundleItems(tx, sku, value.bundleItems);
+    const inventory = await tx.get("inventory", sku);
+    if (inventory && inventory.onHand > 0 && linkedKey(variant.bundleItems) !== linkedKey(bundleItems)) {
+      throw new AdminError("precondition", `${inventory.onHand} of these bundles are already put together. Take them apart on the Stock page before you change the books inside.`, { bundleItems: "Unpack made-up bundles first" });
+    }
     const book = await tx.get("books", variant.bookId);
     const siblings = book?.status === "published" ? await tx.query("bookVariants", { where: [["bookId", "==", variant.bookId]] }) : [];
     const next: BookVariant = stripUndefined({
       ...variant,
       format: value.format,
+      condition: value.condition,
+      conditionGrade: value.conditionGrade,
+      conditionNote: value.conditionNote,
       edition: value.edition,
       isbn: value.isbn,
       pricePesewas: value.pricePesewas,
+      compareAtPesewas: value.compareAtPesewas,
+      bundleItems,
       costPesewas: can(ctx, "finance.view") ? value.costPesewas : variant.costPesewas,
       weightGrams: value.weightGrams,
       active: value.active,
@@ -344,7 +426,7 @@ export async function updateVariant(store: AdminDataStore, ctx: StaffContext, sk
     });
     if (book?.status === "published") {
       const blockers = publishBlockers(book, siblings.map((sibling) => (sibling.sku === sku ? next : sibling)));
-      if (blockers.length) throw new AdminError("precondition", `“${book.title}” is live; unpublish it first or keep one sellable variant. ${blockers.join(" ")}`);
+      if (blockers.length) throw new AdminError("precondition", `“${book.title}” is live. Unpublish it first, or keep at least one option for sale. ${blockers.join(" ")}`);
     }
     tx.set("bookVariants", sku, next);
     recordAudit(tx, ctx, {
@@ -352,8 +434,8 @@ export async function updateVariant(store: AdminDataStore, ctx: StaffContext, sk
       entityType: "bookVariant",
       entityId: sku,
       summary: `Edited ${sku}`,
-      before: pick(variant, ["pricePesewas", "weightGrams", "active", "format", "isbn"]),
-      after: pick(next, ["pricePesewas", "weightGrams", "active", "format", "isbn"]),
+      before: pick(variant, ["pricePesewas", "weightGrams", "active", "format", "condition", "conditionGrade", "isbn"]),
+      after: pick(next, ["pricePesewas", "weightGrams", "active", "format", "condition", "conditionGrade", "isbn"]),
     });
     return { sku };
   });
@@ -374,13 +456,13 @@ export async function saveCategory(store: AdminDataStore, ctx: StaffContext, inp
   assertPermission(ctx, "content.edit");
   const name = input.name.trim();
   const slug = (input.slug?.trim() || slugify(name)).toLowerCase();
-  if (!name || name.length > 60) throw new AdminError("invalid", "Category name is required.", { name: "Required" });
-  if (!isValidSlug(slug)) throw new AdminError("invalid", "Invalid slug.", { slug: "Lowercase letters, numbers, hyphens" });
+  if (!name || name.length > 60) throw new AdminError("invalid", "Enter a category name.", { name: "Required" });
+  if (!isValidSlug(slug)) throw new AdminError("invalid", "That web address isn’t valid.", { slug: "Lowercase letters, numbers, hyphens" });
   return runIdempotent(store, ctx, "catalogue.category", idempotencyKey, async (tx) => {
     const clash = await tx.query("categories", { where: [["slug", "==", slug]] });
-    if (clash.some((category) => category.id !== input.id)) throw new AdminError("conflict", "Another category uses this slug.", { slug: "Already in use" });
+    if (clash.some((category) => category.id !== input.id)) throw new AdminError("conflict", "Another category already uses this web address.", { slug: "Already in use" });
     const existing = input.id ? await tx.get("categories", input.id) : null;
-    if (input.id && !existing) throw new AdminError("not_found", "Category not found.");
+    if (input.id && !existing) throw new AdminError("not_found", "We couldn’t find that category.");
     const category: Category = stripUndefined({
       ...(existing ?? {}),
       id: existing?.id ?? slug,
@@ -496,7 +578,7 @@ export interface StorefrontBookContract {
   gallery: { url: string; alt: string; width: number; height: number }[];
   seo: { title: string; description: string };
   relatedSlugs: string[];
-  variants: { sku: string; format: string; edition?: string; isbn?: string; pricePesewas: number; weightGrams: number; available: number; inStock: boolean }[];
+  variants: { sku: string; format: string; condition: ItemCondition; conditionGrade?: PrelovedGrade; conditionNote?: string; label: string; edition?: string; isbn?: string; pricePesewas: number; weightGrams: number; available: number; inStock: boolean }[];
 }
 
 export async function storefrontContractFor(store: AdminDataStore, ctx: StaffContext, bookId: string): Promise<StorefrontBookContract | null> {
@@ -529,7 +611,7 @@ export async function storefrontContractFor(store: AdminDataStore, ctx: StaffCon
       .map((variant) => {
         const record = inventoryBySku.get(variant.sku);
         const available = record ? Math.max(0, availableOf(record)) : 0;
-        return { sku: variant.sku, format: variant.format, edition: variant.edition, isbn: variant.isbn, pricePesewas: variant.pricePesewas, weightGrams: variant.weightGrams, available, inStock: available > 0 };
+        return { sku: variant.sku, format: variant.format, condition: variant.condition ?? "new", conditionGrade: variant.conditionGrade, conditionNote: variant.conditionNote, label: optionLabel(variant.format, variant.condition, variant.conditionGrade), edition: variant.edition, isbn: variant.isbn, pricePesewas: variant.pricePesewas, weightGrams: variant.weightGrams, available, inStock: available > 0 };
       }),
   });
 }

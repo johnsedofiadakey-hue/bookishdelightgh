@@ -10,7 +10,7 @@ import { getAdminStore } from "@/lib/admin/store";
 import type { NotificationRecord } from "@/lib/admin/types";
 import { retryNotificationAction } from "./actions";
 
-export const metadata = { title: "SMS log" };
+export const metadata = { title: "Text messages" };
 
 const TONE: Record<NotificationRecord["status"], "green" | "amber" | "red" | "blue" | "plain"> = { queued: "blue", sending: "blue", sent: "green", delivered: "green", failed: "red", suppressed: "plain" };
 
@@ -26,9 +26,9 @@ export default async function NotificationsPage({ searchParams }: { searchParams
 
   return (
     <>
-      <PageHeader eyebrow="Messages" title="SMS log" lede="Transactional SMS sent through mNotify after committed order events. Recipients are masked. Marketing messages are not sent from here." />
+      <PageHeader eyebrow="Messages" title="Text messages" lede="Order updates sent to customers by text message through mNotify. Phone numbers are partly hidden. Adverts are not sent from here." />
       <div style={{ marginBottom: 14 }}>
-        <Callout tone="info">The admin never calls mNotify directly. Retrying a failed message re-queues it for the server worker; each event can only ever be sent once.</Callout>
+        <Callout tone="info">When you press Retry, the message goes back in the queue to be sent. Each message can only be sent once.</Callout>
       </div>
       <nav className="adm-tabs" aria-label="Status">
         {["all", "failed", "queued", "sent", "delivered", "suppressed"].map((value) => (
@@ -38,19 +38,19 @@ export default async function NotificationsPage({ searchParams }: { searchParams
       {rows.length ? (
         <div className="adm-table-wrap">
           <table className="adm-table" data-stack>
-            <thead><tr><th>Event</th><th>Order</th><th>Recipient</th><th>Status</th><th>mNotify</th><th>Attempts</th><th /></tr></thead>
+            <thead><tr><th>Message</th><th>Order</th><th>Sent to</th><th>Status</th><th>mNotify</th><th>Tries</th><th /></tr></thead>
             <tbody>
               {rows.map((row) => (
                 <tr key={row.id}>
-                  <td className="primary" data-label="Event"><strong>{row.event.replace(/_/g, " ")}</strong><span className="sub">{formatDateTime(row.createdAt)} · template {row.template} v{row.templateVersion}</span></td>
+                  <td className="primary" data-label="Message"><strong>{row.event.replace(/_/g, " ")}</strong><span className="sub">{formatDateTime(row.createdAt)} · template {row.template} v{row.templateVersion}</span></td>
                   <td data-label="Order"><Link className="adm-link adm-mono" href={`/admin/orders/${row.orderId}`}>{refById.get(row.orderId) ?? row.orderId}</Link></td>
-                  <td className="adm-mono" data-label="Recipient">{row.recipientMasked}</td>
+                  <td className="adm-mono" data-label="Sent to">{row.recipientMasked}</td>
                   <td data-label="Status"><Badge tone={TONE[row.status]}>{row.status}</Badge>{row.lastError ? <span className="sub" style={{ color: "var(--red)" }}>{row.lastError}</span> : null}</td>
                   <td className="adm-mono" data-label="mNotify">{row.mnotifyCampaignId ?? "—"}</td>
-                  <td data-label="Attempts">{row.attempts} / {MAX_SMS_ATTEMPTS}</td>
+                  <td data-label="Tries">{row.attempts} / {MAX_SMS_ATTEMPTS}</td>
                   <td data-label="">
                     {row.status === "failed" && can(ctx, "notifications.retry") && row.attempts < MAX_SMS_ATTEMPTS ? (
-                      <ActionForm action={retryNotificationAction} idempotencyKey={randomUUID()} submitLabel="Retry" size="sm" variant="default" pendingLabel="Queuing…" inline>
+                      <ActionForm action={retryNotificationAction} idempotencyKey={randomUUID()} submitLabel="Try again" size="sm" variant="default" pendingLabel="Sending…" inline>
                         <input type="hidden" name="notificationId" value={row.id} />
                       </ActionForm>
                     ) : null}
@@ -61,7 +61,7 @@ export default async function NotificationsPage({ searchParams }: { searchParams
           </table>
         </div>
       ) : (
-        <EmptyState title={status === "failed" ? "No failed messages" : "No messages yet"} art="✉">Messages are created when orders are paid, dispatched, delivered, cancelled or refunded.</EmptyState>
+        <EmptyState title={status === "failed" ? "No failed messages" : "No messages yet"} icon="mail">A message is made when an order is paid, sent out, delivered, cancelled or refunded.</EmptyState>
       )}
     </>
   );

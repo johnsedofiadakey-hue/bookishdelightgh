@@ -12,7 +12,7 @@ function rateInput(form: FormData): RateInput {
   const price = parseGhsToPesewas(text(form, "price"));
   const minOrder = text(form, "minOrder").trim() ? parseGhsToPesewas(text(form, "minOrder")) : 0;
   if (price === null) throw new AdminError("invalid", "Enter the delivery price in GHS.", { pricePesewas: "e.g. 25.00" });
-  if (minOrder === null) throw new AdminError("invalid", "Enter the minimum order in GHS or leave blank.", { minOrderPesewas: "e.g. 100" });
+  if (minOrder === null) throw new AdminError("invalid", "Enter the smallest order in GHS, or leave it empty.", { minOrderPesewas: "e.g. 100" });
   const activeFrom = dateInput(form, "activeFrom") ?? new Date().toISOString();
   return {
     name: text(form, "name"),
@@ -34,16 +34,16 @@ export async function saveRateAction(_state: ActionState, form: FormData): Promi
   return runAction("delivery.edit", async ({ store, ctx }) => {
     if (rateId) {
       const { result } = await reviseRate(store, ctx, rateId, rateInput(form), idempotencyKey(form));
-      return { message: "Saved as a new version. Existing orders keep the price they were quoted.", data: { rateId: result.rateId } };
+      return { message: "Saved as a new version. Past orders keep the price they were given.", data: { rateId: result.rateId } };
     }
     await createRate(store, ctx, rateInput(form), idempotencyKey(form));
-    return { message: "Rate created." };
+    return { message: "Delivery price added." };
   });
 }
 
 export async function deactivateRateAction(_state: ActionState, form: FormData): Promise<ActionState> {
   return runAction("delivery.edit", async ({ store, ctx }) => {
     await deactivateRate(store, ctx, text(form, "rateId"), idempotencyKey(form));
-    return { message: "Rate deactivated. Checkout will no longer offer it." };
+    return { message: "Delivery price turned off. Checkout won’t offer it anymore." };
   });
 }

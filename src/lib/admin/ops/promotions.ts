@@ -47,9 +47,9 @@ export async function savePromotion(store: AdminDataStore, ctx: StaffContext, pr
   const value = validate(input);
   return runIdempotent(store, ctx, "promotions.save", idempotencyKey, async (tx) => {
     const clash = await tx.query("promotions", { where: [["code", "==", value.code]] });
-    if (clash.some((promotion) => promotion.id !== promotionId)) throw new AdminError("conflict", "Another promotion uses this code.", { code: "Already in use" });
+    if (clash.some((promotion) => promotion.id !== promotionId)) throw new AdminError("conflict", "Another discount already uses this code.", { code: "Already in use" });
     const existing = promotionId ? await tx.get("promotions", promotionId) : null;
-    if (promotionId && !existing) throw new AdminError("not_found", "Promotion not found.");
+    if (promotionId && !existing) throw new AdminError("not_found", "We couldn’t find that discount code.");
     const at = nowIso();
     const promotion: Promotion = stripUndefined({
       id: existing?.id ?? newId("promo"),

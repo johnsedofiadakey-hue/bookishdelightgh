@@ -17,7 +17,7 @@ export async function currentSession(): Promise<SessionResolution> {
 /** For Server Actions and Route Handlers: throws instead of redirecting. */
 export async function requireStaff(permission?: Permission): Promise<StaffContext> {
   const session = await currentSession();
-  if (!session.ok) throw new AdminError("unauthenticated", "Your session has ended. Sign in again.");
+  if (!session.ok) throw new AdminError("unauthenticated", "You’ve been signed out. Please sign in again.");
   if (permission) assertPermission(session.ctx, permission);
   return session.ctx;
 }

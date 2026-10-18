@@ -57,3 +57,25 @@
   .storefront .checkout-form .form-grid { grid-template-columns: minmax(0, 1fr); }
   .storefront .checkout-form .form-grid label.wide { grid-column: auto; }
 }
+
+/* Brand new / preloved */
+.storefront .product-conditions { display: flex; flex-wrap: wrap; gap: 5px; margin: 0 0 8px; }
+.storefront .product-conditions span { font-size: 10px; font-weight: 800; letter-spacing: .04em; padding: 3px 7px; border-radius: 20px; background: #e6eef9; color: #23466f; }
+.storefront .product-conditions span[data-condition="preloved"] { background: #e2f1e9; color: #2f6f57; }
+.storefront .choose-option { display: grid; place-items: center; width: 30px; height: 30px; border: 1px solid #c7c5c1; border-radius: 50%; font-size: 18px; line-height: 1; text-decoration: none; }
+.storefront .condition-detail { display: block; margin-top: 4px; font-size: 12px; line-height: 1.5; color: #5f6474; font-weight: 400; }
+.storefront .footer-socials { display: flex; flex-direction: column; gap: 6px; margin: 4px 0 0; }
+.storefront .footer-socials a { font-size: 12px; font-weight: 800; }
+@media (max-width: 600px) { .storefront .choose-option { width: 24px; height: 24px; font-size: 14px; } }
+
+/* Bundles */
+.storefront .detail-saving { font-size: 14px; font-weight: 700; color: #2f6f57; margin-left: 8px; letter-spacing: 0; }
+.storefront .detail-saving s { color: #8b8f9b; font-weight: 500; margin-right: 6px; }
+.storefront .product-tag-saving { background: #2f6f57; color: #fff; }
+.storefront .bundle-contents { margin: 18px 0; padding: 16px 18px; border-radius: 12px; background: #f4f7f2; }
+.storefront .bundle-contents h2 { margin: 0 0 10px; font-size: 15px; letter-spacing: 0; }
+.storefront .bundle-contents ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.storefront .bundle-contents li { font-size: 14px; line-height: 1.4; }
+.storefront .bundle-contents li > span { font-weight: 800; margin-right: 4px; }
+.storefront .bundle-contents small { display: block; color: #6b7080; font-size: 12px; margin-left: 22px; }
+.storefront .product-conditions span[data-condition="mixed"] { background: #f7ead9; color: #8a5420; }

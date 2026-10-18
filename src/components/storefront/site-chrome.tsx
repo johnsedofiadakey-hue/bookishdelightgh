@@ -4,22 +4,22 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { BrandLockup } from "@/components/storefront/brand-lockup";
-import { BagIcon, SearchIcon, WhatsAppIcon } from "@/components/storefront/icons";
+import { ArrowUpIcon, BagIcon, GridIcon, HomeIcon, SearchIcon, WhatsAppIcon } from "@/components/storefront/icons";
 import { useCart } from "@/components/storefront/cart-context";
-import { bookishBrand, bookishWhatsAppUrl } from "@/lib/brand";
+import { bookishBrand, bookishSocials, bookishWhatsAppUrl } from "@/lib/brand";
 
 export function SiteHeader() {
   const { count } = useCart();
 
   return <>
-    <div className="preview-ribbon">Store preview <span>·</span> We’re adding our products online <span>·</span> Online orders unavailable</div>
-    <div className="announcement"><span>Children’s books, puzzles & educational games.</span><span>Based in Kumasi · Nationwide delivery planned</span></div>
+    <div className="preview-ribbon">Store preview <span>·</span> We’re still putting our books online <span>·</span> You can’t order online yet</div>
+    <div className="announcement"><span>Brand new &amp; preloved children’s books.</span><span>Based in Kumasi · Delivery across Ghana coming soon</span></div>
     <header className="site-header">
       <div className="header-inner shell">
         <Link className="brand" href="/" aria-label="Bookish Delight Ghana home"><BrandLockup/></Link>
-        <nav className="desktop-nav" aria-label="Primary navigation"><Link href="/shop">Shop all</Link><Link href="/#categories">Categories</Link><Link href="/shop?category=ghanaian">Ghanaian stories</Link><Link href="/contact">Contact</Link></nav>
+        <nav className="desktop-nav" aria-label="Primary navigation"><Link href="/shop">Shop all</Link><Link href="/shop?condition=new">Brand new</Link><Link href="/shop?condition=preloved">Preloved</Link><Link href="/shop?category=bundles">Bundle deals</Link><Link href="/contact">Contact</Link></nav>
         <div className="header-actions">
-          <form className="search-shortcut" action="/shop" role="search"><button className="search-submit" type="submit" aria-label="Search the shop"><SearchIcon/></button><input name="q" type="search" placeholder="Find a book or game..." aria-label="Search the shop" /></form>
+          <form className="search-shortcut" action="/shop" role="search"><button className="search-submit" type="submit" aria-label="Search the shop"><SearchIcon/></button><input name="q" type="search" placeholder="Find a book..." aria-label="Search the shop" /></form>
           <Link className="icon-button bag" href="/cart" aria-label={`Shopping bag with ${count} items`}><BagIcon/><span className="bag-count">{count}</span></Link>
           <a className="header-whatsapp" href={bookishWhatsAppUrl} target="_blank" rel="noopener noreferrer"><WhatsAppIcon/><span>Let’s chat</span></a>
         </div>
@@ -30,7 +30,7 @@ export function SiteHeader() {
 
 export function MobileNav() {
   const { count } = useCart();
-  return <nav className="mobile-bar" aria-label="Mobile navigation"><Link href="/"><span aria-hidden="true">⌂</span>Home</Link><Link href="/#categories"><span aria-hidden="true">▦</span>Categories</Link><Link href="/shop"><span aria-hidden="true">⌕</span>Search</Link><Link href="/cart"><span aria-hidden="true">♧</span>Bag{count > 0 ? ` (${count})` : ""}</Link></nav>;
+  return <nav className="mobile-bar" aria-label="Mobile navigation"><Link href="/"><span aria-hidden="true"><HomeIcon/></span>Home</Link><Link href="/#categories"><span aria-hidden="true"><GridIcon/></span>Categories</Link><Link href="/shop"><span aria-hidden="true"><SearchIcon/></span>Search</Link><Link href="/cart"><span aria-hidden="true"><BagIcon/></span>Bag{count > 0 ? ` (${count})` : ""}</Link></nav>;
 }
 
 export function FloatingWhatsApp() {
@@ -51,9 +51,9 @@ export function FloatingWhatsApp() {
 
 export function SiteFooter() {
   return <footer className="footer"><div className="shell footer-inner">
-    <div className="footer-identity"><Link className="brand footer-lockup" href="/" aria-label="Bookish Delight Ghana home"><BrandLockup footer/></Link><p>{bookishBrand.tagline}.</p><span className="footer-preview">Store preview · Online orders unavailable</span></div>
-    <div className="footer-links"><h2>Explore</h2><Link href="/shop">Shop all</Link><Link href="/shop?category=picture-books">Picture books</Link><Link href="/shop?category=learning">Learning resources</Link><Link href="/shop?category=puzzles">Puzzles & games</Link><Link href="/contact">Contact us</Link></div>
+    <div className="footer-identity"><Link className="brand footer-lockup" href="/" aria-label="Bookish Delight Ghana home"><BrandLockup footer/></Link><p>{bookishBrand.tagline}.</p><span className="footer-preview">Store preview · You can’t order online yet</span></div>
+    <div className="footer-links"><h2>Explore</h2><Link href="/shop">Shop all</Link><Link href="/shop?condition=new">Brand new</Link><Link href="/shop?condition=preloved">Preloved</Link><Link href="/shop?category=bundles">Bundle deals</Link><Link href="/#categories">All shelves</Link><Link href="/contact">Contact us</Link></div>
     <div className="footer-links"><h2>Help</h2><Link href="/track">Track your order</Link><Link href="/delivery">Delivery</Link><Link href="/returns">Returns &amp; refunds</Link><Link href="/terms">Terms</Link><Link href="/privacy">Privacy</Link><Link href="/safety">Product safety</Link></div>
-    <div className="footer-contact"><h2>Find us</h2><p>{bookishBrand.streetAddress}</p><p>GPS: {bookishBrand.gpsAddress}<br/>{bookishBrand.postalAddress}</p><a href={bookishWhatsAppUrl} target="_blank" rel="noopener noreferrer"><WhatsAppIcon/> WhatsApp {bookishBrand.whatsappDisplay}</a></div>
-  </div><div className="shell footer-bottom"><span>© {new Date().getFullYear()} Bookish Delight GH</span><div className="footer-bottom-actions"><Link href="/#top">Back to top ↑</Link><Link className="footer-admin-link" href="/admin/sign-in">Admin login</Link></div></div></footer>;
+    <div className="footer-contact"><h2>Find us</h2><p>{bookishBrand.streetAddress}</p><p>GPS: {bookishBrand.gpsAddress}<br/>{bookishBrand.postalAddress}</p><a href={bookishWhatsAppUrl} target="_blank" rel="noopener noreferrer"><WhatsAppIcon/> WhatsApp {bookishBrand.whatsappDisplay}</a><div className="footer-socials">{bookishSocials.map((social) => <a key={social.name} href={social.url} target="_blank" rel="noopener noreferrer">{social.name} {social.handle}</a>)}</div></div>
+  </div><div className="shell footer-bottom"><span>© {new Date().getFullYear()} Bookish Delight GH</span><div className="footer-bottom-actions"><Link href="/#top">Back to top <ArrowUpIcon/></Link><Link className="footer-admin-link" href="/admin/sign-in">Admin login</Link></div></div></footer>;
 }

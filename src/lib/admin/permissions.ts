@@ -84,19 +84,19 @@ const ROLE_PERMISSIONS: Record<StaffRole, ReadonlySet<Permission>> = {
 export const ROLE_LABELS: Record<StaffRole, string> = {
   owner: "Owner",
   manager: "Manager",
-  catalogue_editor: "Catalogue editor",
-  fulfilment: "Fulfilment",
+  catalogue_editor: "Product editor",
+  fulfilment: "Packing & delivery",
   support: "Support",
-  viewer: "Viewer",
+  viewer: "View only",
 };
 
 export const ROLE_DESCRIPTIONS: Record<StaffRole, string> = {
-  owner: "Everything, including staff, roles and refunds.",
-  manager: "All operations and finance. Cannot manage staff.",
-  catalogue_editor: "Books, variants, covers, imports, receiving stock and homepage drafts.",
-  fulfilment: "Picking, packing, dispatch, manual sales and stock adjustments.",
-  support: "Order look-up, customer contact and SMS retries.",
-  viewer: "Read-only view of operations. No customer contact details.",
+  owner: "Can do everything, including staff, roles and refunds.",
+  manager: "Can run the shop and see the money. Can’t add or change staff.",
+  catalogue_editor: "Can add and edit products, options and photos, import spreadsheets, add new stock and draft the homepage.",
+  fulfilment: "Can pack and send orders, record sales made outside the website and fix stock counts.",
+  support: "Can look up orders, contact customers and resend text messages.",
+  viewer: "Can look but not change anything. Can’t see customer contact details.",
 };
 
 export function roleHas(role: StaffRole, permission: Permission): boolean {

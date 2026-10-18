@@ -23,7 +23,7 @@ const cover = { path: "covers/x/img_1.webp", url: "/admin/media/covers/x/img_1.w
 async function bookWithVariant(store: ReturnType<typeof freshStore>, sku = "TEST-PB-01") {
   const editor = ctxFor("catalogue_editor");
   const { result } = await createBook(store, editor, { title: "Test Book", authors: ["Ama Writer"], description: "A thoroughly tested description.", language: "English", ageBand: "8-12", categoryIds: ["fiction"], tags: [], relatedBookIds: [] }, key());
-  await createVariant(store, editor, result.bookId, { sku, format: "Paperback", isbn: "978-0-306-40615-7", pricePesewas: 9500, weightGrams: 320, active: true }, key());
+  await createVariant(store, editor, result.bookId, { sku, format: "Paperback", condition: "new", isbn: "978-0-306-40615-7", pricePesewas: 9500, weightGrams: 320, active: true }, key());
   return result.bookId;
 }
 
@@ -112,10 +112,10 @@ describe("catalogue → storefront contract", () => {
     const store = freshStore();
     const bookId = await bookWithVariant(store);
     const editor = ctxFor("catalogue_editor");
-    await assert.rejects(createVariant(store, editor, bookId, { sku: "TEST-PB-01", format: "Hardcover", pricePesewas: 1, weightGrams: 1, active: true }, key()), rejectsWith("conflict"));
-    await assert.rejects(createVariant(store, editor, bookId, { sku: "TEST-PB-02", format: "Paperback", isbn: "9780306406157", pricePesewas: 1, weightGrams: 1, active: true }, key()), rejectsWith("conflict"));
-    await createVariant(store, editor, bookId, { sku: "TEST-HC-01", format: "Hardcover", isbn: "9780306406157", pricePesewas: 15000, weightGrams: 600, active: true }, key());
-    assert.equal(publishBlockers((await store.get("books", bookId))!, await store.query("bookVariants")).includes("Upload a cover image."), true);
+    await assert.rejects(createVariant(store, editor, bookId, { sku: "TEST-PB-01", format: "Hardcover", condition: "new", pricePesewas: 1, weightGrams: 1, active: true }, key()), rejectsWith("conflict"));
+    await assert.rejects(createVariant(store, editor, bookId, { sku: "TEST-PB-02", format: "Paperback", condition: "new", isbn: "9780306406157", pricePesewas: 1, weightGrams: 1, active: true }, key()), rejectsWith("conflict"));
+    await createVariant(store, editor, bookId, { sku: "TEST-HC-01", format: "Hardcover", condition: "new", isbn: "9780306406157", pricePesewas: 15000, weightGrams: 600, active: true }, key());
+    assert.equal(publishBlockers((await store.get("books", bookId))!, await store.query("bookVariants")).includes("Upload a cover photo."), true);
   });
 });
 

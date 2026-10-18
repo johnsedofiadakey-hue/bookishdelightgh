@@ -20,7 +20,7 @@ export const DEFAULT_HOMEPAGE: HomepageContent = {
   announcement: { text: "A good story can take you anywhere. We deliver books across Ghana.", enabled: true },
   featuredShelves: [{ id: "shelf-main", title: "Good books, great finds.", bookIds: [] }],
   ghanaianPicks: [],
-  trustPoints: ["Delivered across Ghana", "Books, puzzles & games for kids", "Pay securely online", "Carefully packed with love"],
+  trustPoints: ["Delivered across Ghana", "Brand new & preloved books", "Pay securely online", "Carefully packed with love"],
   deliveryCopy: "Delivery prices are shown at checkout before you pay.",
 };
 
@@ -47,7 +47,7 @@ function validateHomepage(content: HomepageContent, publishedBookIds: Set<string
 
 export async function saveHomepageDraft(store: AdminDataStore, ctx: StaffContext, draft: HomepageContent, idempotencyKey: string) {
   assertPermission(ctx, "content.edit");
-  if (draft.featuredShelves.length > 6) throw new AdminError("invalid", "Up to 6 featured shelves.");
+  if (draft.featuredShelves.length > 6) throw new AdminError("invalid", "You can have up to 6 featured shelves.");
   return runIdempotent(store, ctx, "content.homepage.draft", idempotencyKey, async (tx) => {
     const current = await tx.get("siteContent", "homepage");
     const at = nowIso();

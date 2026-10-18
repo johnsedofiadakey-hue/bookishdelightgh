@@ -54,10 +54,10 @@ export function BookForm({
           <Field name="subtitle" label="Subtitle">
             <input type="text" name="subtitle" defaultValue={book?.subtitle} maxLength={200} />
           </Field>
-          <Field name="slug" label="URL slug" hint={`/books/${book?.slug ?? (slugPreview(title) || "…")}`}>
+          <Field name="slug" label="Web address" hint={`/books/${book?.slug ?? (slugPreview(title) || "…")}`}>
             <input type="text" name="slug" defaultValue={book?.slug} placeholder={slugPreview(title) || "auto from title"} pattern="[a-z0-9]+(-[a-z0-9]+)*" />
           </Field>
-          <Field name="authors" label="Author(s) or brand" hint="Separate several with commas. Leave empty for puzzles and games without one.">
+          <Field name="authors" label="Author(s) or brand" hint="Separate several with commas. Leave empty for items without one, such as some flashcards or bundles.">
             <input type="text" name="authors" defaultValue={book?.authors.join(", ")} />
           </Field>
           <Field name="publisher" label="Publisher">
@@ -66,7 +66,7 @@ export function BookForm({
           <Field name="language" label="Language">
             <input type="text" name="language" defaultValue={book?.language ?? "English"} list="adm-languages" />
           </Field>
-          <Field name="ageBand" label="Age band" required>
+          <Field name="ageBand" label="Age range" required>
             <select name="ageBand" defaultValue={book?.ageBand ?? "all-ages"}>
               {AGE_BANDS.map((band) => <option key={band} value={band}>{AGE_LABELS[band]}</option>)}
             </select>
@@ -82,16 +82,16 @@ export function BookForm({
               ))}
             </div>
           </fieldset>
-          <Field name="tags" label="Tags" wide hint="Comma separated, e.g. adventure, friendship, accra">
+          <Field name="tags" label="Tags" wide hint="Words that help people find it. Separate with commas, e.g. adventure, friendship, accra">
             <input type="text" name="tags" defaultValue={book?.tags.join(", ")} />
           </Field>
-          <Field name="description" label="Description" wide hint="Shown on the book page. At least 20 characters before publishing.">
+          <Field name="description" label="Description" wide hint="Shown on the book page. Needs at least 20 characters before you can publish.">
             <textarea name="description" defaultValue={book?.description} rows={6} maxLength={5000} />
           </Field>
-          <Field name="seoTitle" label="SEO title" hint="Max 70 characters. Defaults to the title.">
+          <Field name="seoTitle" label="Google title" hint="The title Google shows. Up to 70 characters. If empty, we use the book title.">
             <input type="text" name="seoTitle" defaultValue={book?.seoTitle} maxLength={70} />
           </Field>
-          <Field name="seoDescription" label="SEO description" hint={`${seoDescription.length}/170`}>
+          <Field name="seoDescription" label="Google description" hint={`${seoDescription.length}/170`}>
             <input type="text" name="seoDescription" defaultValue={book?.seoDescription} maxLength={170} onChange={(event) => setSeoDescription(event.target.value)} />
           </Field>
           {otherBooks.length ? (

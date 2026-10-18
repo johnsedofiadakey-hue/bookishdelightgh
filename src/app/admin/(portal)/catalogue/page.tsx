@@ -6,8 +6,9 @@ import { can } from "@/lib/admin/context";
 import { formatDate } from "@/lib/admin/format";
 import { listCatalogue, listCategories, type CatalogueFilter } from "@/lib/admin/ops/catalogue";
 import { getAdminStore } from "@/lib/admin/store";
+import { optionLabel } from "@/lib/contracts/catalog";
 
-export const metadata = { title: "Catalogue" };
+export const metadata = { title: "Products" };
 
 export default async function CataloguePage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const access = await pageAccess("catalogue.view");
@@ -29,13 +30,13 @@ export default async function CataloguePage({ searchParams }: { searchParams: Pr
   return (
     <>
       <PageHeader
-        eyebrow="Shelf"
-        title="Catalogue"
-        lede="Books are the editorial record; each format or edition is a variant with its own SKU, price and stock."
+        eyebrow="Shop"
+        title="Products"
+        lede="Each product can have several options, like Paperback or Hardcover, New or Preloved. Each option has its own item code, price and stock."
         actions={
           <>
-            <a className="adm-btn" href="/admin/api/export/catalogue">{icons.download} Export CSV</a>
-            {can(ctx, "catalogue.import") ? <Link className="adm-btn" href="/admin/catalogue/import">Import CSV</Link> : null}
+            <a className="adm-btn" href="/admin/api/export/catalogue">{icons.download} Download spreadsheet</a>
+            {can(ctx, "catalogue.import") ? <Link className="adm-btn" href="/admin/catalogue/import">Import spreadsheet</Link> : null}
             {can(ctx, "catalogue.edit") ? <Link className="adm-btn" data-variant="primary" href="/admin/catalogue/new">{icons.plus} Add a book</Link> : null}
           </>
         }
@@ -44,7 +45,7 @@ export default async function CataloguePage({ searchParams }: { searchParams: Pr
       <form className="adm-filters" role="search" action="/admin/catalogue">
         <label className="adm-field grow">
           <span>Search</span>
-          <input type="search" name="q" defaultValue={params.q} placeholder="Title, author, ISBN or SKU" />
+          <input type="search" name="q" defaultValue={params.q} placeholder="Title, author, ISBN or item code" />
         </label>
         <label className="adm-field">
           <span>Status</span>
@@ -85,20 +86,20 @@ export default async function CataloguePage({ searchParams }: { searchParams: Pr
       </form>
 
       {!all.length ? (
-        <EmptyState title="Your shelf is empty" art="📚" action={can(ctx, "catalogue.edit") ? <Link className="adm-btn" data-variant="primary" href="/admin/catalogue/new">Add your first book</Link> : undefined}>
-          Start with one book: add its details, create a variant (format, SKU, price, weight), receive its opening stock, upload a cover, then publish. Or import many at once from a CSV.
+        <EmptyState title="No products yet" icon="catalogue" action={can(ctx, "catalogue.edit") ? <Link className="adm-btn" data-variant="primary" href="/admin/catalogue/new">Add your first book</Link> : undefined}>
+          Start with one book. Add its details, then add an option (type, item code, price, weight). Add your stock, upload a cover photo, then publish. Or import many at once from a spreadsheet.
         </EmptyState>
       ) : !rows.length ? (
-        <EmptyState title="No books match these filters" art="⌕" action={<Link className="adm-btn" href="/admin/catalogue">Clear filters</Link>} />
+        <EmptyState title="Nothing matches these filters" icon="search" action={<Link className="adm-btn" href="/admin/catalogue">Clear filters</Link>} />
       ) : (
         <div className="adm-table-wrap">
           <table className="adm-table" data-stack>
             <caption className="sr-only">{rows.length} books</caption>
             <thead>
               <tr>
-                <th>Book</th>
+                <th>Product</th>
                 <th>Status</th>
-                <th>Variants</th>
+                <th>Options</th>
                 <th>Stock</th>
                 <th className="num">From</th>
                 <th>Updated</th>
@@ -107,7 +108,7 @@ export default async function CataloguePage({ searchParams }: { searchParams: Pr
             <tbody>
               {rows.map((row) => (
                 <tr key={row.book.id}>
-                  <td className="primary" data-label="Book">
+                  <td className="primary" data-label="Product">
                     <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
                       {row.book.cover ? (
                         // eslint-disable-next-line @next/next/no-img-element
@@ -123,8 +124,8 @@ export default async function CataloguePage({ searchParams }: { searchParams: Pr
                     </div>
                   </td>
                   <td data-label="Status"><PublishBadge status={row.book.status} /></td>
-                  <td data-label="Variants">
-                    {row.variants.length ? row.variants.map((variant) => <span className="sub adm-mono" key={variant.sku}>{variant.sku} · {variant.format}{variant.active ? "" : " (inactive)"}</span>) : <span className="adm-muted">None yet</span>}
+                  <td data-label="Options">
+                    {row.variants.length ? row.variants.map((variant) => <span className="sub adm-mono" key={variant.sku}>{variant.sku} · {optionLabel(variant.format, variant.condition, variant.conditionGrade)}{variant.active ? "" : " (inactive)"}</span>) : <span className="adm-muted">None yet</span>}
                   </td>
                   <td data-label="Stock"><StockBadge available={row.totalAvailable} threshold={0} /></td>
                   <td className="num" data-label="From">{row.minPricePesewas !== null ? <Money pesewas={row.minPricePesewas} /> : "—"}</td>
