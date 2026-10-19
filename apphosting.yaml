@@ -1,7 +1,8 @@
 # Public Firebase web config is required in the Next.js build and server runtime.
-# Paystack is intentionally unbound while the Secret Manager entry has no version.
-# Add a runtime-only PAYSTACK_SECRET_KEY secret binding after the owner supplies it
-# through Firebase App Hosting. Checkout remains disabled until then.
+# The Paystack secret key comes from Secret Manager at runtime only. It is
+# never in the build, the browser, or this repository. Set it with:
+#   firebase apphosting:secrets:set PAYSTACK_SECRET_KEY --project bookishdelightghh
+# Online checkout stays off until an owner turns it on in Admin → Settings.
 runConfig:
   minInstances: 0
   maxInstances: 2
@@ -51,4 +52,8 @@ env:
     value: "firestore"
     availability:
       - BUILD
+      - RUNTIME
+  - variable: PAYSTACK_SECRET_KEY
+    secret: PAYSTACK_SECRET_KEY
+    availability:
       - RUNTIME
