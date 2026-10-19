@@ -48,7 +48,7 @@ export default async function PortalLayout({ children }: { children: ReactNode }
         { href: "/admin/inventory", label: "Stock", icon: "inventory", permission: "inventory.view" },
         { href: "/admin/content", label: "Homepage", icon: "content", permission: "content.view" },
         { href: "/admin/promotions", label: "Discount codes", icon: "promotions", permission: "promotions.view" },
-        { href: "/admin/delivery", label: "Delivery rates", icon: "delivery", permission: "delivery.view" },
+        { href: "/admin/delivery", label: "Delivery prices", icon: "delivery", permission: "delivery.view" },
       ],
     },
     {
@@ -65,6 +65,7 @@ export default async function PortalLayout({ children }: { children: ReactNode }
       entries: [
         { href: "/admin/staff", label: "Staff", icon: "staff", permission: "staff.view" },
         { href: "/admin/settings", label: "Settings", icon: "settings", permission: "settings.view" },
+        { href: "/admin/help", label: "Help & guides", icon: "help", permission: "dashboard.view" },
       ],
     },
   ];

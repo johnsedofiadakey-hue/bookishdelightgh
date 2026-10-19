@@ -29,8 +29,8 @@ export default async function InventoryPage({ searchParams }: { searchParams: Pr
         lede="Stock is counted for each item code. Available = on the shelf − held for orders that aren’t paid or sent yet. Every change is recorded."
         actions={
           <>
-            <a className="adm-btn" href="/admin/api/export/low-stock">{icons.download} Low-stock CSV</a>
-            <a className="adm-btn" href="/admin/api/export/inventory">{icons.download} Full CSV</a>
+            <a className="adm-btn" href="/admin/api/export/low-stock">{icons.download} Low stock spreadsheet</a>
+            <a className="adm-btn" href="/admin/api/export/inventory">{icons.download} Full stock spreadsheet</a>
           </>
         }
       />

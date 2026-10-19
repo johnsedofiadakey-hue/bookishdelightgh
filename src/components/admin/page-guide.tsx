@@ -1,8 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { icons } from "@/components/admin/icons";
+import { GuideContent } from "@/components/admin/guide-content";
 import { guideFor } from "@/lib/admin/guides";
 
 const ALL_KEY = "bd-admin-guides-hidden";
@@ -61,10 +63,13 @@ export function PageGuide() {
       </summary>
       <div className="adm-guide-body">
         <p className="adm-guide-purpose">{guide.purpose}</p>
-        <ol>{guide.steps.map((step) => <li key={step}>{step}</li>)}</ol>
-        {guide.tips?.length ? <div className="adm-guide-tips"><strong>Good to know</strong><ul>{guide.tips.map((tip) => <li key={tip}>{tip}</li>)}</ul></div> : null}
-        <button type="button" className="adm-guide-hide-all" onClick={() => { write(ALL_KEY, true); setHiddenAll(true); }}>Hide guides on all pages</button>
+        <GuideContent guide={guide} foldButtons />
+        <div className="adm-guide-foot">
+          {guide.id !== "help" ? <Link className="adm-link" href="/admin/help">See all guides</Link> : null}
+          <button type="button" className="adm-guide-hide-all" onClick={() => { write(ALL_KEY, true); setHiddenAll(true); }}>Hide guides on all pages</button>
+        </div>
       </div>
     </details>
   );
 }
+

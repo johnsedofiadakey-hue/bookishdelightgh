@@ -97,7 +97,7 @@ export function ManualSaleForm({ action, idempotencyKey, variants, rates, canApp
             </select>
           </Field>
           <Field name="name" label="Customer name" required><input type="text" name="name" required autoComplete="off" /></Field>
-          <Field name="phone" label="Phone (for text updates)" required><input type="tel" name="phone" required placeholder="024 000 0000" /></Field>
+          <Field name="phone" label="Phone" required><input type="tel" name="phone" required placeholder="024 000 0000" /></Field>
           <Field name="email" label="Email"><input type="email" name="email" /></Field>
         </div>
       </section>

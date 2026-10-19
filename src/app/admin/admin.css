@@ -334,3 +334,25 @@ a.adm-stat:hover { border-color: var(--coral); transform: translateY(-1px); }
 /* Small icons placed inside text links */
 .adm-link svg { width: 14px; height: 14px; vertical-align: -2px; margin-left: 2px; }
 .slip-check svg { width: 14px; height: 14px; display: block; margin: 0 auto; }
+.adm-guide-heading { margin: 12px 0 6px; font-size: 12px; font-weight: 750; letter-spacing: 0.06em; text-transform: uppercase; color: #2f5f9e; }
+.adm-guide-buttons { margin: 0 0 12px; display: grid; gap: 6px; }
+.adm-guide-buttons > div { display: grid; grid-template-columns: minmax(150px, 220px) minmax(0, 1fr); gap: 10px; align-items: baseline; background: #ffffffa8; border-radius: 8px; padding: 7px 10px; }
+.adm-guide-buttons dt { font-weight: 700; color: var(--ink); }
+.adm-guide-buttons dd { margin: 0; }
+.adm-guide-foot { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; }
+@media (max-width: 600px) { .adm-guide-buttons > div { grid-template-columns: minmax(0, 1fr); gap: 2px; } }
+
+/* Help page */
+.adm-help-steps { list-style: none; counter-reset: step; margin: 0; padding: 0; display: grid; gap: 8px; }
+.adm-help-steps li { counter-increment: step; display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); }
+.adm-help-steps li::before { content: counter(step); width: 30px; height: 30px; border-radius: 50%; background: var(--coral); color: #fff; display: grid; place-items: center; font-weight: 750; }
+.adm-help-steps strong { display: block; }
+.adm-help-steps span { color: var(--muted); font-size: 13px; }
+.adm-help-toc { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 16px; padding: 0; list-style: none; }
+.adm-help-toc a { display: inline-block; padding: 5px 10px; border-radius: 99px; background: var(--cream); text-decoration: none; font-weight: 650; font-size: 13px; }
+.adm-help-toc a:hover { background: var(--coral-soft); color: var(--coral-ink); }
+.adm-help-guide { scroll-margin-top: 80px; }
+@media (max-width: 600px) { .adm-help-steps li { grid-template-columns: 30px minmax(0, 1fr); } .adm-help-steps li > a { grid-column: 2; justify-self: start; } }
+.adm-guide-fold { margin: 4px 0 12px; }
+.adm-guide-fold > summary { cursor: pointer; font-weight: 700; color: #2f5f9e; padding: 4px 0; }
+.adm-guide-fold[open] > summary { margin-bottom: 8px; }

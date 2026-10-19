@@ -56,7 +56,7 @@ export async function refundAction(_state: ActionState, form: FormData): Promise
     return {
       message:
         outcome.gateway === "not_connected"
-          ? "Refund request recorded. Paystack submission is not connected yet (shared request R5), so no money has moved. The order shows “Refund pending”."
+          ? "Refund saved here, but no money has been sent. Now send the refund in your Paystack dashboard (Transactions → this payment → Refund)."
           : `Refund submitted to Paystack (${outcome.gateway}).`,
     };
   });
